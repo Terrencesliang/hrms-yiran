@@ -162,9 +162,9 @@ frappe.pages["organizational-chart"].on_page_load = function (wrapper) {
 			const device_type = frappe.is_mobile() ? "mobile" : "desktop";
 
 			if (frappe.is_mobile()) {
-				organizational_chart = new hrms.HierarchyChartMobile("Employee", wrapper, method);
+				organizational_chart = new hrms.HierarchyChartMobile("Department", wrapper, method);
 			} else {
-				organizational_chart = new hrms.HierarchyChart("Employee", wrapper, method);
+				organizational_chart = new hrms.HierarchyChart("Department", wrapper, method);
 			}
 
 			frappe.breadcrumbs.add("HR");
