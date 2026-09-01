@@ -1,0 +1,120 @@
+/* ============================================================
+ * 组织架构 (orgchart) — 自定义样式
+ * 对齐 Frappe 17 (espresso) 设计令牌, 与 roster 保持一致
+ * 语义变量源: apps/frappe/frappe/public/scss/common/css_variables.scss
+ * ============================================================ */
+
+.orgchart-page {
+	--oc-border: var(--border-color);
+	--oc-border-strong: var(--gray-300);
+	--oc-bg: var(--surface-base);
+	--oc-bg-subtle: var(--gray-50);
+	--oc-bg-hover: var(--fg-hover-color);
+	--oc-text: var(--text-color);
+	--oc-text-muted: var(--text-muted);
+	padding: 0;
+}
+
+/* ---------- 顶栏 ---------- */
+.orgchart-toolbar { margin-bottom: 16px; }
+
+.orgchart-title-bar {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 16px;
+	background: var(--oc-bg-subtle);
+	border: 1px solid var(--oc-border);
+	border-radius: var(--radius);
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--oc-text);
+}
+.orgchart-sub {
+	font-size: 12px;
+	color: var(--oc-text-muted);
+	font-weight: 400;
+	margin-left: auto;
+}
+
+/* ---------- 表格容器 ---------- */
+.orgchart-tree {
+	position: relative;
+	background: var(--oc-bg);
+	border: 1px solid var(--oc-border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-sm);
+	overflow: hidden;
+}
+
+/* ---------- 表头 + 行 ---------- */
+.orgchart-table-head,
+.orgchart-row {
+	display: flex;
+	align-items: center;
+	border-bottom: 1px solid var(--oc-border);
+}
+.orgchart-table-head {
+	background: var(--oc-bg-subtle);
+	font-weight: 600;
+	color: var(--oc-text-muted);
+	font-size: 13px;
+	padding: 10px 0;
+}
+
+/* ---------- 列 ---------- */
+.oc-col {
+	flex: 1 1 0;
+	padding: 9px 12px;
+	font-size: 13px;
+	color: var(--oc-text);
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.oc-col-name {
+	flex: 3.2 1 0;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	min-width: 0;
+}
+.oc-col-type { flex: 0.6 1 0; text-align: center; }
+.oc-col-emp { flex: 0.55 1 0; text-align: center; }
+.oc-col-bianzhi { flex: 0.65 1 0; text-align: center; }
+.oc-col-qb { flex: 0.65 1 0; text-align: center; }
+.oc-col-head { flex: 0.8 1 0; text-align: center; }
+.oc-col-fg { flex: 0.8 1 0; text-align: center; }
+
+/* ---------- 行 ---------- */
+.orgchart-row {
+	position: relative;
+	transition: background .15s;
+}
+.orgchart-row:hover { background: var(--oc-bg-hover); }
+
+/* ---------- 折叠箭头 ---------- */
+.oc-arrow {
+	display: inline-block;
+	width: 16px;
+	text-align: center;
+	cursor: pointer;
+	color: var(--oc-text-muted);
+	font-size: 13px;
+	user-select: none;
+	transition: transform .15s;
+	flex: 0 0 16px;
+}
+.oc-arrow.open { color: var(--oc-text); }
+.oc-arrow-empty { visibility: hidden; }
+
+/* ---------- 节点名 ---------- */
+.oc-node {
+	font-weight: 500;
+	color: var(--oc-text);
+}
+
+/* 深层节点缩进参考线 */
+.orgchart-row[data-depth] .oc-col-name { position: relative; }
+
+.orgchart-table-body { width: 100%; }

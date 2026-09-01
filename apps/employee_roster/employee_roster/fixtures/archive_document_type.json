@@ -1,0 +1,47 @@
+[
+ {
+  "doctype": "Archive Document Type",
+  "name": "id_card",
+  "document_type": "id_card",
+  "document_name": "身份证原件",
+  "is_required": 1,
+  "sort_order": 1,
+  "is_active": 1
+ },
+ {
+  "doctype": "Archive Document Type",
+  "name": "education_cert",
+  "document_type": "education_cert",
+  "document_name": "学历证书",
+  "is_required": 1,
+  "sort_order": 2,
+  "is_active": 1
+ },
+ {
+  "doctype": "Archive Document Type",
+  "name": "onboarding_form",
+  "document_type": "onboarding_form",
+  "document_name": "入职登记表",
+  "is_required": 1,
+  "sort_order": 3,
+  "is_active": 1
+ },
+ {
+  "doctype": "Archive Document Type",
+  "name": "labor_contract",
+  "document_type": "labor_contract",
+  "document_name": "劳动合同",
+  "is_required": 1,
+  "sort_order": 4,
+  "is_active": 1
+ },
+ {
+  "doctype": "Archive Document Type",
+  "name": "resignation_cert",
+  "document_type": "resignation_cert",
+  "document_name": "离职证明",
+  "is_required": 1,
+  "sort_order": 5,
+  "is_active": 1
+ }
+]

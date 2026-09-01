@@ -1,0 +1,28 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Local / secrets
+.env
+.env.*
+*.pem
+site_config.json
+**/private/
+_tmp*/
+
+# Node
+node_modules/
+.yarn/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db

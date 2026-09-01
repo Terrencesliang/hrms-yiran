@@ -1,0 +1,518 @@
+/* 员工花名册 — 仅页面内容样式，不覆写 Frappe 顶栏/侧栏 */
+
+/* ---------- 页面内容 ---------- */
+.hr-roster-page {
+	--hr-primary: #00b386;
+	--hr-primary-hover: #00a077;
+	--hr-border: #e5e6eb;
+	--hr-bg: #fff;
+	--hr-subtle: #f7f8fa;
+	--hr-text: #1f2329;
+	--hr-muted: #8f959e;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.hr-roster-page .hr-page-shell {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-height: 0;
+}
+
+.hr-roster-page .hr-page-title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--hr-text);
+	line-height: 1.2;
+	padding: 0;
+}
+
+/* ---------- 搜索筛选栏 ---------- */
+.hr-roster-page .hr-filter-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 14px 16px;
+	background: var(--hr-bg);
+	border: 1px solid var(--hr-border);
+	border-radius: 8px;
+	flex-wrap: wrap;
+}
+
+.hr-roster-page .hr-filter-left,
+.hr-roster-page .hr-filter-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.hr-roster-page .hr-filter-left {
+	position: relative;
+	flex: 1;
+	min-width: 280px;
+}
+
+.hr-roster-page .hr-search-box {
+	position: relative;
+	flex: 1;
+	min-width: 220px;
+	max-width: 380px;
+}
+
+.hr-roster-page .hr-search-box::after {
+	content: "";
+	position: absolute;
+	right: 12px;
+	top: 50%;
+	width: 16px;
+	height: 16px;
+	transform: translateY(-50%);
+	background: center / contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238f959e' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3-3'/%3E%3C/svg%3E");
+	pointer-events: none;
+}
+
+.hr-roster-page .hr-search-input {
+	width: 100%;
+	height: 38px;
+	padding: 0 38px 0 12px;
+	border: 1px solid var(--hr-border);
+	border-radius: 6px;
+	font-size: 13px;
+	background: var(--hr-bg);
+	margin: 0;
+	box-sizing: border-box;
+	color: var(--hr-text);
+}
+
+.hr-roster-page .hr-search-input::placeholder {
+	color: #c9cdd4;
+}
+
+.hr-roster-page .hr-search-input:focus {
+	border-color: var(--hr-primary);
+	outline: none;
+	box-shadow: 0 0 0 2px rgba(0, 179, 134, 0.15);
+}
+
+.hr-roster-page .hr-dept-wrap {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.hr-roster-page .hr-dept-label {
+	font-size: 13px;
+	color: var(--hr-text);
+	white-space: nowrap;
+}
+
+.hr-roster-page .hr-dept-filter,
+.hr-roster-page .hr-status-filter {
+	height: 38px;
+	min-width: 120px;
+	max-width: 160px;
+	border: 1px solid var(--hr-border);
+	border-radius: 6px;
+	font-size: 13px;
+	background: var(--hr-bg);
+	margin: 0;
+	padding: 0 8px;
+	color: var(--hr-text);
+}
+
+.hr-roster-page .hr-filter-btn {
+	height: 38px;
+	padding: 0 14px;
+	border-radius: 6px;
+	font-size: 13px;
+	color: var(--hr-primary);
+	border-color: var(--hr-primary);
+	background: #fff;
+}
+
+.hr-roster-page .hr-filter-btn.has-filter,
+.hr-roster-page .hr-filter-btn.is-active {
+	background: #f0faf6;
+}
+
+.hr-roster-page .hr-filter-count {
+	color: var(--hr-primary);
+	font-weight: 600;
+}
+
+.hr-roster-page .hr-filter-popover {
+	display: none;
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	z-index: 200;
+	width: 280px;
+	padding: 14px;
+	background: var(--hr-bg);
+	border: 1px solid var(--hr-border);
+	border-radius: 8px;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.hr-roster-page .hr-filter-popover-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin-bottom: 12px;
+}
+
+.hr-roster-page .hr-filter-field {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	margin-bottom: 12px;
+	font-size: 13px;
+	color: var(--hr-muted);
+}
+
+.hr-roster-page .hr-filter-popover-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+}
+
+.hr-roster-page .hr-filter-right .btn {
+	height: 38px;
+	padding: 0 16px;
+	font-size: 13px;
+	margin: 0;
+	border-radius: 6px;
+	white-space: nowrap;
+}
+
+.hr-roster-page .hr-filter-right .btn-primary {
+	background: var(--hr-primary);
+	border-color: var(--hr-primary);
+}
+
+.hr-roster-page .hr-filter-right .btn-primary:hover {
+	background: var(--hr-primary-hover);
+	border-color: var(--hr-primary-hover);
+}
+
+.hr-roster-page .hr-filter-right {
+	position: relative;
+}
+
+/* ---------- 统计卡片 ---------- */
+.hr-roster-page .hr-stat-board {
+	display: grid;
+	grid-template-columns: 0.9fr 1.1fr 1.5fr 1.1fr;
+	gap: 12px;
+}
+
+.hr-roster-page .hr-stat-card {
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+	background: var(--hr-bg);
+	border: 1px solid var(--hr-border);
+	border-radius: 8px;
+	min-height: 88px;
+	overflow: hidden;
+}
+
+.hr-roster-page .hr-stat-card.hr-stat-card--split2 .hr-stat-cell {
+	flex: 1 1 50%;
+}
+
+.hr-roster-page .hr-stat-card.hr-stat-card--split3 .hr-stat-cell {
+	flex: 1 1 33.33%;
+}
+
+.hr-roster-page .hr-stat-cell {
+	appearance: none;
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 14px 10px;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	text-align: center;
+}
+
+.hr-roster-page .hr-stat-cell:not(:last-child) {
+	border-right: 1px solid var(--hr-border);
+}
+
+.hr-roster-page .hr-stat-cell:hover {
+	background: var(--hr-subtle);
+}
+
+.hr-roster-page .hr-stat-cell.is-active {
+	background: #f0faf6;
+}
+
+.hr-roster-page .hr-stat-label {
+	font-size: 13px;
+	color: var(--hr-muted);
+	line-height: 1.2;
+}
+
+.hr-roster-page .hr-stat-num {
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--hr-text);
+	line-height: 1.2;
+}
+
+.hr-roster-page .hr-stat-unit {
+	font-size: 13px;
+	font-weight: 400;
+	margin-left: 2px;
+}
+
+.hr-roster-page .hr-stat-cell.is-green .hr-stat-label,
+.hr-roster-page .hr-stat-cell.is-green .hr-stat-num {
+	color: var(--hr-primary);
+}
+
+/* ---------- 表格 ---------- */
+.hr-roster-page .hr-table-card {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	background: var(--hr-bg);
+	border: 1px solid var(--hr-border);
+	border-radius: 8px;
+	overflow: hidden;
+	min-height: 0;
+}
+
+.hr-roster-page .hr-table-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--hr-border);
+	font-size: 13px;
+	background: var(--hr-bg);
+}
+
+.hr-roster-page .hr-table-toolbar-left {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	color: var(--hr-muted);
+}
+
+.hr-roster-page .hr-table-count {
+	font-weight: 600;
+	color: var(--hr-text);
+}
+
+.hr-roster-page .hr-refresh-btn {
+	color: var(--hr-primary) !important;
+	padding: 0;
+}
+
+.hr-roster-page .hr-table-scroll {
+	flex: 1;
+	overflow: auto;
+	min-height: 280px;
+	max-height: calc(100vh - 380px);
+}
+
+.hr-roster-page .hr-roster-table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 0;
+}
+
+.hr-roster-page .hr-roster-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	background: var(--hr-subtle);
+	color: var(--hr-muted);
+	font-size: 13px;
+	font-weight: 500;
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--hr-border);
+	white-space: nowrap;
+	text-align: left;
+}
+
+.hr-roster-page .hr-roster-table tbody td {
+	font-size: 13px;
+	color: var(--hr-text);
+	padding: 0 14px;
+	height: 52px;
+	border-bottom: 1px solid #f0f1f3;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+
+.hr-roster-page .hr-roster-table tbody tr:hover td {
+	background: #fafbfc;
+}
+
+.hr-roster-page .hr-col-sticky {
+	position: sticky;
+	right: 0;
+	z-index: 1;
+	background: inherit;
+	box-shadow: -4px 0 8px rgba(0, 0, 0, 0.04);
+}
+
+.hr-roster-page .hr-roster-table thead th.hr-col-sticky {
+	z-index: 3;
+	background: var(--hr-subtle);
+}
+
+.hr-roster-page .hr-col-check {
+	width: 44px;
+	text-align: center;
+}
+
+.hr-roster-page .hr-name-cell {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.hr-roster-page .hr-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	color: #fff;
+	font-size: 12px;
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+.hr-roster-page .hr-name-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100px;
+}
+
+.hr-roster-page .hr-cell-empty {
+	color: #c9cdd4;
+}
+
+.hr-roster-page .hr-status-pill {
+	display: inline-block;
+	padding: 2px 10px;
+	border-radius: 10px;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.hr-roster-page .hr-status-pill.status-active { background: #e8f8f1; color: #00a077; }
+.hr-roster-page .hr-status-pill.status-left { background: #f2f3f5; color: #646a73; }
+.hr-roster-page .hr-status-pill.status-inactive { background: #fff7e8; color: #d48806; }
+.hr-roster-page .hr-status-pill.status-suspended { background: #ffece8; color: #d4380d; }
+
+.hr-roster-page .hr-quick-edit {
+	border: none;
+	background: none;
+	padding: 0;
+	color: var(--hr-primary);
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.hr-roster-page .hr-quick-edit:hover {
+	text-decoration: underline;
+}
+
+.hr-roster-page .hr-edit-ico {
+	margin-left: 4px;
+	font-size: 11px;
+	color: #c9cdd4;
+}
+
+.hr-roster-page .hr-cell-input {
+	width: 100%;
+	min-width: 90px;
+	height: 30px;
+	border: 1px solid var(--hr-border);
+	border-radius: 4px;
+	padding: 2px 8px;
+	font-size: 13px;
+}
+
+.hr-roster-page .hr-cell-input.has-error {
+	border-color: #f53f3f;
+}
+
+.hr-roster-page .hr-empty-row {
+	text-align: center;
+	color: var(--hr-muted);
+	padding: 48px !important;
+}
+
+.hr-roster-page .hr-table-hint {
+	padding: 8px 16px 12px;
+	font-size: 12px;
+	color: var(--hr-muted);
+	border-top: 1px solid var(--hr-border);
+	background: var(--hr-subtle);
+}
+
+.hr-roster-page .hr-more-menu {
+	position: absolute;
+	right: 0;
+	top: calc(100% + 4px);
+	min-width: 150px;
+	background: var(--hr-bg);
+	border: 1px solid var(--hr-border);
+	border-radius: 6px;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+	z-index: 100;
+	overflow: hidden;
+}
+
+.hr-roster-page .hr-more-item {
+	display: block;
+	width: 100%;
+	padding: 10px 14px;
+	border: none;
+	background: none;
+	text-align: left;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.hr-roster-page .hr-more-item:hover {
+	background: var(--hr-subtle);
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 1200px) {
+	.hr-roster-page .hr-stat-board {
+		grid-template-columns: repeat(2, 1fr);
+	}
+	.hr-topnav-menu .hr-topnav-link.is-muted {
+		display: none;
+	}
+}
+
+@media (max-width: 768px) {
+	.hr-roster-page .hr-filter-bar {
+		flex-direction: column;
+		align-items: stretch;
+	}
+	.hr-roster-page .hr-search-box {
+		max-width: none;
+	}
+	.hr-roster-page .hr-stat-board {
+		grid-template-columns: 1fr;
+	}
+}
