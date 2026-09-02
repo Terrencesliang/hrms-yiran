@@ -23,6 +23,39 @@ log() {
 	printf '\n[hrms-deploy] %s\n' "$*"
 }
 
+configure_git_for_docker() {
+	# Windows bind-mount: repo owner differs from container user (frappe)
+	git config --global --add safe.directory '*' 2>/dev/null || true
+}
+
+app_is_present() {
+	local name="$1"
+	[ -d "${BENCH_DIR}/apps/${name}" ] && {
+		[ -f "${BENCH_DIR}/apps/${name}/hooks.py" ] ||
+			[ -f "${BENCH_DIR}/apps/${name}/${name}/hooks.py" ] ||
+			[ -f "${BENCH_DIR}/apps/${name}/pyproject.toml" ]
+	}
+}
+
+install_local_app() {
+	local name="$1"
+	local src="$2"
+	cd "${BENCH_DIR}"
+	if app_is_present "${name}"; then
+		return 0
+	fi
+	rm -rf "apps/${name}"
+	log "安装本地应用 ${name}（从挂载目录复制）..."
+	cp -a "${src}/." "apps/${name}/"
+	mkdir -p sites
+	if [ -f sites/apps.txt ] && ! grep -qx "${name}" sites/apps.txt; then
+		echo "${name}" >> sites/apps.txt
+	fi
+	if [ -x env/bin/pip ]; then
+		env/bin/pip install -q -e "apps/${name}" || true
+	fi
+}
+
 prepare_bench_dir() {
 	mkdir -p "${BENCH_DIR}"
 	if command -v sudo >/dev/null 2>&1; then
@@ -122,6 +155,7 @@ trim_procfile() {
 
 install_apps() {
 	cd "${BENCH_DIR}"
+	configure_git_for_docker
 
 	if [ ! -d "apps/erpnext" ]; then
 		log "安装 ERPNext (${ERPNEXT_BRANCH})..."
@@ -133,14 +167,14 @@ install_apps() {
 		bench get-app --branch "${ERPNEXT_BRANCH}" payments || bench get-app payments
 	fi
 
-	if [ ! -d "apps/hrms" ]; then
+	if ! app_is_present hrms; then
 		log "安装 HRMS（本地定制版）..."
-		bench get-app hrms "${SOURCE_DIR}"
+		install_local_app hrms "${SOURCE_DIR}"
 	fi
 
-	if [ ! -d "apps/employee_roster" ]; then
+	if ! app_is_present employee_roster; then
 		log "安装员工花名册扩展..."
-		bench get-app employee_roster "${SOURCE_DIR}/apps/employee_roster"
+		install_local_app employee_roster "${SOURCE_DIR}/apps/employee_roster"
 	fi
 }
 
@@ -184,6 +218,7 @@ build_assets() {
 }
 
 first_time_install() {
+	configure_git_for_docker
 	prepare_bench_dir
 	if [ -n "${NODE_VERSION_DEVELOP:-}" ] && [ -n "${NVM_DIR:-}" ]; then
 		export PATH="${NVM_DIR}/versions/node/v${NODE_VERSION_DEVELOP}/bin:${PATH}"
