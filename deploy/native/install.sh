@@ -9,6 +9,27 @@ source "${NATIVE_DIR}/common.sh"
 SKIP_DEPS="${SKIP_DEPS:-false}"
 RESTORE_FROM_BACKUP="${RESTORE_FROM_BACKUP:-true}"
 
+require_linux_server() {
+	local os
+	os="$(uname -s 2>/dev/null || echo unknown)"
+	case "${os}" in
+	Linux) return 0 ;;
+	MINGW* | MSYS* | CYGWIN* | Windows*)
+		die "此脚本只能在 Linux 服务器上运行（当前: ${os} / Git Bash on Windows）。
+
+请 SSH 登录到 192.168.1.114 后再执行：
+  ssh yr@192.168.1.114
+  cd /data/yiran/hrms-yiran
+  bash deploy/native/install.sh
+
+不要在 Windows 本机运行 native 安装。"
+		;;
+	*)
+		die "此脚本仅支持 Linux 服务器（当前系统: ${os}）"
+		;;
+	esac
+}
+
 install_system_deps() {
 	if [ "${SKIP_DEPS}" = "true" ]; then
 		return
@@ -112,6 +133,7 @@ build_assets() {
 }
 
 main() {
+	require_linux_server
 	[ -f "${ENV_FILE}" ] || die "请先复制配置: cp deploy/native/.env.example deploy/native/.env"
 
 	require_env DB_PASSWORD
