@@ -28,4 +28,9 @@ if ($useBundledRedis) {
 }
 $argsList += $ComposeArgs
 
-& docker @argsList
+$prevErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
+& docker @argsList 2>&1 | ForEach-Object { "$_" }
+$exitCode = $LASTEXITCODE
+$ErrorActionPreference = $prevErrorAction
+exit $exitCode

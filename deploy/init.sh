@@ -23,6 +23,13 @@ log() {
 	printf '\n[hrms-deploy] %s\n' "$*"
 }
 
+prepare_bench_dir() {
+	mkdir -p "${BENCH_DIR}"
+	if command -v sudo >/dev/null 2>&1; then
+		sudo chown -R "$(id -u):$(id -g)" "${BENCH_DIR}" 2>/dev/null || true
+	fi
+}
+
 wait_for_service() {
 	local host="$1"
 	local port="$2"
@@ -56,6 +63,27 @@ configure_bench_hosts() {
 	bench set-redis-socketio-host "${REDIS_URL}"
 	bench set-config -g serve_default_site true
 	bench set-config -g default_site "${SITE_NAME}"
+}
+
+ensure_bench_initialized() {
+	if [ -d "${BENCH_DIR}/apps/frappe" ] && [ -f "${BENCH_DIR}/sites/common_site_config.json" ]; then
+		return 0
+	fi
+
+	log "初始化 Frappe Bench (${FRAPPE_BRANCH})..."
+	prepare_bench_dir
+	cd "${BENCH_DIR}"
+
+	if [ "$(find . -mindepth 1 -maxdepth 1 | wc -l)" -gt 0 ]; then
+		log "清理不完整的 bench 目录内容..."
+		find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
+	fi
+
+	printf 'n\n' | bench init \
+		--ignore-exist \
+		--skip-redis-config-generation \
+		--frappe-branch "${FRAPPE_BRANCH}" \
+		.
 }
 
 apply_site_config() {
@@ -156,7 +184,10 @@ build_assets() {
 }
 
 first_time_install() {
-	export PATH="${NVM_DIR}/versions/node/v${NODE_VERSION_DEVELOP}/bin/:${PATH}"
+	prepare_bench_dir
+	if [ -n "${NODE_VERSION_DEVELOP:-}" ] && [ -n "${NVM_DIR:-}" ]; then
+		export PATH="${NVM_DIR}/versions/node/v${NODE_VERSION_DEVELOP}/bin:${PATH}"
+	fi
 
 	wait_for_service "${DB_HOST}" "${DB_PORT}" "PostgreSQL"
 	mapfile -t redis_parts < <(redis_endpoint)
@@ -164,14 +195,7 @@ first_time_install() {
 	log "数据库: ${DB_HOST}:${DB_PORT} (用户: ${DB_ROOT_USERNAME})"
 	log "Redis: ${REDIS_URL}"
 
-	if [ ! -d "${BENCH_DIR}/apps/frappe" ]; then
-		log "初始化 Frappe Bench (${FRAPPE_BRANCH})..."
-		bench init \
-			--skip-redis-config-generation \
-			--frappe-branch "${FRAPPE_BRANCH}" \
-			frappe-bench
-	fi
-
+	ensure_bench_initialized
 	configure_bench_hosts
 	trim_procfile
 	install_apps

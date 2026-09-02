@@ -122,7 +122,9 @@ Push-Location $DeployDir
 try {
     Write-Step "Starting containers"
     & (Join-Path $DeployDir "compose.ps1") up -d
-    if ($LASTEXITCODE -ne 0) { throw "docker compose up failed" }
+    if ($LASTEXITCODE -ne 0) {
+        throw "docker compose up failed (exit $LASTEXITCODE). Run: docker compose logs backend"
+    }
     Show-AccessInfo (Join-Path $DeployDir ".env")
     Write-Host "First install may take 15-30 minutes. Run .\logs.ps1" -ForegroundColor Yellow
 }
