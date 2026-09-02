@@ -17,7 +17,7 @@
 [CmdletBinding()]
 param(
     [string]$RepoUrl = "https://github.com/Terrencesliang/hrms-yiran.git",
-    [string]$Branch = "yiran-custom",
+    [string]$Branch = "main",
     [string]$AdminPassword = "",
     [string]$DbPassword = "",
     [switch]$SyncLocalData,
@@ -101,7 +101,7 @@ function Export-LocalDataIfNeeded {
         return
     }
 
-    $shouldSync = $SyncLocalData.IsPresent -or (Get-EnvFlag "SYNC_LOCAL_DATA" $true)
+    $shouldSync = $SyncLocalData.IsPresent -or (Get-EnvFlag "SYNC_LOCAL_DATA" $false)
     if (-not $shouldSync) {
         Write-Step "SYNC_LOCAL_DATA=false，跳过本机数据导出"
         return

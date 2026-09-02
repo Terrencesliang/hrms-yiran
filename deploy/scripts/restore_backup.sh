@@ -6,6 +6,7 @@ BENCH_DIR="${BENCH_DIR:-/home/frappe/frappe-bench}"
 SOURCE_DIR="${SOURCE_DIR:-/workspace/source}"
 BACKUP_DIR="${BACKUP_DIR:-${SOURCE_DIR}/deploy/data/incoming}"
 SITE_NAME="${SITE_NAME:-hrms.localhost}"
+SITE_DB_NAME="${SITE_DB_NAME:-}"
 DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD is required}"
 DB_ROOT_USERNAME="${DB_ROOT_USERNAME:-postgres}"
 DB_HOST="${DB_HOST:-postgres}"
@@ -35,14 +36,19 @@ ensure_site_exists() {
 	fi
 
 	log "创建空站点 ${SITE_NAME}..."
-	bench new-site "${SITE_NAME}" \
-		--force \
-		--db-type postgres \
-		--db-host "${DB_HOST}" \
-		--db-port "${DB_PORT}" \
-		--db-root-username "${DB_ROOT_USERNAME}" \
-		--db-root-password "${DB_PASSWORD}" \
+	local site_args=(
+		--force
+		--db-type postgres
+		--db-host "${DB_HOST}"
+		--db-port "${DB_PORT}"
+		--db-root-username "${DB_ROOT_USERNAME}"
+		--db-root-password "${DB_PASSWORD}"
 		--admin-password "${ADMIN_PASSWORD}"
+	)
+	if [ -n "${SITE_DB_NAME}" ]; then
+		site_args+=(--db-name "${SITE_DB_NAME}")
+	fi
+	bench new-site "${SITE_NAME}" "${site_args[@]}"
 }
 
 restore_latest_backup() {

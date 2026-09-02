@@ -55,7 +55,7 @@ export_local_data_if_needed() {
 		log "已跳过本机数据导出 (SKIP_LOCAL_DATA=true)"
 		return
 	fi
-	if ! env_flag SYNC_LOCAL_DATA true; then
+	if ! env_flag SYNC_LOCAL_DATA false; then
 		log "SYNC_LOCAL_DATA=false，跳过本机数据导出"
 		return
 	fi

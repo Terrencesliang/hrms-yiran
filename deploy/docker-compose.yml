@@ -46,6 +46,7 @@ services:
       REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       SITE_NAME: ${SITE_NAME:-hrms.localhost}
+      SITE_DB_NAME: ${SITE_DB_NAME:-}
       FRAPPE_BRANCH: ${FRAPPE_BRANCH:-develop}
       ERPNEXT_BRANCH: ${ERPNEXT_BRANCH:-develop}
       LANGUAGE: ${LANGUAGE:-zh}

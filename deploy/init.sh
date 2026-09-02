@@ -5,6 +5,7 @@ BENCH_DIR="/home/frappe/frappe-bench"
 MARKER="${BENCH_DIR}/.hrms-yiran-installed"
 SOURCE_DIR="/workspace/source"
 SITE_NAME="${SITE_NAME:-hrms.localhost}"
+SITE_DB_NAME="${SITE_DB_NAME:-}"
 DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD is required}"
 DB_ROOT_USERNAME="${DB_ROOT_USERNAME:-postgres}"
 DB_HOST="${DB_HOST:-postgres}"
@@ -125,14 +126,19 @@ create_and_setup_site() {
 	fi
 
 	log "创建站点 ${SITE_NAME}（PostgreSQL，首次约 10-20 分钟）..."
-	bench new-site "${SITE_NAME}" \
-		--force \
-		--db-type postgres \
-		--db-host "${DB_HOST}" \
-		--db-port "${DB_PORT}" \
-		--db-root-username "${DB_ROOT_USERNAME}" \
-		--db-root-password "${DB_PASSWORD}" \
+	local site_args=(
+		--force
+		--db-type postgres
+		--db-host "${DB_HOST}"
+		--db-port "${DB_PORT}"
+		--db-root-username "${DB_ROOT_USERNAME}"
+		--db-root-password "${DB_PASSWORD}"
 		--admin-password "${ADMIN_PASSWORD}"
+	)
+	if [ -n "${SITE_DB_NAME}" ]; then
+		site_args+=(--db-name "${SITE_DB_NAME}")
+	fi
+	bench new-site "${SITE_NAME}" "${site_args[@]}"
 
 	log "安装应用..."
 	bench --site "${SITE_NAME}" install-app erpnext
