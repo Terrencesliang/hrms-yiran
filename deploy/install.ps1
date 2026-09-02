@@ -5,12 +5,13 @@
 
 .DESCRIPTION
   1. 检查 Docker Desktop
-  2. 生成 deploy/.env
+  2. 导出本机 WSL 数据（可选）
   3. docker compose up -d
-  4. 首次安装约 15-30 分钟，可用 deploy/logs.ps1 查看进度
+  4. 容器内自动恢复数据并安装
 
 .EXAMPLE
   .\install.ps1
+  .\install.ps1 -SkipLocalData
   .\install.ps1 -AdminPassword "MyPass123"
 #>
 [CmdletBinding()]
@@ -18,7 +19,9 @@ param(
     [string]$RepoUrl = "https://github.com/Terrencesliang/hrms-yiran.git",
     [string]$Branch = "yiran-custom",
     [string]$AdminPassword = "",
-    [string]$DbPassword = ""
+    [string]$DbPassword = "",
+    [switch]$SyncLocalData,
+    [switch]$SkipLocalData
 )
 
 $ErrorActionPreference = "Stop"
@@ -81,32 +84,66 @@ function Ensure-Repo {
 "@
 }
 
-function Show-AccessInfo {
-  param([string]$EnvPath)
-  $admin = "admin"
-  $port = "8080"
-  foreach ($line in Get-Content $EnvPath) {
-    if ($line -match '^ADMIN_PASSWORD=(.+)$') { $admin = $Matches[1] }
-    if ($line -match '^HTTP_PORT=(.+)$') { $port = $Matches[1] }
-  }
+function Get-EnvFlag([string]$Key, [bool]$Default = $false) {
+    $envFile = Join-Path $DeployDir ".env"
+    if (-not (Test-Path $envFile)) { return $Default }
+    foreach ($line in Get-Content $envFile) {
+        if ($line -match "^${Key}=(.+)$") {
+            return ($Matches[1].Trim().ToLower() -eq 'true')
+        }
+    }
+    return $Default
+}
 
-  Write-Host ""
-  Write-Host "========================================" -ForegroundColor Green
-  Write-Host " 部署已启动（首次安装需等待 15-30 分钟）" -ForegroundColor Green
-  Write-Host "========================================" -ForegroundColor Green
-  Write-Host "访问地址: http://localhost:$port"
-  Write-Host "用户名:   Administrator"
-  Write-Host "密码:     $admin"
-  Write-Host ""
-  Write-Host "查看安装日志: deploy\logs.ps1"
-  Write-Host "停止服务:     deploy\stop.ps1"
-  Write-Host "========================================" -ForegroundColor Green
+function Export-LocalDataIfNeeded {
+    if ($SkipLocalData) {
+        Write-Step "已跳过本机数据导出 (-SkipLocalData)"
+        return
+    }
+
+    $shouldSync = $SyncLocalData.IsPresent -or (Get-EnvFlag "SYNC_LOCAL_DATA" $true)
+    if (-not $shouldSync) {
+        Write-Step "SYNC_LOCAL_DATA=false，跳过本机数据导出"
+        return
+    }
+
+    $exportScript = Join-Path $DeployDir "scripts\export_local_data.ps1"
+    if (-not (Test-Path $exportScript)) {
+        throw "缺少 $exportScript"
+    }
+
+    Write-Step "导出本机 WSL 数据到 deploy\data\incoming"
+    & $exportScript
+}
+
+function Show-AccessInfo {
+    param([string]$EnvPath)
+    $admin = "admin"
+    $port = "8080"
+    foreach ($line in Get-Content $EnvPath) {
+        if ($line -match '^ADMIN_PASSWORD=(.+)$') { $admin = $Matches[1].Trim().Trim('"') }
+        if ($line -match '^HTTP_PORT=(.+)$') { $port = $Matches[1] }
+    }
+
+    Write-Host ""
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host " 部署已启动（首次安装需等待 15-30 分钟）" -ForegroundColor Green
+    Write-Host "========================================" -ForegroundColor Green
+    Write-Host "访问地址: http://localhost:$port"
+    Write-Host "用户名:   Administrator"
+    Write-Host "密码:     $admin"
+    Write-Host ""
+    Write-Host "查看安装日志: deploy\logs.ps1"
+    Write-Host "重新同步数据: deploy\sync-data.ps1"
+    Write-Host "停止服务:     deploy\stop.ps1"
+    Write-Host "========================================" -ForegroundColor Green
 }
 
 Write-Step "检查 Docker 环境"
 Test-DockerReady
 Ensure-Repo
 Ensure-EnvFile
+Export-LocalDataIfNeeded
 
 Push-Location $DeployDir
 try {

@@ -50,6 +50,7 @@ services:
       ERPNEXT_BRANCH: ${ERPNEXT_BRANCH:-develop}
       LANGUAGE: ${LANGUAGE:-zh}
       HTTP_PORT: ${HTTP_PORT:-8080}
+      SYNC_LOCAL_DATA: ${SYNC_LOCAL_DATA:-false}
       SHELL: /bin/bash
     volumes:
       - ..:/workspace/source:ro

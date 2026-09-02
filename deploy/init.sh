@@ -15,6 +15,8 @@ ERPNEXT_BRANCH="${ERPNEXT_BRANCH:-develop}"
 LANGUAGE="${LANGUAGE:-zh}"
 HTTP_PORT="${HTTP_PORT:-8080}"
 REDIS_URL="${REDIS_URL:-redis://redis:6379}"
+SYNC_LOCAL_DATA="${SYNC_LOCAL_DATA:-false}"
+BACKUP_DIR="${SOURCE_DIR}/deploy/data/incoming"
 
 log() {
 	printf '\n[hrms-deploy] %s\n' "$*"
@@ -53,6 +55,34 @@ configure_bench_hosts() {
 	bench set-redis-socketio-host "${REDIS_URL}"
 	bench set-config -g serve_default_site true
 	bench set-config -g default_site "${SITE_NAME}"
+}
+
+apply_site_config() {
+	cd "${BENCH_DIR}"
+	bench --site "${SITE_NAME}" set-config developer_mode 0
+	bench --site "${SITE_NAME}" set-config language "${LANGUAGE}"
+	bench --site "${SITE_NAME}" set-config host_name "http://localhost:${HTTP_PORT}"
+	bench --site "${SITE_NAME}" enable-scheduler
+	bench --site "${SITE_NAME}" clear-cache
+	bench use "${SITE_NAME}"
+}
+
+has_local_backup() {
+	[ -d "${BACKUP_DIR}" ] && ls "${BACKUP_DIR}"/*-database.sql.gz >/dev/null 2>&1
+}
+
+restore_local_backup() {
+	if [ "${SYNC_LOCAL_DATA}" != "true" ]; then
+		return 1
+	fi
+	if ! has_local_backup; then
+		log "SYNC_LOCAL_DATA=true 但未找到备份，将执行全新安装"
+		return 1
+	fi
+
+	log "检测到本机备份，开始恢复数据..."
+	bash "${SOURCE_DIR}/deploy/scripts/restore_backup.sh"
+	return 0
 }
 
 trim_procfile() {
@@ -110,12 +140,7 @@ create_and_setup_site() {
 	bench --site "${SITE_NAME}" install-app employee_roster
 
 	log "配置站点..."
-	bench --site "${SITE_NAME}" set-config developer_mode 0
-	bench --site "${SITE_NAME}" set-config language "${LANGUAGE}"
-	bench --site "${SITE_NAME}" set-config host_name "http://localhost:${HTTP_PORT}"
-	bench --site "${SITE_NAME}" enable-scheduler
-	bench --site "${SITE_NAME}" clear-cache
-	bench use "${SITE_NAME}"
+	apply_site_config
 }
 
 build_assets() {
@@ -144,7 +169,11 @@ first_time_install() {
 	configure_bench_hosts
 	trim_procfile
 	install_apps
-	create_and_setup_site
+	if restore_local_backup; then
+		log "本机数据已恢复"
+	else
+		create_and_setup_site
+	fi
 	build_assets
 
 	touch "${MARKER}"
