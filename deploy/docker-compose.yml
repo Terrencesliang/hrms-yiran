@@ -1,0 +1,62 @@
+name: hrms-yiran
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    restart: unless-stopped
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+      - --skip-innodb-read-only-compressed
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    image: frappe/bench:latest
+    restart: unless-stopped
+    working_dir: /home/frappe
+    command: bash /workspace/deploy/init.sh
+    environment:
+      DB_PASSWORD: ${DB_PASSWORD}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      SITE_NAME: ${SITE_NAME:-hrms.localhost}
+      FRAPPE_BRANCH: ${FRAPPE_BRANCH:-develop}
+      ERPNEXT_BRANCH: ${ERPNEXT_BRANCH:-develop}
+      LANGUAGE: ${LANGUAGE:-zh}
+      HTTP_PORT: ${HTTP_PORT:-8080}
+      SHELL: /bin/bash
+    volumes:
+      - ..:/workspace/source:ro
+      - ./init.sh:/workspace/deploy/init.sh:ro
+      - bench-data:/home/frappe/frappe-bench
+    ports:
+      - "${HTTP_PORT:-8080}:8000"
+      - "${SOCKETIO_PORT:-9000}:9000"
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mariadb-data:
+  bench-data:

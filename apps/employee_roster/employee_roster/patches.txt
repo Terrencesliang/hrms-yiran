@@ -8,3 +8,4 @@
 [post_fixture_sync]
 # Patches added in this section will be executed after fixtures and customizations
 # (Custom Field, Property Setter, etc) are synced
+employee_roster.patches.post_fixture_sync.ensure_employee_group_name_field

@@ -9,7 +9,10 @@ from employee_roster.hr_roster.page.employee_archive.employee_archive import see
 
 
 def after_install():
+	from employee_roster.patches.post_fixture_sync.ensure_employee_group_name_field import execute as ensure_group_name_field
+
 	seed_document_types()
+	ensure_group_name_field()
 	sync_hr_roster_sidebar()
 
 
