@@ -6,6 +6,9 @@ MARKER="${BENCH_DIR}/.hrms-yiran-installed"
 SOURCE_DIR="/workspace/source"
 SITE_NAME="${SITE_NAME:-hrms.localhost}"
 DB_PASSWORD="${DB_PASSWORD:?DB_PASSWORD is required}"
+DB_ROOT_USERNAME="${DB_ROOT_USERNAME:-postgres}"
+DB_HOST="${DB_HOST:-postgres}"
+DB_PORT="${DB_PORT:-5432}"
 ADMIN_PASSWORD="${ADMIN_PASSWORD:?ADMIN_PASSWORD is required}"
 FRAPPE_BRANCH="${FRAPPE_BRANCH:-develop}"
 ERPNEXT_BRANCH="${ERPNEXT_BRANCH:-develop}"
@@ -32,7 +35,6 @@ PY
 
 configure_bench_hosts() {
 	cd "${BENCH_DIR}"
-	bench set-mariadb-host mariadb
 	bench set-redis-cache-host redis://redis:6379
 	bench set-redis-queue-host redis://redis:6379
 	bench set-redis-socketio-host redis://redis:6379
@@ -79,12 +81,15 @@ create_and_setup_site() {
 		return
 	fi
 
-	log "创建站点 ${SITE_NAME}（首次约 10-20 分钟）..."
+	log "创建站点 ${SITE_NAME}（PostgreSQL，首次约 10-20 分钟）..."
 	bench new-site "${SITE_NAME}" \
 		--force \
-		--mariadb-root-password "${DB_PASSWORD}" \
-		--admin-password "${ADMIN_PASSWORD}" \
-		--no-mariadb-socket
+		--db-type postgres \
+		--db-host "${DB_HOST}" \
+		--db-port "${DB_PORT}" \
+		--db-root-username "${DB_ROOT_USERNAME}" \
+		--db-root-password "${DB_PASSWORD}" \
+		--admin-password "${ADMIN_PASSWORD}"
 
 	log "安装应用..."
 	bench --site "${SITE_NAME}" install-app erpnext
@@ -109,7 +114,7 @@ build_assets() {
 first_time_install() {
 	export PATH="${NVM_DIR}/versions/node/v${NODE_VERSION_DEVELOP}/bin/:${PATH}"
 
-	wait_for_service mariadb 3306 "MariaDB"
+	wait_for_service "${DB_HOST}" "${DB_PORT}" "PostgreSQL"
 	wait_for_service redis 6379 "Redis"
 
 	if [ ! -d "${BENCH_DIR}/apps/frappe" ]; then
