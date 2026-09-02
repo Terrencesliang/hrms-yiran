@@ -1,0 +1,54 @@
+{
+ "actions": [],
+ "creation": "2026-09-02 17:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "create_on_payroll",
+  "absent_affects_payment_days",
+  "section_help",
+  "help_text"
+ ],
+ "fields": [
+  {
+   "default": "1",
+   "fieldname": "create_on_payroll",
+   "fieldtype": "Check",
+   "label": "Create Attendance Deduction on Payroll Entry"
+  },
+  {
+   "default": "0",
+   "description": "If unchecked, absent days are handled only by deduction rules (avoid double deduction)",
+   "fieldname": "absent_affects_payment_days",
+   "fieldtype": "Check",
+   "label": "Absent Also Affects Payment Days"
+  },
+  {
+   "fieldname": "section_help",
+   "fieldtype": "Section Break",
+   "label": "Help"
+  },
+  {
+   "fieldname": "help_text",
+   "fieldtype": "HTML",
+   "label": "Help Text",
+   "options": "<p>Assign employees to <b>Attendance Group</b> with a <b>Deduction Rule</b>. Before payroll, create <b>Attendance Deduction Summary</b> from Payroll Entry.</p>"
+  }
+ ],
+ "issingle": 1,
+ "module": "hr_roster",
+ "name": "Attendance Deduction Settings",
+ "permissions": [
+  {
+   "create": 1,
+   "read": 1,
+   "role": "HR Manager",
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User"
+  }
+ ],
+ "track_changes": 1
+}

@@ -1,0 +1,95 @@
+{
+ "actions": [],
+ "allow_import": 1,
+ "allow_rename": 1,
+ "autoname": "field:rule_name",
+ "creation": "2026-09-02 17:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "rule_name",
+  "is_active",
+  "description",
+  "section_items",
+  "rule_items",
+  "section_tiers",
+  "rule_tiers"
+ ],
+ "fields": [
+  {
+   "fieldname": "rule_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Rule Name",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "is_active",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Active"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "fieldname": "section_items",
+   "fieldtype": "Section Break",
+   "label": "Rule Items"
+  },
+  {
+   "fieldname": "rule_items",
+   "fieldtype": "Table",
+   "label": "Items",
+   "options": "Attendance Deduction Rule Item"
+  },
+  {
+   "fieldname": "section_tiers",
+   "fieldtype": "Section Break",
+   "label": "Tiers (for Tiered mode)"
+  },
+  {
+   "fieldname": "rule_tiers",
+   "fieldtype": "Table",
+   "label": "Tiers",
+   "options": "Attendance Deduction Rule Tier"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-02 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "Attendance Deduction Rule",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "import": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1,
+ "translated_doctype": 1
+}

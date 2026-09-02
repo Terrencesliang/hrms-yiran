@@ -1,0 +1,12 @@
+{
+ "creation": "2026-09-02 17:30:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "module": "hr_roster",
+ "name": "attendance-rules",
+ "page_name": "attendance-rules",
+ "roles": [],
+ "standard": "Yes",
+ "system_page": 0,
+ "title": "考勤规则"
+}

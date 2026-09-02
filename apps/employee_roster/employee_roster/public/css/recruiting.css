@@ -1,0 +1,349 @@
+/* 招聘中 — 候选人看板 */
+.recruiting-page {
+	font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+	font-size: 13px;
+	color: #1f2937;
+}
+
+.recruiting-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.recruiting-toolbar-left,
+.recruiting-toolbar-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.recruiting-toolbar select,
+.recruiting-toolbar input {
+	height: 32px;
+	border: 1px solid #d0d5dd;
+	border-radius: 6px;
+	padding: 0 10px;
+	font-size: 13px;
+	background: #fff;
+	min-width: 140px;
+}
+
+.recruiting-search {
+	min-width: 220px !important;
+}
+
+.recruiting-add-btn {
+	background: #00a870 !important;
+	border-color: #00a870 !important;
+	color: #fff !important;
+}
+
+.recruiting-pipeline {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(240px, 1fr));
+	gap: 16px;
+	margin-bottom: 16px;
+}
+
+.recruiting-stage-card {
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	padding: 16px 18px;
+	box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+.recruiting-stage-title {
+	font-size: 15px;
+	font-weight: 600;
+	color: #111827;
+	margin-bottom: 12px;
+}
+
+.recruiting-stage-items {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.recruiting-stage-item {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	color: #4b5563;
+	padding: 4px 0;
+}
+
+.recruiting-stage-item strong {
+	font-size: 18px;
+	font-weight: 700;
+	color: #111827;
+}
+
+.recruiting-list-card {
+	background: #fff;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	overflow: hidden;
+}
+
+.recruiting-list-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 14px;
+	border-bottom: 1px solid #e5e7eb;
+	background: #fafafa;
+	color: #6b7280;
+	font-size: 12px;
+}
+
+.recruiting-table-scroll {
+	overflow: auto;
+}
+
+.recruiting-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.recruiting-table th,
+.recruiting-table td {
+	padding: 10px 12px;
+	border-bottom: 1px solid #f0f0f0;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.recruiting-table th {
+	background: #fafafa;
+	color: #6b7280;
+	font-weight: 600;
+	font-size: 12px;
+}
+
+.recruiting-table tbody tr:hover {
+	background: #f9fafb;
+}
+
+.recruiting-status {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 999px;
+	font-size: 12px;
+	background: #ecfdf3;
+	color: #027a48;
+}
+
+.recruiting-empty {
+	text-align: center;
+	padding: 48px 16px;
+	color: #9ca3af;
+}
+
+.recruiting-empty-icon {
+	font-size: 42px;
+	margin-bottom: 8px;
+}
+
+@media (max-width: 992px) {
+	.recruiting-pipeline {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* 已入职 / 已淘汰 — 卡片列表 */
+.recruiting-list-toolbar-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 12px;
+	flex-wrap: wrap;
+}
+
+.recruiting-list-search-wrap {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 1;
+	max-width: 520px;
+}
+
+.recruiting-list-search {
+	flex: 1;
+	height: 36px;
+	border: 1px solid #d0d5dd;
+	border-radius: 8px;
+	padding: 0 12px;
+	font-size: 13px;
+	background: #fff;
+}
+
+.recruiting-filter-toggle {
+	height: 36px;
+	min-width: 36px;
+	border-radius: 8px;
+}
+
+.recruiting-list-filters {
+	display: flex;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-bottom: 12px;
+}
+
+.recruiting-list-filters.hidden {
+	display: none;
+}
+
+.recruiting-list-toolbar-left,
+.recruiting-list-toolbar-right {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.recruiting-list-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.recruiting-select-all {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: 12px;
+	color: #6b7280;
+	cursor: pointer;
+	user-select: none;
+}
+
+.recruiting-pagination {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 12px;
+	color: #6b7280;
+}
+
+.recruiting-page-num {
+	min-width: 48px;
+	text-align: center;
+}
+
+.recruiting-sort {
+	height: 28px;
+	border: 1px solid #e5e7eb;
+	border-radius: 6px;
+	font-size: 12px;
+	padding: 0 8px;
+	background: #fff;
+	color: #4b5563;
+}
+
+.recruiting-card-list {
+	display: flex;
+	flex-direction: column;
+}
+
+.recruiting-card {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding: 14px 16px;
+	border-bottom: 1px solid #f0f0f0;
+	transition: background 0.15s;
+}
+
+.recruiting-card:last-child {
+	border-bottom: none;
+}
+
+.recruiting-card:hover {
+	background: #f9fafb;
+}
+
+.recruiting-card-check {
+	flex-shrink: 0;
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+}
+
+.recruiting-card-avatar {
+	flex-shrink: 0;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	background: #e8f5ef;
+	color: #00a870;
+	font-weight: 600;
+	font-size: 16px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.recruiting-card-main {
+	flex: 1;
+	min-width: 0;
+	cursor: pointer;
+}
+
+.recruiting-card-name {
+	font-size: 14px;
+	font-weight: 600;
+	color: #111827;
+	margin-bottom: 4px;
+}
+
+.recruiting-card-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	margin-bottom: 4px;
+}
+
+.recruiting-tag {
+	display: inline-block;
+	padding: 2px 8px;
+	border-radius: 4px;
+	font-size: 11px;
+	background: #f3f4f6;
+	color: #6b7280;
+}
+
+.recruiting-tag-job {
+	background: #eff6ff;
+	color: #1d4ed8;
+}
+
+.recruiting-tag-status {
+	background: #ecfdf3;
+	color: #027a48;
+}
+
+.recruiting-card-sub {
+	font-size: 12px;
+	color: #9ca3af;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.recruiting-card-view {
+	flex-shrink: 0;
+	border-radius: 6px;
+	font-size: 12px;
+}

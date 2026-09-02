@@ -1,0 +1,64 @@
+{
+ "actions": [],
+ "creation": "2026-09-02 17:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_type",
+  "occurrence_date",
+  "metric_value",
+  "metric_unit",
+  "tier_label",
+  "deduction_amount",
+  "remarks"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Item Type",
+   "options": "Late Entry\nEarly Exit\nMissing Punch\nAbsent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "occurrence_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date"
+  },
+  {
+   "fieldname": "metric_value",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Metric Value"
+  },
+  {
+   "fieldname": "metric_unit",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Unit"
+  },
+  {
+   "fieldname": "tier_label",
+   "fieldtype": "Data",
+   "label": "Tier / Formula"
+  },
+  {
+   "fieldname": "deduction_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Deduction Amount"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  }
+ ],
+ "istable": 1,
+ "module": "hr_roster",
+ "name": "Attendance Deduction Line",
+ "permissions": []
+}

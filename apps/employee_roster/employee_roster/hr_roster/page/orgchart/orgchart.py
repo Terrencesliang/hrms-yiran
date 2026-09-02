@@ -51,29 +51,189 @@ def get_org_tree(company: str | None = None):
             "children": [],
         }
 
-    # 建立父子关系
+    # 建立父子关系 — 公司下一级部门（含总经办）并列展示，跳过 All Departments 容器
+    ALL_DEPTS = "All Departments"
     roots = []
     for d in dept_rows:
-        if d.disabled:
+        if d.disabled or d.name == ALL_DEPTS:
             continue
         node = nodes[d.name]
         p = d.parent_department
-        if p and p in nodes:
+        if p and p in nodes and p != ALL_DEPTS:
             nodes[p]["children"].append(node)
         else:
             roots.append(node)
 
-    # 视觉根: 以「总经办」为根, 跳过 All Departments 聚合容器
-    ZJ = "总经办 - 依然电商"
-    if ZJ in nodes:
-        roots = [nodes[ZJ]]
-    else:
-        roots.sort(key=lambda n: (n["name"] != ZJ, n["name"]))
-
+    roots.sort(key=lambda n: (n["title"] != "总经办", n["title"]))
     for node in nodes.values():
-        node["children"].sort(key=lambda n: (n["name"] != ZJ, n["name"]))
+        node["children"].sort(key=lambda n: n["title"])
 
-    return {"roots": roots, "total": len([n for n in nodes.values()])}
+    company_title = frappe.db.get_value("Company", company, "company_name") if company else None
+    company_title = company_title or company or "公司"
+    total_emp = (
+        frappe.db.count("Employee", filters={"status": "Active", "company": company}) or 0
+        if company
+        else sum(n["employee_count"] for n in roots)
+    )
+
+    company_root = {
+        "name": f"__company__{company or 'default'}",
+        "title": company_title,
+        "is_group": True,
+        "is_company": True,
+        "employee_count": total_emp,
+        "head_name": "",
+        "children": roots,
+    }
+
+    return {
+        "roots": [company_root],
+        "total": len(nodes.values()),
+        "company": company,
+        "company_name": company_title,
+    }
+
+
+@frappe.whitelist()
+def get_org_diagram(company: str | None = None):
+    """返回可视化架构图数据：公司 → 部门 → 负责人 → 岗位编制。"""
+    tree = get_org_tree(company)
+    roots = tree.get("roots") or []
+    if not roots:
+        return {"company_name": "", "general_manager": "", "departments": []}
+
+    company_node = roots[0]
+    departments = []
+    for dept in company_node.get("children") or []:
+        departments.append(_build_diagram_department(dept, dept.get("title") or ""))
+
+    departments.sort(key=lambda d: (d["title"] != "总经办", d["title"]))
+    gm = _get_general_manager(tree.get("company"))
+    return {
+        "company_name": company_node.get("title") or tree.get("company_name") or "",
+        "company_emp_count": company_node.get("employee_count") or 0,
+        "general_manager": gm,
+        "departments": departments,
+    }
+
+
+def _build_diagram_department(dept_node, dept_title):
+    dept_names = _collect_dept_names(dept_node)
+    manager_emp = _find_department_manager_employee(dept_names, dept_title)
+    manager = _format_manager_label(dept_title, manager_emp)
+    roles = _get_designation_counts(
+        dept_names,
+        exclude_names={manager_emp.get("employee_name")} if manager_emp else set(),
+    )
+
+    from collections import Counter
+
+    role_counter = Counter()
+    for role in roles:
+        role_counter[role["title"]] += role["count"]
+
+    merged_roles = [{"title": title, "count": count} for title, count in role_counter.items()]
+    merged_roles.sort(key=lambda r: (-r["count"], r["title"]))
+
+    return {
+        "name": dept_node.get("name"),
+        "title": dept_title or dept_node.get("title"),
+        "employee_count": dept_node.get("employee_count") or 0,
+        "manager": manager,
+        "roles": merged_roles,
+    }
+
+
+def _find_department_manager_employee(dept_names, dept_title):
+    rows = frappe.get_all(
+        "Employee",
+        filters=[["status", "=", "Active"], ["department", "in", dept_names]],
+        fields=["name", "employee_name", "designation"],
+        limit_page_length=None,
+    )
+    dept_hint = (dept_title or "").replace("部", "")
+    best = None
+    for row in rows:
+        designation = (row.designation or "").strip()
+        if not designation:
+            continue
+        if "经理" in designation or "主管" in designation or "负责人" in designation:
+            score = 0
+            if dept_title and dept_title in designation:
+                score += 3
+            if dept_hint and dept_hint in designation:
+                score += 2
+            if "经理" in designation:
+                score += 1
+            if not best or score > best["score"]:
+                best = {"score": score, "employee_name": row.employee_name, "designation": designation}
+    return best
+
+
+def _format_manager_label(dept_title, manager_emp):
+    if not manager_emp:
+        return ""
+    designation = manager_emp.get("designation") or ""
+    name = manager_emp.get("employee_name") or ""
+    if designation and name and name not in designation:
+        return f"{designation} {name}"
+    if designation:
+        return designation
+    if dept_title and name:
+        return f"{dept_title}部经理 {name}"
+    return name
+
+
+def _get_designation_counts(dept_names, exclude_names=None):
+    exclude_names = exclude_names or set()
+    rows = frappe.get_all(
+        "Employee",
+        filters=[["status", "=", "Active"], ["department", "in", dept_names]],
+        fields=["employee_name", "designation"],
+        limit_page_length=None,
+    )
+    from collections import Counter
+
+    counter = Counter()
+    for row in rows:
+        if row.employee_name in exclude_names:
+            continue
+        title = (row.designation or "").strip() or "未设置岗位"
+        if "经理" in title and "部" in title:
+            continue
+        counter[title] += 1
+    return [{"title": title, "count": count} for title, count in counter.items()]
+
+
+def _get_department_manager(dept_names):
+    manager = _find_department_manager_employee(dept_names, "")
+    return _format_manager_label("", manager) if manager else ""
+
+
+def _collect_dept_names(node):
+    names = [node["name"]]
+    for child in node.get("children") or []:
+        names.extend(_collect_dept_names(child))
+    return names
+
+
+def _get_general_manager(company):
+    if not company:
+        return ""
+    rows = frappe.get_all(
+        "Employee",
+        filters=[
+            ["status", "=", "Active"],
+            ["company", "=", company],
+            ["designation", "like", "%总经理%"],
+        ],
+        fields=["employee_name", "designation"],
+        limit=1,
+    )
+    if rows:
+        row = rows[0]
+        return f"{row.designation or '总经理'} {row.employee_name}".strip()
+    return ""
 
 
 def _dept_names_under(dept_name, all_rows):
@@ -118,3 +278,44 @@ def _get_head_name(dept_name, dept_names_under):
         return emp_name or top
     except Exception:
         return ""
+
+
+ERPNext_DEFAULT_DEPARTMENTS = [
+    "Accounts",
+    "Marketing",
+    "Sales",
+    "Purchase",
+    "Operations",
+    "Production",
+    "Dispatch",
+    "Customer Service",
+    "Human Resources",
+    "Management",
+    "Quality Management",
+    "Research & Development",
+    "Legal",
+]
+
+
+def disable_erpnext_default_departments():
+    """禁用 ERPNext 创建公司时自带的英文空部门。"""
+    disabled = []
+    skipped = []
+
+    for dept_name in ERPNext_DEFAULT_DEPARTMENTS:
+        for row in frappe.get_all(
+            "Department",
+            filters={"department_name": dept_name, "disabled": 0},
+            fields=["name", "department_name"],
+        ):
+            if frappe.db.count("Employee", {"department": row.name}):
+                skipped.append(row.name)
+                continue
+            doc = frappe.get_doc("Department", row.name)
+            doc.disabled = 1
+            doc.save(ignore_permissions=True)
+            disabled.append(doc.department_name)
+
+    frappe.db.commit()
+    return {"disabled": disabled, "skipped": skipped}
+

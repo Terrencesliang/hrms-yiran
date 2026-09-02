@@ -2,15 +2,10 @@
 import frappe
 from frappe.query_builder.functions import Count
 
-# 根节点: 以总经办为视觉根
-ROOT_DEFAULT = "总经办"
-PREFIX = " - 依然电商"
-
-
 @frappe.whitelist()
 def get_children(parent: str | None = None, company: str | None = None, exclude_node: str | None = None):
 	"""返回部门组织架构树的子节点, 供 HierarchyChart 渲染。
-	根节点(parent 为空)时返回「总经办」作为视觉根。
+	根节点(parent 为空)时返回公司下一级部门（含总经办，并列展示）。
 	"""
 	Department = frappe.qb.DocType("Department")
 
@@ -26,8 +21,8 @@ def get_children(parent: str | None = None, company: str | None = None, exclude_
 	if parent and parent.strip() and parent != "All Departments":
 		query = query.where(Department.parent_department == parent)
 	elif not parent or parent == "All Departments":
-		# 根调用: 返回总经办作为唯一根
-		query = query.where(Department.name == (ROOT_DEFAULT + PREFIX))
+		# 根调用: 返回 All Departments 下的一级部门
+		query = query.where(Department.parent_department == "All Departments")
 
 	if exclude_node:
 		query = query.where(Department.name != exclude_node)

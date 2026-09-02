@@ -1,0 +1,71 @@
+{
+ "actions": [],
+ "creation": "2026-09-02 17:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_type",
+  "enabled",
+  "calc_mode",
+  "rate_per_minute",
+  "salary_percent",
+  "base_salary_component"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Item Type",
+   "options": "Late Entry\nEarly Exit\nMissing Punch\nAbsent",
+   "reqd": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "calc_mode",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Calculation Mode",
+   "options": "Tiered\nPer Minute\nNone\nSalary Percent",
+   "reqd": 1
+  },
+  {
+   "depends_on": "eval:doc.calc_mode=='Per Minute'",
+   "fieldname": "rate_per_minute",
+   "fieldtype": "Currency",
+   "label": "Rate Per Minute"
+  },
+  {
+   "depends_on": "eval:doc.calc_mode=='Salary Percent'",
+   "fieldname": "salary_percent",
+   "fieldtype": "Percent",
+   "label": "Salary Percent"
+  },
+  {
+   "depends_on": "eval:doc.calc_mode=='Salary Percent'",
+   "fieldname": "base_salary_component",
+   "fieldtype": "Link",
+   "label": "Base Salary Component",
+   "options": "Salary Component"
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-02 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "Attendance Deduction Rule Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

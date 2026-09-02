@@ -2,7 +2,6 @@
 // License: MIT
 
 frappe.pages["orgchart"].on_page_load = function (wrapper) {
-	// 动态加载本页 CSS
 	if (!document.querySelector('link[data-orgchart-css]')) {
 		const link = document.createElement("link");
 		link.rel = "stylesheet";
@@ -20,9 +19,7 @@ frappe.pages["orgchart"].on_page_load = function (wrapper) {
 	$(wrapper).find(".layout-main").addClass("row");
 	$(wrapper).find(".layout-main-section-wrapper").addClass("col-md-12");
 
-	const page = wrapper.page;
-	const $main = page.main;
-
+	const $main = wrapper.page.main;
 	$main.empty();
 	$main.addClass("orgchart-page");
 	$main.html('<div class="orgchart-toolbar"></div><div class="orgchart-tree"></div>');
@@ -46,15 +43,15 @@ function load_tree($main) {
 
 function render_toolbar($main, data) {
 	const total = data.total || 0;
+	const company = data.company_name || __("公司");
 	$main.find(".orgchart-toolbar").html(`
 		<div class="orgchart-title-bar">
-			<span class="orgchart-title">深圳市依然电商科技有限公司</span>
+			<span class="orgchart-title">${esc(company)}</span>
 			<span class="orgchart-sub">${total} 个组织单元</span>
 		</div>
 	`);
 }
 
-// ---------- 树形渲染 (扁平收集 + 按 depth 缩进 + 折叠集合) ----------
 function render_tree($main, roots) {
 	const header = `
 		<div class="orgchart-table-head">
@@ -71,8 +68,7 @@ function render_tree($main, roots) {
 	const $tbody = $main.find(".orgchart-table-body");
 	$tbody.empty();
 
-	// 展平节点列表, 记录父链
-	const flat = []; // {node, depth, parentKey}
+	const flat = [];
 	function walk(nodes, depth, parentKey) {
 		nodes.forEach((n) => {
 			flat.push({ node: n, depth, parentKey });
@@ -83,27 +79,24 @@ function render_tree($main, roots) {
 	}
 	walk(roots, 0, null);
 
-	// 折叠集合: 记录折叠的节点 name
 	const collapsed = new Set();
 
 	function visibleKeys() {
-		const vis = new Set();
 		flat.forEach((it) => {
-			// 只要祖链路没有折叠的, 就可见
 			let ok = true;
 			let cur = it.parentKey;
 			let depth = it.depth;
 			while (cur != null && depth > 0) {
-				if (collapsed.has(cur)) { ok = false; break; }
-				// 找上一层 parent
+				if (collapsed.has(cur)) {
+					ok = false;
+					break;
+				}
 				const parentEntry = flat.find((x) => x.node.name === cur && x.depth === depth - 1);
 				cur = parentEntry ? parentEntry.parentKey : null;
 				depth--;
 			}
 			it.visible = ok;
-			if (ok) vis.add(it.node.name);
 		});
-		return vis;
 	}
 
 	function rebuild() {
@@ -123,15 +116,16 @@ function render_tree($main, roots) {
 				: `<span class="oc-arrow oc-arrow-empty"></span>`;
 
 			const indent = it.depth * 26;
-			const emp = (it.node.employee_count == null ? 0 : it.node.employee_count);
+			const emp = it.node.employee_count == null ? 0 : it.node.employee_count;
 			const head = it.node.head_name || "-";
+			const nodeType = it.node.is_company ? __("公司") : __("部门");
 
 			tr.innerHTML = `
 				<div class="oc-col oc-col-name" style="padding-left:${indent + 8}px">
 					${arrow}
-					<span class="oc-node" style="cursor:${hasChildren ? "pointer" : "default"}">${esc(it.node.title)}</span>
+					<span class="oc-node${it.node.is_company ? " oc-node-company" : ""}" style="cursor:${hasChildren ? "pointer" : "default"}">${esc(it.node.title)}</span>
 				</div>
-				<div class="oc-col oc-col-type">部门</div>
+				<div class="oc-col oc-col-type">${nodeType}</div>
 				<div class="oc-col oc-col-emp">${emp}</div>
 				<div class="oc-col oc-col-bianzhi">-</div>
 				<div class="oc-col oc-col-qb">-</div>
@@ -142,14 +136,11 @@ function render_tree($main, roots) {
 		});
 	}
 
-	// 默认展开前2层 (depth 0,1 可见)
 	rebuild();
 
-	// 绑定折叠
 	$tbody.off("click").on("click", ".oc-arrow[data-toggle]", function () {
 		const $row = $(this).closest(".orgchart-row");
 		const name = $row.attr("data-name");
-		const depthNow = parseInt($row.attr("data-depth"), 10);
 		const entry = flat.find((x) => x.node.name === name);
 		const hasChildren = entry && entry.node.children && entry.node.children.length;
 		if (!hasChildren) return;

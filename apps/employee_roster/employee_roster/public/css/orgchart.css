@@ -12,8 +12,34 @@
 	--oc-bg-hover: var(--fg-hover-color);
 	--oc-text: var(--text-color);
 	--oc-text-muted: var(--text-muted);
+	--oc-company: #2f6fed;
+	--oc-dept: #0f9b8e;
+	--oc-manager: #e67e22;
 	padding: 0;
 }
+
+/* ---------- 页签 ---------- */
+.orgchart-tabs {
+	display: flex;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+.orgchart-tab {
+	border: 1px solid var(--oc-border);
+	background: var(--oc-bg);
+	color: var(--oc-text-muted);
+	border-radius: var(--radius);
+	padding: 8px 16px;
+	font-size: 13px;
+	cursor: pointer;
+}
+.orgchart-tab.active {
+	background: var(--oc-bg-subtle);
+	color: var(--oc-text);
+	border-color: var(--oc-border-strong);
+	font-weight: 600;
+}
+.orgchart-tab-panel.hidden { display: none; }
 
 /* ---------- 顶栏 ---------- */
 .orgchart-toolbar { margin-bottom: 16px; }
@@ -113,8 +139,219 @@
 	font-weight: 500;
 	color: var(--oc-text);
 }
+.oc-node-company {
+	font-weight: 600;
+}
 
 /* 深层节点缩进参考线 */
 .orgchart-row[data-depth] .oc-col-name { position: relative; }
 
 .orgchart-table-body { width: 100%; }
+
+/* ---------- 可视化架构图 ---------- */
+.org-diagram-page {
+	font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", sans-serif;
+	font-size: 13px;
+}
+
+.orgchart-diagram {
+	background-color: #f5f6f8;
+	background-image:
+		linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+		linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+	background-size: 20px 20px;
+	border: 1px solid var(--oc-border);
+	border-radius: var(--radius);
+	overflow: auto;
+	min-height: 560px;
+	padding: 32px 24px 40px;
+}
+
+.oc-diagram-canvas {
+	min-width: max-content;
+	margin: 0 auto;
+	padding-bottom: 16px;
+}
+
+.oc-diagram-level {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
+.oc-diagram-root-row {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0;
+	position: relative;
+}
+
+.oc-diagram-node {
+	border-radius: 4px;
+	padding: 10px 18px;
+	font-size: 13px;
+	font-weight: 600;
+	text-align: center;
+	white-space: nowrap;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+	line-height: 1.4;
+}
+
+.oc-diagram-company {
+	background: #2f6fed;
+	color: #fff;
+	min-width: 300px;
+}
+
+.oc-diagram-gm-arm {
+	display: flex;
+	align-items: center;
+	margin-left: 8px;
+}
+
+.oc-diagram-gm {
+	background: #fff;
+	color: #e67e22;
+	border: 1px solid #f0c090;
+	min-width: 140px;
+	font-weight: 600;
+}
+
+.oc-diagram-dept {
+	background: #0f9b8e;
+	color: #fff;
+	min-width: 108px;
+}
+.oc-diagram-dept em {
+	font-style: normal;
+	font-weight: 400;
+	margin-left: 2px;
+}
+
+.oc-diagram-manager {
+	background: #fff;
+	color: #e67e22;
+	border: 1px solid #f0c090;
+	min-width: 132px;
+	font-weight: 600;
+}
+
+/* 连线 */
+.oc-diagram-line-v,
+.oc-diagram-line-h {
+	background: #98a2b3;
+	flex-shrink: 0;
+}
+.oc-diagram-line-v {
+	width: 2px;
+	height: 24px;
+	margin: 0 auto;
+}
+.oc-diagram-line-h {
+	height: 2px;
+	width: 36px;
+}
+.oc-line-trunk {
+	height: 32px;
+}
+
+.oc-diagram-rail-wrap {
+	position: relative;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+}
+
+.oc-diagram-rail-wrap > .oc-line-rail {
+	position: absolute;
+	top: 0;
+	left: 60px;
+	right: 60px;
+	height: 2px;
+	width: auto;
+}
+
+.oc-diagram-cols {
+	display: flex;
+	justify-content: center;
+	gap: 16px;
+	flex-wrap: nowrap;
+	padding-top: 0;
+	min-width: max-content;
+}
+
+.oc-diagram-col {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	flex: 0 0 auto;
+	min-width: 108px;
+	max-width: 280px;
+	position: relative;
+	padding-top: 0;
+}
+.oc-diagram-col .oc-line-drop {
+	margin-top: 0;
+	height: 32px;
+}
+
+.oc-diagram-roles {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+	align-items: flex-end;
+	gap: 8px;
+	padding-top: 4px;
+	max-width: 280px;
+	overflow-x: auto;
+}
+
+.oc-diagram-role {
+	writing-mode: vertical-rl;
+	text-orientation: upright;
+	letter-spacing: 1px;
+	background: #fff;
+	border: 1px solid #d0d5dd;
+	border-radius: 4px;
+	padding: 12px 8px;
+	font-size: 12px;
+	color: #344054;
+	min-height: 132px;
+	display: inline-flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.oc-role-title {
+	writing-mode: vertical-rl;
+	text-orientation: upright;
+	font-size: 12px;
+	line-height: 1.2;
+	max-height: 120px;
+	overflow: hidden;
+}
+.oc-role-count {
+	writing-mode: horizontal-tb;
+	font-weight: 700;
+	font-size: 12px;
+	color: #667085;
+	flex-shrink: 0;
+}
+.oc-diagram-role-muted {
+	writing-mode: horizontal-tb;
+	min-height: auto;
+	color: var(--oc-text-muted);
+	padding: 8px 12px;
+}
+
+.oc-diagram-empty {
+	text-align: center;
+	color: var(--oc-text-muted);
+	padding: 48px 0;
+	width: 100%;
+}

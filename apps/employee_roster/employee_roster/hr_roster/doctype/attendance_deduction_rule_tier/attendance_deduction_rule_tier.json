@@ -1,0 +1,77 @@
+{
+ "actions": [],
+ "creation": "2026-09-02 17:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "item_type",
+  "min_value",
+  "max_value",
+  "tier_unit",
+  "deduction_type",
+  "amount"
+ ],
+ "fields": [
+  {
+   "fieldname": "item_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Item Type",
+   "options": "Late Entry\nEarly Exit\nMissing Punch\nAbsent",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "min_value",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Min Value",
+   "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "0 = no upper limit",
+   "fieldname": "max_value",
+   "fieldtype": "Float",
+   "in_list_view": 1,
+   "label": "Max Value",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "tier_unit",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Tier Unit",
+   "options": "Per Occurrence Minutes\nMonthly Count\nOccurrence Hours",
+   "reqd": 1
+  },
+  {
+   "fieldname": "deduction_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Deduction Type",
+   "options": "Fixed Amount\nPer Unit Amount",
+   "reqd": 1
+  },
+  {
+   "fieldname": "amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Amount",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-09-02 17:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "Attendance Deduction Rule Tier",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

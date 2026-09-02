@@ -61,11 +61,23 @@
   {
    "child": 0,
    "collapsible": 1,
-   "icon": "building-2",
+   "icon": "org",
    "indent": 0,
    "keep_closed": 0,
-   "label": "Organizational Chart",
-   "link_to": "organizational-chart",
+   "label": "组织架构",
+   "link_to": "orgchart",
+   "link_type": "Page",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
+   "icon": "network",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "架构图",
+   "link_to": "org-diagram",
    "link_type": "Page",
    "show_arrow": 0,
    "type": "Link"

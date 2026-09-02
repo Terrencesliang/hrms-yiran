@@ -40,8 +40,13 @@ use_json_request_body = True
 # ------------------
 
 # include js, css files in header of desk.html
-app_include_css = "/assets/employee_roster/css/roster.css"
-# app_include_js = "/assets/employee_roster/js/employee_roster.js"
+app_include_css = [
+	"/assets/employee_roster/css/roster.css",
+	"/assets/employee_roster/css/orgchart.css",
+	"/assets/employee_roster/css/recruiting.css",
+	"/assets/employee_roster/css/attendance_rules.css",
+]
+app_include_js = "/assets/employee_roster/js/recruiting_candidates.js"
 
 # include js, css files in header of web template
 # web_include_css = "/assets/employee_roster/css/employee_roster.css"
@@ -55,12 +60,22 @@ app_include_css = "/assets/employee_roster/css/roster.css"
 # webform_include_css = {"doctype": "public/css/doctype.css"}
 
 # include js in page
-# page_js = {"page" : "public/js/file.js"}
+page_js = {
+	"org-diagram": "public/js/org_diagram.js",
+	"recruiting-active": "public/js/recruiting_active.js",
+	"recruiting-hired": "public/js/recruiting_hired.js",
+	"recruiting-rejected": "public/js/recruiting_rejected.js",
+	"attendance-rules": "public/js/attendance_rules.js",
+}
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_list_js = {
 	"Employee": "public/js/employee_list.js",
+}
+doctype_js = {
+	"Payroll Entry": "public/js/attendance_deduction.js",
+	"Attendance Deduction Summary": "public/js/attendance_deduction.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}
@@ -185,13 +200,14 @@ doctype_list_js = {
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-# 	"*": {
-# 		"on_update": "method",
-# 		"on_cancel": "method",
-# 		"on_trash": "method"
-# 	}
-# }
+doc_events = {
+	"Salary Slip": {
+		"validate": "employee_roster.hr_roster.attendance_deduction.payroll_integration.adjust_salary_slip_payment_days",
+	},
+	"Payroll Entry": {
+		"on_submit": "employee_roster.hr_roster.attendance_deduction.payroll_integration.on_payroll_entry_submit",
+	},
+}
 
 # Scheduled Tasks
 # ---------------
