@@ -37,20 +37,58 @@ app_is_present() {
 	}
 }
 
+repair_apps_txt() {
+	cd "${BENCH_DIR}"
+	mkdir -p sites
+	python3 <<'PY'
+from pathlib import Path
+
+path = Path("sites/apps.txt")
+if not path.exists():
+    path.write_text("frappe\n")
+    raise SystemExit(0)
+
+text = path.read_text()
+text = text.replace("paymentshrms", "payments\nhrms")
+
+lines = []
+for raw in text.splitlines():
+    line = raw.strip()
+    if line:
+        lines.append(line)
+
+seen = set()
+ordered = []
+for line in lines:
+    if line not in seen:
+        seen.add(line)
+        ordered.append(line)
+
+path.write_text("\n".join(ordered) + "\n")
+PY
+}
+
+ensure_app_in_apps_txt() {
+	local name="$1"
+	repair_apps_txt
+	if ! grep -qx "${name}" sites/apps.txt; then
+		printf '%s\n' "${name}" >> sites/apps.txt
+	fi
+}
+
 install_local_app() {
 	local name="$1"
 	local src="$2"
 	cd "${BENCH_DIR}"
 	if app_is_present "${name}"; then
+		ensure_app_in_apps_txt "${name}"
 		return 0
 	fi
 	rm -rf "apps/${name}"
 	log "安装本地应用 ${name}（从挂载目录复制）..."
+	mkdir -p "apps/${name}"
 	cp -a "${src}/." "apps/${name}/"
-	mkdir -p sites
-	if [ -f sites/apps.txt ] && ! grep -qx "${name}" sites/apps.txt; then
-		echo "${name}" >> sites/apps.txt
-	fi
+	ensure_app_in_apps_txt "${name}"
 	if [ -x env/bin/pip ]; then
 		env/bin/pip install -q -e "apps/${name}" || true
 	fi
@@ -156,6 +194,7 @@ trim_procfile() {
 install_apps() {
 	cd "${BENCH_DIR}"
 	configure_git_for_docker
+	repair_apps_txt
 
 	if [ ! -d "apps/erpnext" ]; then
 		log "安装 ERPNext (${ERPNEXT_BRANCH})..."
@@ -247,6 +286,7 @@ first_time_install() {
 
 start_bench() {
 	cd "${BENCH_DIR}"
+	repair_apps_txt
 	log "启动 HRMS 服务..."
 	exec bench start
 }
