@@ -152,7 +152,25 @@ configure_bench_hosts() {
 	bench set-redis-socketio-host "${redis_url}"
 	bench set-config -g serve_default_site true
 	bench set-config -g default_site "${SITE_NAME}"
-	bench create-rq-users 2>/dev/null || true
+	# 外部共享 Redis 无密码时勿跑 create-rq-users，否则会写入 RQ ACL 凭证导致 Authentication required
+	if [ -n "${REDIS_PASSWORD}" ]; then
+		bench create-rq-users 2>/dev/null || true
+	else
+		bench set-config -g use_redis_auth 0
+		python3 - <<'PY'
+import json
+from pathlib import Path
+
+path = Path("sites/common_site_config.json")
+if not path.exists():
+    raise SystemExit(0)
+config = json.loads(path.read_text())
+for key in ("rq_username", "rq_password", "redis_queue_username", "redis_queue_password"):
+    config.pop(key, None)
+config["use_redis_auth"] = 0
+path.write_text(json.dumps(config, indent=1, ensure_ascii=False) + "\n")
+PY
+	fi
 }
 
 ensure_bench_initialized() {
