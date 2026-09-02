@@ -16,8 +16,24 @@ ERPNEXT_BRANCH="${ERPNEXT_BRANCH:-develop}"
 LANGUAGE="${LANGUAGE:-zh}"
 HTTP_PORT="${HTTP_PORT:-8080}"
 REDIS_URL="${REDIS_URL:-redis://redis:6379}"
+REDIS_PASSWORD="${REDIS_PASSWORD:-}"
 SYNC_LOCAL_DATA="${SYNC_LOCAL_DATA:-false}"
 BACKUP_DIR="${SOURCE_DIR}/deploy/data/incoming"
+
+redis_url_for_bench() {
+	if [ -n "${REDIS_PASSWORD}" ] && [[ "${REDIS_URL}" != *"@"* ]]; then
+		python3 - <<PY
+from urllib.parse import urlparse, urlunparse
+parsed = urlparse("${REDIS_URL}")
+host = parsed.hostname or "127.0.0.1"
+port = parsed.port or 6379
+db = parsed.path or "/1"
+print(f"redis://:{REDIS_PASSWORD}@{host}:{port}{db}")
+PY
+	else
+		echo "${REDIS_URL}"
+	fi
+}
 
 log() {
 	printf '\n[hrms-deploy] %s\n' "$*"
@@ -128,12 +144,15 @@ PY
 }
 
 configure_bench_hosts() {
+	local redis_url
+	redis_url="$(redis_url_for_bench)"
 	cd "${BENCH_DIR}"
-	bench set-redis-cache-host "${REDIS_URL}"
-	bench set-redis-queue-host "${REDIS_URL}"
-	bench set-redis-socketio-host "${REDIS_URL}"
+	bench set-redis-cache-host "${redis_url}"
+	bench set-redis-queue-host "${redis_url}"
+	bench set-redis-socketio-host "${redis_url}"
 	bench set-config -g serve_default_site true
 	bench set-config -g default_site "${SITE_NAME}"
+	bench create-rq-users 2>/dev/null || true
 }
 
 ensure_bench_initialized() {
@@ -267,7 +286,7 @@ first_time_install() {
 	mapfile -t redis_parts < <(redis_endpoint)
 	wait_for_service "${redis_parts[0]}" "${redis_parts[1]}" "Redis"
 	log "数据库: ${DB_HOST}:${DB_PORT} (用户: ${DB_ROOT_USERNAME})"
-	log "Redis: ${REDIS_URL}"
+	log "Redis: $(redis_url_for_bench)"
 
 	ensure_bench_initialized
 	configure_bench_hosts
