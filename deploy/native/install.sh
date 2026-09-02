@@ -27,6 +27,7 @@ install_system_deps() {
 }
 
 install_bench_cli() {
+	export PATH="${HOME}/.local/bin:${PATH}"
 	if command -v bench >/dev/null 2>&1; then
 		log "bench 已安装: $(bench --version 2>/dev/null || true)"
 		return
@@ -34,7 +35,13 @@ install_bench_cli() {
 	log "安装 frappe-bench..."
 	pip3 install --user frappe-bench
 	export PATH="${HOME}/.local/bin:${PATH}"
-	command -v bench >/dev/null 2>&1 || die "bench 安装失败，请检查 PATH"
+	command -v bench >/dev/null 2>&1 || die "bench 安装失败，请执行: export PATH=\"\${HOME}/.local/bin:\${PATH}\""
+}
+
+ensure_install_dirs() {
+	local base="${INSTALL_BASE:-$(dirname "${BENCH_DIR}")}"
+	log "准备安装目录: ${base}"
+	mkdir -p "${base}" "${BENCH_DIR}" "$(dirname "${BACKUP_INCOMING}")"
 }
 
 init_bench() {
@@ -111,6 +118,7 @@ main() {
 
 	install_system_deps
 	install_bench_cli
+	ensure_install_dirs
 	export PATH="${HOME}/.local/bin:${PATH}"
 
 	mapfile -t redis_parts < <(redis_host_port)
