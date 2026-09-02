@@ -1,1 +1,1 @@
-docker compose logs -f backend
+& "$PSScriptRoot\compose.ps1" logs -f backend

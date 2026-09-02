@@ -111,7 +111,7 @@ Ensure-EnvFile
 Push-Location $DeployDir
 try {
     Write-Step "启动 Docker 容器"
-    docker compose up -d
+    & (Join-Path $DeployDir "compose.ps1") up -d
     if ($LASTEXITCODE -ne 0) { throw "docker compose up 失败" }
     Show-AccessInfo (Join-Path $DeployDir ".env")
 }

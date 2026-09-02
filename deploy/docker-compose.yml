@@ -1,7 +1,9 @@
 name: hrms-yiran
 
 services:
+  # 内置 PostgreSQL（USE_BUNDLED_POSTGRES=true 时启动）
   postgres:
+    profiles: [bundled-postgres]
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -17,7 +19,9 @@ services:
       retries: 20
       start_period: 15s
 
+  # 内置 Redis（USE_BUNDLED_REDIS=true 时启动）
   redis:
+    profiles: [bundled-redis]
     image: redis:7-alpine
     restart: unless-stopped
     healthcheck:
@@ -31,11 +35,15 @@ services:
     restart: unless-stopped
     working_dir: /home/frappe
     command: bash /workspace/deploy/init.sh
+    # 允许容器访问宿主机上的 Redis / PostgreSQL（127.0.0.1 场景）
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_ROOT_USERNAME: ${DB_ROOT_USERNAME:-postgres}
-      DB_HOST: postgres
+      DB_HOST: ${DB_HOST:-postgres}
       DB_PORT: ${DB_PORT:-5432}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       SITE_NAME: ${SITE_NAME:-hrms.localhost}
       FRAPPE_BRANCH: ${FRAPPE_BRANCH:-develop}
@@ -51,10 +59,12 @@ services:
       - "${HTTP_PORT:-8080}:8000"
       - "${SOCKETIO_PORT:-9000}:9000"
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
+        required: false
+      postgres:
+        condition: service_healthy
+        required: false
 
 volumes:
   postgres-data:

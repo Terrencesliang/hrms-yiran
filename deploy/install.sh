@@ -67,5 +67,5 @@ ensure_env
 
 cd "${DEPLOY_DIR}"
 log "启动 Docker 容器"
-docker compose up -d
+bash "${DEPLOY_DIR}/compose.sh" up -d
 show_info

@@ -1,1 +1,1 @@
-docker compose down
+& "$PSScriptRoot\compose.ps1" down

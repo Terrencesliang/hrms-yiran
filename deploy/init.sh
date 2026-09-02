@@ -14,6 +14,7 @@ FRAPPE_BRANCH="${FRAPPE_BRANCH:-develop}"
 ERPNEXT_BRANCH="${ERPNEXT_BRANCH:-develop}"
 LANGUAGE="${LANGUAGE:-zh}"
 HTTP_PORT="${HTTP_PORT:-8080}"
+REDIS_URL="${REDIS_URL:-redis://redis:6379}"
 
 log() {
 	printf '\n[hrms-deploy] %s\n' "$*"
@@ -33,11 +34,23 @@ PY
 	done
 }
 
+redis_endpoint() {
+	python3 - <<PY
+from urllib.parse import urlparse
+url = "${REDIS_URL}"
+parsed = urlparse(url)
+host = parsed.hostname or "redis"
+port = parsed.port or 6379
+print(host)
+print(port)
+PY
+}
+
 configure_bench_hosts() {
 	cd "${BENCH_DIR}"
-	bench set-redis-cache-host redis://redis:6379
-	bench set-redis-queue-host redis://redis:6379
-	bench set-redis-socketio-host redis://redis:6379
+	bench set-redis-cache-host "${REDIS_URL}"
+	bench set-redis-queue-host "${REDIS_URL}"
+	bench set-redis-socketio-host "${REDIS_URL}"
 	bench set-config -g serve_default_site true
 	bench set-config -g default_site "${SITE_NAME}"
 }
@@ -115,7 +128,10 @@ first_time_install() {
 	export PATH="${NVM_DIR}/versions/node/v${NODE_VERSION_DEVELOP}/bin/:${PATH}"
 
 	wait_for_service "${DB_HOST}" "${DB_PORT}" "PostgreSQL"
-	wait_for_service redis 6379 "Redis"
+	mapfile -t redis_parts < <(redis_endpoint)
+	wait_for_service "${redis_parts[0]}" "${redis_parts[1]}" "Redis"
+	log "数据库: ${DB_HOST}:${DB_PORT} (用户: ${DB_ROOT_USERNAME})"
+	log "Redis: ${REDIS_URL}"
 
 	if [ ! -d "${BENCH_DIR}/apps/frappe" ]; then
 		log "初始化 Frappe Bench (${FRAPPE_BRANCH})..."
