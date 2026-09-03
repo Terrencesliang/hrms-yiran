@@ -53,11 +53,13 @@ app_include_css = [
 	"/assets/employee_roster/css/orgchart.css",
 	"/assets/employee_roster/css/recruiting.css",
 	"/assets/employee_roster/css/attendance_rules.css",
-	"/assets/employee_roster/css/unified_sidebar.css",
+	"/assets/employee_roster/css/unified_sidebar.css?v=20260903e",
+	"/assets/employee_roster/org_ui/org_ui.css?v=20260903d",
 ]
 app_include_js = [
+	"/assets/employee_roster/org_ui/org_ui.js?v=20260903d",
 	"/assets/employee_roster/js/recruiting_candidates.js",
-	"/assets/employee_roster/js/unified_sidebar.js",
+	"/assets/employee_roster/js/unified_sidebar.js?v=20260903f",
 ]
 
 # include js, css files in header of web template

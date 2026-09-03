@@ -58,6 +58,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		initialized: false,
 		menuModule: null,
 		$root: null,
+		vueApp: null,
 
 		init() {
 			if (this.initialized || !frappe.boot.setup_complete) return;
@@ -113,24 +114,41 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		refresh() {
-			if (!this.shouldActivate()) {
-				this.deactivate();
-				return;
-			}
+			try {
+				if (!this.shouldActivate()) {
+					this.deactivate();
+					return;
+				}
 
-			document.body.classList.add(BODY_CLASS);
-			this.ensureRoot();
-			this.hideStandardChrome();
-			this.renderHeader();
-			this.renderTabs();
-			this.renderMenu();
-			this.enhanceUserFooter();
+				document.body.classList.add(BODY_CLASS);
+				this.ensureRoot();
+				this.hideStandardChrome();
+				if (window.OrgUI?.mountSidebar) {
+					this.mountArcoSidebar();
+					this.pushArcoState();
+				} else {
+					this.renderHeader();
+					this.renderTabs();
+					this.renderMenu();
+				}
+				this.enhanceUserFooter();
+				this.ensureCollapseControls();
+			} catch (e) {
+				console.warn("[hr-unified-sidebar] refresh skipped:", e);
+			}
 		},
 
 		deactivate() {
 			document.body.classList.remove(BODY_CLASS);
+			try {
+				this.vueApp?.unmount?.();
+			} catch (e) {
+				/* ignore */
+			}
+			this.vueApp = null;
 			this.$root?.remove();
 			this.$root = null;
+			document.querySelector(".hr-unified-expand-btn")?.remove();
 			this.restoreStandardChrome();
 		},
 
@@ -142,10 +160,103 @@ frappe.provide("employee_roster.unified_sidebar");
 			if (!root) {
 				root = document.createElement("div");
 				root.id = ROOT_ID;
-				root.className = "hr-unified-sidebar";
+				root.className = "hr-unified-sidebar arco-hr-sidebar-host";
 				sidebar.insertBefore(root, sidebar.firstChild);
 			}
 			this.$root = $(root);
+		},
+
+		mountArcoSidebar() {
+			const root = document.getElementById(ROOT_ID);
+			if (!root || this.vueApp) return;
+			root.classList.add("arco-hr-sidebar-host");
+			this.vueApp = window.OrgUI.mountSidebar(root, {
+				onWorkspace: (ws) => {
+					if (ws?.module) {
+						frappe.app.sidebar.open_module(ws.module);
+					} else if (ws?.route) {
+						frappe.set_route(ws.route);
+					}
+				},
+				onCollapse: () => frappe.app?.sidebar?.close?.(),
+				onSearch: () => {
+					$(".navbar-modal-search-mobile").first().trigger("click");
+				},
+				onTabChange: (moduleKey) => {
+					if (!moduleKey) return;
+					this.menuModule = moduleKey;
+					if (frappe.app?.sidebar?.current_module !== moduleKey) {
+						frappe.app.sidebar.open_module(moduleKey);
+					}
+					this.pushArcoState();
+				},
+				onNavigate: (item) => {
+					if (frappe.is_mobile()) {
+						frappe.app.sidebar.close();
+					}
+					const path = item?.path || "#";
+					if (!path || path === "#") return;
+					if (path.startsWith("http")) {
+						window.location.href = path;
+						return;
+					}
+					const url = new URL(path, window.location.origin);
+					const hash = (url.hash || "").replace(/^#\/?/, "");
+					const clean = decodeURIComponent(url.pathname.replace(/^\/(desk|app)\/?/, "")).replace(/\/$/, "");
+					const route = hash || clean;
+					if (route) frappe.set_route(route.split("/").filter(Boolean));
+				},
+			});
+		},
+
+		pushArcoState() {
+			if (!window.OrgUI?.updateSidebar) return;
+
+			const moduleKey = this.getMenuModuleKey();
+			const sidebarData = frappe.boot.module_sidebars?.[moduleKey];
+			const groups = sidebarData?.items?.length
+				? this.buildGroups(sidebarData.items, moduleKey).map((group) => ({
+						label: group.label,
+						collapsible: !!group.collapsible,
+						open: group.open !== false,
+						items: group.items.map((item) => ({
+							key: `${frappe.ui.sidebar_item.get_route(item) || "#"}::${item.label}`,
+							label: __(item.label),
+							path: frappe.ui.sidebar_item.get_route(item) || "#",
+							iconHtml: frappe.utils.icon(item.icon || "list", "sm", "", "", "", true),
+							openInNewTab: item.link_type === "URL" && item.open_in_new_tab,
+						})),
+					}))
+				: [];
+
+			const pathname = decodeURIComponent((window.location.pathname || "").replace(/\/$/, ""));
+			let activeKey = "";
+			let matchedLength = 0;
+			groups.forEach((group) => {
+				group.items.forEach((item) => {
+					const href = decodeURIComponent((item.path || "").split("?")[0].split("#")[0].replace(/\/$/, ""));
+					if (!href || href === "#") return;
+					if ((pathname === href || pathname.startsWith(href + "/")) && href.length >= matchedLength) {
+						activeKey = item.key;
+						matchedLength = href.length;
+					}
+				});
+			});
+
+			window.OrgUI.updateSidebar({
+				title: MODULE_TAB_LABELS[moduleKey] || this.getWorkspaceTitle(),
+				tabs: this.getTabModules(),
+				activeTab: moduleKey || this.getTabModules()[0]?.key || "",
+				activeKey,
+				groups,
+				workspaces: this.getDockEntries().map((entry) => ({
+					key: entry.module || entry.route,
+					label: __(entry.title || entry.module),
+					module: entry.module,
+					route: entry.route,
+				})),
+				searchShortcut: /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "⌘K" : "Ctrl+K",
+			});
 		},
 
 		hideStandardChrome() {
@@ -549,6 +660,33 @@ frappe.provide("employee_roster.unified_sidebar");
 			if (frappe.user.has_role("HR User")) return __("HR 用户");
 			const roles = frappe.user_roles || [];
 			return roles.length ? __(roles[0]) : __("用户");
+		},
+
+		ensureCollapseControls() {
+			let btn = document.querySelector(".hr-unified-expand-btn");
+			if (!btn) {
+				btn = document.createElement("button");
+				btn.type = "button";
+				btn.className = "hr-unified-expand-btn";
+				btn.setAttribute("aria-label", __("展开侧边栏"));
+				btn.title = __("展开侧边栏");
+				btn.innerHTML = frappe.utils.icon("chevron-right", "sm");
+				btn.addEventListener("click", (event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					frappe.app?.sidebar?.open?.();
+				});
+				document.body.appendChild(btn);
+			}
+			this.syncCollapseControls();
+		},
+
+		syncCollapseControls() {
+			const collapsed = document.body.classList.contains("sidebar-collapsed");
+			const btn = document.querySelector(".hr-unified-expand-btn");
+			if (btn) {
+				btn.hidden = !document.body.classList.contains(BODY_CLASS) || !collapsed;
+			}
 		},
 
 		enhanceUserFooter() {

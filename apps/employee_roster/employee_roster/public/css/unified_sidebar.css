@@ -27,6 +27,7 @@
 body.hr-unified-sidebar-active {
 	--sidebar-width: 320px;
 	--hr-unified-sidebar-width: 320px;
+	--hr-unified-content-gutter: 16px;
 	display: flex;
 	flex-direction: row;
 	flex-wrap: nowrap;
@@ -104,10 +105,17 @@ body.hr-unified-sidebar-active .main-section {
 
 body.hr-unified-sidebar-active #body,
 body.hr-unified-sidebar-active .page-container,
-body.hr-unified-sidebar-active .page-content,
-body.hr-unified-sidebar-active .layout-main-section {
+body.hr-unified-sidebar-active .page-content {
 	min-width: 0;
 	width: 100%;
+}
+
+/* Keep every Desk page visually separated from the persistent sidebar. */
+body.hr-unified-sidebar-active .layout-main-section {
+	box-sizing: border-box;
+	min-width: 0;
+	width: 100%;
+	padding-inline: var(--hr-unified-content-gutter) !important;
 }
 
 body.hr-unified-sidebar-active .layout-main {
@@ -157,6 +165,14 @@ body.hr-unified-sidebar-active .body-sidebar-top {
 	flex: 1 1 auto;
 	min-height: 0;
 	padding: 14px 12px 8px;
+}
+
+.hr-unified-sidebar.arco-hr-sidebar-host {
+	padding: 0;
+}
+
+.hr-unified-sidebar.arco-hr-sidebar-host .arco-hr-sidebar {
+	height: 100%;
 }
 
 .hr-unified-header {
@@ -442,6 +458,10 @@ body.hr-unified-sidebar-active .body-sidebar-bottom.hr-unified-footer .hr-unifie
 
 /* Narrow screens */
 @media (max-width: 768px) {
+	body.hr-unified-sidebar-active {
+		--hr-unified-content-gutter: 12px;
+	}
+
 	body.hr-unified-sidebar-active .body-sidebar-container {
 		flex: 0 0 min(100vw, var(--hr-unified-sidebar-width));
 		width: min(100vw, var(--hr-unified-sidebar-width));
