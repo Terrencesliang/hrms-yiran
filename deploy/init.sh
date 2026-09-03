@@ -18,7 +18,12 @@ HTTP_PORT="${HTTP_PORT:-8080}"
 REDIS_URL="${REDIS_URL:-redis://redis:6379}"
 REDIS_PASSWORD="${REDIS_PASSWORD:-}"
 SYNC_LOCAL_DATA="${SYNC_LOCAL_DATA:-false}"
+DEVELOPER_MODE="${DEVELOPER_MODE:-false}"
 BACKUP_DIR="${SOURCE_DIR}/deploy/data/incoming"
+
+developer_mode_enabled() {
+	[ "${DEVELOPER_MODE,,}" = "true" ] || [ "${DEVELOPER_MODE}" = "1" ]
+}
 
 redis_url_for_bench() {
 	if [ -n "${REDIS_PASSWORD}" ] && [[ "${REDIS_URL}" != *"@"* ]]; then
@@ -196,7 +201,11 @@ ensure_bench_initialized() {
 
 apply_site_config() {
 	cd "${BENCH_DIR}"
-	bench --site "${SITE_NAME}" set-config developer_mode 0
+	if developer_mode_enabled; then
+		bench --site "${SITE_NAME}" set-config developer_mode 1
+	else
+		bench --site "${SITE_NAME}" set-config developer_mode 0
+	fi
 	bench --site "${SITE_NAME}" set-config language "${LANGUAGE}"
 	bench --site "${SITE_NAME}" set-config host_name "http://localhost:${HTTP_PORT}"
 	bench --site "${SITE_NAME}" enable-scheduler
@@ -225,7 +234,29 @@ restore_local_backup() {
 trim_procfile() {
 	cd "${BENCH_DIR}"
 	sed -i '/^redis/d' ./Procfile || true
-	sed -i '/^watch/d' ./Procfile || true
+	sed -i '/^dev_sync:/d' ./Procfile || true
+	if developer_mode_enabled; then
+		if ! grep -q '^watch:' ./Procfile; then
+			printf '\nwatch: bench watch\n' >> ./Procfile
+		fi
+		printf 'dev_sync: python /workspace/source/deploy/dev_sync.py\n' >> ./Procfile
+	else
+		sed -i '/^watch/d' ./Procfile || true
+	fi
+}
+
+ensure_development_dependencies() {
+	if ! developer_mode_enabled; then
+		return
+	fi
+	cd "${BENCH_DIR}"
+	if [ -f "apps/hrms/package.json" ] && [ ! -d "apps/hrms/node_modules/html2canvas" ]; then
+		log "安装热更新所需前端依赖..."
+		(
+			cd apps/hrms
+			yarn install --frozen-lockfile --ignore-scripts --non-interactive
+		)
+	fi
 }
 
 install_apps() {
@@ -324,9 +355,16 @@ first_time_install() {
 start_bench() {
 	cd "${BENCH_DIR}"
 	repair_apps_txt
+	apply_site_config
+	trim_procfile
+	ensure_development_dependencies
 	# Docker publishes the container port to the host, so the development
 	# server must listen on every container interface instead of 127.0.0.1.
-	sed -i 's|^web: bench serve.*|web: bench serve --host 0.0.0.0 --port 8000|' ./Procfile
+	if developer_mode_enabled; then
+		sed -i 's|^web: .*|web: env PYTHONPATH=/workspace/source/deploy/dev_python bench serve --host 0.0.0.0 --port 8000|' ./Procfile
+	else
+		sed -i 's|^web: .*|web: bench serve --host 0.0.0.0 --port 8000|' ./Procfile
+	fi
 	log "启动 HRMS 服务..."
 	exec bench start
 }
