@@ -13,6 +13,7 @@ __pycache__/
 # build/
 .vscode
 .vs
+.idea
 node_modules
 *debug.log
 hrms/docs/current

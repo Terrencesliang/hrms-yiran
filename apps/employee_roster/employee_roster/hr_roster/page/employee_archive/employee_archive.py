@@ -239,21 +239,25 @@ def upload_archive_document(
 	file_url: str,
 	remarks: str | None = None,
 ) -> dict:
-	if not frappe.has_permission("Employee Archive Document", "create"):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	from employee_roster.integrations.tencent_cos.storage import attach_and_organize_file
 
 	existing = frappe.db.get_value(
 		"Employee Archive Document",
 		{"employee": employee, "document_type": document_type},
 		"name",
 	)
+	permission_type = "write" if existing else "create"
+	if not frappe.has_permission("Employee Archive Document", permission_type, doc=existing):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	if existing:
 		doc = frappe.get_doc("Employee Archive Document", existing)
+		old_file_url = doc.file
 		doc.file = file_url
 		if remarks is not None:
 			doc.remarks = remarks
 		doc.save(ignore_permissions=True)
 	else:
+		old_file_url = None
 		doc = frappe.get_doc(
 			{
 				"doctype": "Employee Archive Document",
@@ -264,6 +268,21 @@ def upload_archive_document(
 			}
 		)
 		doc.insert(ignore_permissions=True)
+
+	organized_url = attach_and_organize_file(
+		file_url,
+		"Employee Archive Document",
+		doc.name,
+		"file",
+	)
+	if organized_url != doc.file:
+		doc.file = organized_url
+		doc.save(ignore_permissions=True)
+
+	if old_file_url and old_file_url != organized_url:
+		old_file_id = frappe.db.get_value("File", {"file_url": old_file_url}, "name")
+		if old_file_id:
+			frappe.delete_doc("File", old_file_id, ignore_permissions=True)
 
 	return {"name": doc.name, "status": doc.status, "file": doc.file}
 

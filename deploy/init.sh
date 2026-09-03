@@ -324,6 +324,9 @@ first_time_install() {
 start_bench() {
 	cd "${BENCH_DIR}"
 	repair_apps_txt
+	# Docker publishes the container port to the host, so the development
+	# server must listen on every container interface instead of 127.0.0.1.
+	sed -i 's|^web: bench serve.*|web: bench serve --host 0.0.0.0 --port 8000|' ./Procfile
 	log "启动 HRMS 服务..."
 	exec bench start
 }
