@@ -11,9 +11,11 @@ from employee_roster.hr_roster.page.employee_archive.employee_archive import see
 def after_install():
 	from employee_roster.patches.post_fixture_sync.ensure_employee_group_name_field import execute as ensure_group_name_field
 	from employee_roster.hr_roster.attendance_deduction.setup import setup_attendance_deduction_module
+	from employee_roster.hr_roster.org_fields import ensure_org_custom_fields
 
 	seed_document_types()
 	ensure_group_name_field()
+	ensure_org_custom_fields()
 	sync_hr_roster_sidebar()
 	setup_attendance_deduction_module()
 

@@ -1,7 +1,25 @@
 # Copyright (c) 2026 stillgroup
 # License: MIT
+import csv
+import io
+import os
+import re
+import zipfile
+from pathlib import PurePosixPath
+
 import frappe
 from frappe import _
+
+ALLOWED_ARCHIVE_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx", ".xls", ".xlsx"}
+MAX_ARCHIVE_FILES = 1000
+MAX_ARCHIVE_UNCOMPRESSED_BYTES = 500 * 1024 * 1024
+
+
+def _require_archive_permission(permission_type: str = "read") -> None:
+	if "System Manager" in frappe.get_roles():
+		return
+	if not frappe.has_permission("Employee Archive Document", permission_type):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
 DEFAULT_DOCUMENT_TYPES = [
 	{"document_type": "id_card", "document_name": "身份证原件", "sort_order": 1},
@@ -169,11 +187,25 @@ def _document_progress(employees, doc_types, uploads):
 
 @frappe.whitelist()
 def get_departments() -> list[str]:
+	_require_archive_permission()
 	return frappe.get_all("Department", fields=["name"], order_by="name asc", pluck="name")
 
 
 @frappe.whitelist()
+def get_archive_options() -> dict:
+	_require_archive_permission()
+	from frappe.utils.file_manager import get_max_file_size
+
+	return {
+		"departments": frappe.get_all("Department", fields=["name"], order_by="name asc", pluck="name"),
+		"document_types": get_active_document_types(),
+		"max_upload_size": get_max_file_size(),
+	}
+
+
+@frappe.whitelist()
 def get_archive_overview(department: str | None = None) -> dict:
+	_require_archive_permission()
 	doc_types = get_active_document_types()
 	active_employees = _get_employees(department=department, status="Active")
 	left_employees = _get_employees(department=department, status="Left")
@@ -200,6 +232,7 @@ def list_archive_documents(
 	document_type: str | None = None,
 	missing_only: int | str = 0,
 ) -> list[dict]:
+	_require_archive_permission()
 	doc_types = get_active_document_types()
 	employees = _get_employees(department=department, status=status or None)
 	uploads = _uploaded_map([e.name for e in employees])
@@ -232,6 +265,233 @@ def list_archive_documents(
 	return rows
 
 
+def _get_uploaded_zip(file_url: str):
+	file_name = frappe.db.get_value("File", {"file_url": file_url}, "name")
+	if not file_name:
+		frappe.throw(_("The uploaded ZIP file could not be found"), frappe.ValidationError)
+	file_doc = frappe.get_doc("File", file_name)
+	file_doc.check_permission("read")
+	if os.path.splitext(file_doc.file_name or "")[1].lower() != ".zip":
+		frappe.throw(_("Only ZIP archives are supported"), frappe.ValidationError)
+	content = file_doc.get_content()
+	if isinstance(content, str):
+		content = content.encode()
+	return file_doc, content
+
+
+def _safe_zip_members(archive: zipfile.ZipFile) -> list[zipfile.ZipInfo]:
+	members = []
+	total_bytes = 0
+	for member in archive.infolist():
+		path = PurePosixPath(member.filename)
+		if member.is_dir() or member.filename.startswith("__MACOSX/") or path.name.startswith("."):
+			continue
+		if path.is_absolute() or ".." in path.parts:
+			frappe.throw(_("The ZIP archive contains an unsafe file path"), frappe.ValidationError)
+		members.append(member)
+		total_bytes += member.file_size
+		if len(members) > MAX_ARCHIVE_FILES:
+			frappe.throw(_("A maximum of {0} files can be imported at once").format(MAX_ARCHIVE_FILES), frappe.ValidationError)
+		if total_bytes > MAX_ARCHIVE_UNCOMPRESSED_BYTES:
+			frappe.throw(_("The extracted archive is too large"), frappe.ValidationError)
+	return members
+
+
+def _decoded_zip_filename(member: zipfile.ZipInfo) -> str:
+	if member.flag_bits & 0x800:
+		return member.filename
+	try:
+		raw_name = member.filename.encode("cp437")
+	except UnicodeEncodeError:
+		return member.filename
+	for encoding in ("utf-8", "gb18030"):
+		try:
+			return raw_name.decode(encoding)
+		except UnicodeDecodeError:
+			continue
+	return member.filename
+
+
+def _normalized_match_value(value) -> str:
+	return re.sub(r"\s+", "", str(value or "")).casefold()
+
+
+def _build_import_indexes():
+	employees = _get_employees()
+	doc_types = get_active_document_types()
+	employee_index = {}
+	for employee in employees:
+		for value in (employee.name, employee.employee_number, employee.employee_name):
+			key = _normalized_match_value(value)
+			if key:
+				employee_index.setdefault(key, []).append(employee)
+	doc_suffixes = []
+	for doc_type in doc_types:
+		for value in (doc_type.document_name, doc_type.document_type, doc_type.name):
+			key = _normalized_match_value(value)
+			if key:
+				doc_suffixes.append((key, doc_type))
+	doc_suffixes.sort(key=lambda item: len(item[0]), reverse=True)
+	return employee_index, doc_suffixes
+
+
+def _match_import_member(filename: str, employee_index: dict, doc_suffixes: list) -> dict:
+	basename = PurePosixPath(filename).name
+	stem, extension = os.path.splitext(basename)
+	if extension.lower() not in ALLOWED_ARCHIVE_EXTENSIONS:
+		return {"filename": basename, "state": "error", "message": _("Unsupported file type")}
+	normalized_stem = _normalized_match_value(stem)
+	doc_type = None
+	employee_token = ""
+	for suffix, candidate in doc_suffixes:
+		for separator in ("-", "_", "—", "–"):
+			marker = f"{separator}{suffix}"
+			if normalized_stem.endswith(marker):
+				doc_type = candidate
+				employee_token = normalized_stem[: -len(marker)]
+				break
+		if doc_type:
+			break
+	if not doc_type:
+		return {"filename": basename, "state": "error", "message": _("Document type was not recognized")}
+	matches = employee_index.get(employee_token, [])
+	if not matches:
+		return {"filename": basename, "state": "error", "message": _("Employee was not found"), "document_name": doc_type.document_name}
+	unique_matches = {employee.name: employee for employee in matches}
+	if len(unique_matches) != 1:
+		return {"filename": basename, "state": "error", "message": _("Employee name is ambiguous; use the employee number"), "document_name": doc_type.document_name}
+	employee = next(iter(unique_matches.values()))
+	return {
+		"filename": basename,
+		"state": "ready",
+		"message": _("Ready to import"),
+		"employee": employee.name,
+		"employee_name": employee.employee_name,
+		"employee_number": employee.employee_number,
+		"document_type": doc_type.name,
+		"document_name": doc_type.document_name,
+	}
+
+
+def _build_import_preview(file_url: str, overwrite_existing: int | str = 0):
+	from frappe.utils.file_manager import get_max_file_size
+
+	_, content = _get_uploaded_zip(file_url)
+	try:
+		archive = zipfile.ZipFile(io.BytesIO(content))
+	except zipfile.BadZipFile:
+		frappe.throw(_("The uploaded file is not a valid ZIP archive"), frappe.ValidationError)
+	with archive:
+		members = _safe_zip_members(archive)
+		employee_index, doc_suffixes = _build_import_indexes()
+		items = []
+		seen_pairs = set()
+		for member in members:
+			item = _match_import_member(_decoded_zip_filename(member), employee_index, doc_suffixes)
+			item["member_name"] = member.filename
+			if member.file_size > get_max_file_size():
+				item.update(state="error", message=_("File exceeds the server upload size limit"))
+			if item["state"] == "ready":
+				pair = (item["employee"], item["document_type"])
+				if pair in seen_pairs:
+					item.update(state="error", message=_("Duplicate employee and document type in ZIP"))
+				else:
+					seen_pairs.add(pair)
+					existing = frappe.db.get_value(
+						"Employee Archive Document",
+						{"employee": item["employee"], "document_type": item["document_type"], "file": ("!=", "")},
+						"name",
+					)
+					if existing and not int(overwrite_existing or 0):
+						item.update(state="skip", message=_("Already exists"))
+			items.append(item)
+	return content, items
+
+
+@frappe.whitelist()
+def preview_archive_import(file_url: str, overwrite_existing: int | str = 0) -> dict:
+	_require_archive_permission("create")
+	_, items = _build_import_preview(file_url, overwrite_existing)
+	return {
+		"total_files": len(items),
+		"ready_count": sum(1 for item in items if item["state"] == "ready"),
+		"skipped_count": sum(1 for item in items if item["state"] == "skip"),
+		"error_count": sum(1 for item in items if item["state"] == "error"),
+		"items": [{key: value for key, value in item.items() if key != "member_name"} for item in items],
+	}
+
+
+def _save_imported_document(item: dict, content: bytes, overwrite_existing: bool) -> None:
+	existing_name = frappe.db.get_value(
+		"Employee Archive Document",
+		{"employee": item["employee"], "document_type": item["document_type"]},
+		"name",
+	)
+	if existing_name:
+		if not overwrite_existing:
+			return
+		_require_archive_permission("write")
+		doc = frappe.get_doc("Employee Archive Document", existing_name)
+		old_file_url = doc.file
+	else:
+		_require_archive_permission("create")
+		doc = frappe.get_doc(
+			{
+				"doctype": "Employee Archive Document",
+				"employee": item["employee"],
+				"document_type": item["document_type"],
+				"remarks": _("Imported from ZIP"),
+			}
+		)
+		doc.insert(ignore_permissions=True)
+		old_file_url = None
+
+	file_doc = None
+	try:
+		file_doc = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": item["filename"],
+				"content": content,
+				"is_private": 1,
+				"attached_to_doctype": doc.doctype,
+				"attached_to_name": doc.name,
+				"attached_to_field": "file",
+			}
+		)
+		file_doc.insert(ignore_permissions=True)
+		doc.file = file_doc.file_url
+		doc.save(ignore_permissions=True)
+	except Exception:
+		if file_doc and file_doc.file_url != old_file_url:
+			frappe.delete_doc("File", file_doc.name, ignore_permissions=True)
+		if not existing_name and doc.name:
+			frappe.delete_doc(doc.doctype, doc.name, ignore_permissions=True)
+		raise
+
+	if old_file_url and old_file_url != file_doc.file_url:
+		old_file_name = frappe.db.get_value("File", {"file_url": old_file_url}, "name")
+		if old_file_name:
+			frappe.delete_doc("File", old_file_name, ignore_permissions=True)
+
+
+@frappe.whitelist()
+def import_archive_zip(file_url: str, overwrite_existing: int | str = 0) -> dict:
+	_require_archive_permission("create")
+	content, items = _build_import_preview(file_url, overwrite_existing)
+	overwrite = bool(int(overwrite_existing or 0))
+	imported = 0
+	skipped = 0
+	with zipfile.ZipFile(io.BytesIO(content)) as archive:
+		for item in items:
+			if item["state"] != "ready":
+				skipped += 1
+				continue
+			_save_imported_document(item, archive.read(item["member_name"]), overwrite)
+			imported += 1
+	return {"imported": imported, "skipped": skipped, "total": len(items)}
+
+
 @frappe.whitelist()
 def upload_archive_document(
 	employee: str,
@@ -239,21 +499,25 @@ def upload_archive_document(
 	file_url: str,
 	remarks: str | None = None,
 ) -> dict:
-	if not frappe.has_permission("Employee Archive Document", "create"):
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	from employee_roster.integrations.tencent_cos.storage import attach_and_organize_file
 
 	existing = frappe.db.get_value(
 		"Employee Archive Document",
 		{"employee": employee, "document_type": document_type},
 		"name",
 	)
+	permission_type = "write" if existing else "create"
+	if not frappe.has_permission("Employee Archive Document", permission_type, doc=existing):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	if existing:
 		doc = frappe.get_doc("Employee Archive Document", existing)
+		old_file_url = doc.file
 		doc.file = file_url
 		if remarks is not None:
 			doc.remarks = remarks
 		doc.save(ignore_permissions=True)
 	else:
+		old_file_url = None
 		doc = frappe.get_doc(
 			{
 				"doctype": "Employee Archive Document",
@@ -264,6 +528,21 @@ def upload_archive_document(
 			}
 		)
 		doc.insert(ignore_permissions=True)
+
+	organized_url = attach_and_organize_file(
+		file_url,
+		"Employee Archive Document",
+		doc.name,
+		"file",
+	)
+	if organized_url != doc.file:
+		doc.file = organized_url
+		doc.save(ignore_permissions=True)
+
+	if old_file_url and old_file_url != organized_url:
+		old_file_id = frappe.db.get_value("File", {"file_url": old_file_url}, "name")
+		if old_file_id:
+			frappe.delete_doc("File", old_file_id, ignore_permissions=True)
 
 	return {"name": doc.name, "status": doc.status, "file": doc.file}
 
@@ -278,9 +557,6 @@ def delete_archive_document(name: str) -> dict:
 
 @frappe.whitelist()
 def export_missing_documents(department: str | None = None, status: str | None = None) -> None:
-	import csv
-	import io
-
 	rows = list_archive_documents(department=department, status=status, missing_only=1)
 	output = io.StringIO()
 	writer = csv.writer(output)
@@ -301,6 +577,38 @@ def export_missing_documents(department: str | None = None, status: str | None =
 	frappe.response["type"] = "csv"
 
 
+@frappe.whitelist()
+def get_archive_export(
+	export_type: str = "missing",
+	department: str | None = None,
+	status: str | None = None,
+	document_type: str | None = None,
+) -> dict:
+	_require_archive_permission("read")
+	if export_type not in {"missing", "detail"}:
+		frappe.throw(_("Unsupported export type"), frappe.ValidationError)
+	rows = list_archive_documents(
+		department=department,
+		status=status,
+		document_type=document_type,
+		missing_only=1 if export_type == "missing" else 0,
+	)
+	output = io.StringIO()
+	output.write("\ufeff")
+	writer = csv.writer(output)
+	if export_type == "missing":
+		writer.writerow([_("Employee"), _("Employee Name"), _("Employee Number"), _("Department"), _("Employee Status"), _("Document Type"), _("Document Name")])
+		for row in rows:
+			writer.writerow([row["employee"], row["employee_name"], row["employee_number"], row["department"] or "", row["employee_status"], row["document_type"], row["document_name"]])
+		filename = "employee_archive_missing.csv"
+	else:
+		writer.writerow([_("Employee"), _("Employee Name"), _("Employee Number"), _("Department"), _("Employee Status"), _("Document Type"), _("Document Name"), _("Archive Status"), _("File URL"), _("Uploaded On")])
+		for row in rows:
+			writer.writerow([row["employee"], row["employee_name"], row["employee_number"], row["department"] or "", row["employee_status"], row["document_type"], row["document_name"], row["status"], row["file"], row["uploaded_on"]])
+		filename = "employee_archive_detail.csv"
+	return {"filename": filename, "content": output.getvalue(), "count": len(rows)}
+
+
 def _employees_index(department: str | None = None, status: str | None = None) -> dict:
 	employees = _get_employees(department=department, status=status)
 	return {row.name: row for row in employees}
@@ -308,6 +616,7 @@ def _employees_index(department: str | None = None, status: str | None = None) -
 
 @frappe.whitelist()
 def list_education_records(department: str | None = None, status: str | None = None) -> list[dict]:
+	_require_archive_permission()
 	emp_map = _employees_index(department, status)
 	if not emp_map:
 		return []
@@ -342,6 +651,7 @@ def list_education_records(department: str | None = None, status: str | None = N
 
 @frappe.whitelist()
 def list_work_history(department: str | None = None, status: str | None = None) -> list[dict]:
+	_require_archive_permission()
 	emp_map = _employees_index(department, status)
 	if not emp_map:
 		return []
@@ -396,6 +706,7 @@ def list_work_history(department: str | None = None, status: str | None = None) 
 
 @frappe.whitelist()
 def list_emergency_contacts(department: str | None = None, status: str | None = None) -> list[dict]:
+	_require_archive_permission()
 	employees = _get_employees(department=department, status=status)
 	rows = []
 	for emp in employees:
@@ -429,6 +740,7 @@ def list_emergency_contacts(department: str | None = None, status: str | None = 
 
 @frappe.whitelist()
 def list_skill_records(department: str | None = None, status: str | None = None) -> list[dict]:
+	_require_archive_permission()
 	emp_map = _employees_index(department, status)
 	if not emp_map:
 		return []

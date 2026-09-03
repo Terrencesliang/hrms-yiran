@@ -77,9 +77,10 @@ frappe.pages["employee-archive"].on_page_load = function (wrapper) {
 						<span>${__("仅缺档")}</span>
 					</label>
 				</div>
-				<div class="hr-archive-toolbar-right">
-					<button type="button" class="btn btn-primary btn-sm hr-archive-upload-btn">${__("上传材料")}</button>
-					<button type="button" class="btn btn-default btn-sm hr-archive-export-btn">${__("导出缺档")}</button>
+			<div class="hr-archive-toolbar-right">
+					<button type="button" class="btn btn-primary btn-sm hr-archive-batch-import-btn">${frappe.utils.icon("upload", "sm")}<span>${__("批量导入")}</span></button>
+					<button type="button" class="btn btn-default btn-sm hr-archive-upload-btn">${frappe.utils.icon("attachment", "sm")}<span>${__("单份上传")}</span></button>
+					<button type="button" class="btn btn-default btn-sm hr-archive-export-btn">${frappe.utils.icon("download", "sm")}<span>${__("导出档案")}</span></button>
 					<button type="button" class="btn btn-default btn-sm hr-archive-refresh-btn">${__("刷新")}</button>
 				</div>
 			</div>
@@ -91,7 +92,7 @@ frappe.pages["employee-archive"].on_page_load = function (wrapper) {
 };
 
 function init_archive_page($main, state) {
-	load_departments($main);
+	load_archive_options($main, state);
 	bind_archive_events($main, state);
 	parse_route_filters(state);
 	switch_archive_tab($main, state, state.tab);
@@ -107,12 +108,16 @@ function parse_route_filters(state) {
 	if (opts.missing_only) state.missing_only = true;
 }
 
-function load_departments($main) {
+function load_archive_options($main, state) {
 	const $dept = $main.find(".hr-archive-dept");
 	$dept.html(`<option value="">${__("全部")}</option>`);
 	frappe.call({
-		method: `${ARCHIVE_API}.get_departments`,
-		callback: (r) => (r.message || []).forEach((d) => $dept.append(`<option value="${escape_html(d)}">${escape_html(d)}</option>`)),
+		method: `${ARCHIVE_API}.get_archive_options`,
+		callback: (r) => {
+			const data = r.message || {};
+			(data.departments || []).forEach((d) => $dept.append(`<option value="${escape_html(d)}">${escape_html(d)}</option>`));
+			populate_doc_type_filter($main, state, data.document_types || []);
+		},
 	});
 }
 
@@ -138,7 +143,8 @@ function bind_archive_events($main, state) {
 	});
 
 	$main.find(".hr-archive-refresh-btn").on("click", () => reload_archive($main, state));
-	$main.find(".hr-archive-export-btn").on("click", () => export_missing($main, state));
+	$main.find(".hr-archive-export-btn").on("click", () => open_export_dialog($main, state));
+	$main.find(".hr-archive-batch-import-btn").on("click", () => open_batch_import_dialog($main, state));
 	$main.find(".hr-archive-upload-btn").on("click", () => open_upload_dialog($main, state));
 
 	$main.on("click", ".hr-archive-go-upload", function () {
@@ -169,7 +175,7 @@ function switch_archive_tab($main, state, tab) {
 	const isDocuments = tab === "documents";
 	$main.find(".hr-archive-filter--status").toggle(!isOverview);
 	$main.find(".hr-archive-filter--docs").toggle(isDocuments);
-	$main.find(".hr-archive-upload-btn, .hr-archive-export-btn").toggle(isDocuments);
+	$main.find(".hr-archive-upload-btn").toggle(isDocuments);
 	reload_archive($main, state);
 }
 
@@ -290,11 +296,13 @@ function render_overview_column(title, block) {
 function render_progress_row(item) {
 	return `
 		<div class="hr-archive-progress-row">
+			<span class="hr-archive-progress-icon">${frappe.utils.icon("file", "sm")}</span>
 			<div class="hr-archive-progress-head">
 				<span>${escape_html(item.document_name)}</span>
 				<span>${item.rate || 0}%</span>
 			</div>
 			<div class="hr-archive-progress-bar"><i style="width:${item.rate || 0}%"></i></div>
+			<span class="hr-archive-progress-value">${item.rate || 0}%</span>
 			<button type="button" class="btn btn-link btn-sm hr-archive-go-upload" data-document-type="${escape_html(item.document_type)}">${__("去上传")}</button>
 		</div>`;
 }
@@ -482,35 +490,140 @@ function open_upload_dialog($main, state, preset = {}) {
 	dialog.show();
 }
 
-function export_missing($main, state) {
-	frappe.call({
-		method: `${ARCHIVE_API}.list_archive_documents`,
-		args: {
-			department: state.department || "",
-			status: state.doc_status || "",
-			document_type: state.document_type || "",
-			missing_only: 1,
-		},
-		callback: (r) => {
-			const rows = r.message || [];
-			const header = ["employee", "employee_name", "employee_number", "department", "document_type", "document_name"];
-			const csv = [header.join(",")]
-				.concat(
-					rows.map((row) =>
-						[row.employee, row.employee_name, row.employee_number, row.department || "", row.document_type, row.document_name]
-							.map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`)
-							.join(",")
-					)
-				)
-				.join("\n");
-			const link = document.createElement("a");
-			link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
-			link.download = "missing_archive_documents.csv";
-			document.body.appendChild(link);
-			link.click();
-			document.body.removeChild(link);
+function open_batch_import_dialog($main, state) {
+	let preview = null;
+	const dialog = new frappe.ui.Dialog({
+		title: __("批量导入档案材料"),
+		size: "extra-large",
+		fields: [
+			{
+				fieldname: "guide",
+				fieldtype: "HTML",
+				options: `
+					<div class="hr-archive-import-guide">
+						<div class="hr-archive-import-guide__icon">${frappe.utils.icon("folder-open", "md")}</div>
+						<div><strong>${__("按“员工编号-材料类型”命名文件")}</strong><p>${__("示例：HR-EMP-00001-学历证书.pdf。支持 PDF、图片和 Office 文档，请将文件统一打包为 ZIP。")}</p></div>
+					</div>`,
+			},
+			{ fieldname: "zip_file", label: __("ZIP 压缩包"), fieldtype: "Attach", reqd: 1 },
+			{ fieldname: "overwrite_existing", label: __("覆盖已存在的同类型材料"), fieldtype: "Check", default: 0 },
+			{ fieldname: "preview", fieldtype: "HTML", options: render_import_empty_state() },
+		],
+		primary_action_label: __("开始校验"),
+		primary_action(values) {
+			if (!values.zip_file || !/\.zip(?:\?.*)?$/i.test(values.zip_file)) {
+				frappe.msgprint(__("请选择 ZIP 格式的压缩包"));
+				return;
+			}
+
+			if (!preview) {
+				dialog.get_primary_btn().prop("disabled", true).text(__("正在校验…"));
+				frappe.call({
+					method: `${ARCHIVE_API}.preview_archive_import`,
+					args: { file_url: values.zip_file, overwrite_existing: values.overwrite_existing ? 1 : 0 },
+					callback: (r) => {
+						preview = r.message || {};
+						dialog.fields_dict.preview.$wrapper.html(render_import_preview(preview));
+						dialog.get_primary_btn().prop("disabled", !(preview.ready_count > 0)).text(__("确认导入 {0} 份", [preview.ready_count || 0]));
+					},
+					error: () => dialog.get_primary_btn().prop("disabled", false).text(__("重新校验")),
+				});
+				return;
+			}
+
+			dialog.get_primary_btn().prop("disabled", true).text(__("正在导入…"));
+			frappe.call({
+				method: `${ARCHIVE_API}.import_archive_zip`,
+				args: { file_url: values.zip_file, overwrite_existing: values.overwrite_existing ? 1 : 0 },
+				freeze: true,
+				freeze_message: __("正在导入档案材料，请稍候…"),
+				callback: (r) => {
+					const result = r.message || {};
+					frappe.show_alert({ message: __("导入完成：成功 {0} 份，跳过 {1} 份", [result.imported || 0, result.skipped || 0]), indicator: "green" }, 7);
+					dialog.hide();
+					reload_archive($main, state);
+				},
+				error: () => dialog.get_primary_btn().prop("disabled", false).text(__("重新导入")),
+			});
 		},
 	});
+	dialog.show();
+	dialog.$wrapper.addClass("hr-archive-import-dialog");
+	const reset_preview = () => {
+		preview = null;
+		dialog.fields_dict.preview.$wrapper.html(render_import_empty_state());
+		dialog.get_primary_btn().prop("disabled", false).text(__("开始校验"));
+	};
+	dialog.fields_dict.zip_file.df.onchange = reset_preview;
+	dialog.fields_dict.overwrite_existing.df.onchange = reset_preview;
+}
+
+function render_import_empty_state() {
+	return `<div class="hr-archive-import-empty"><span>${frappe.utils.icon("upload-cloud", "lg")}</span><strong>${__("上传后先校验，再确认导入")}</strong><small>${__("系统会匹配员工与材料类型，并列出无法识别或已存在的文件。")}</small></div>`;
+}
+
+function render_import_preview(data) {
+	const rows = (data.items || []).slice(0, 100);
+	const body = rows.length
+		? rows.map((row) => `<tr>
+			<td title="${escape_html(row.filename)}">${escape_html(row.filename)}</td>
+			<td>${escape_html(row.employee_name || "-")}</td>
+			<td>${escape_html(row.document_name || "-")}</td>
+			<td><span class="hr-archive-import-state is-${escape_html(row.state)}">${escape_html(row.message)}</span></td>
+		</tr>`).join("")
+		: `<tr><td colspan="4" class="text-muted text-center">${__("压缩包中没有可导入文件")}</td></tr>`;
+	return `
+		<div class="hr-archive-import-summary">
+			<div><strong>${data.total_files || 0}</strong><span>${__("文件总数")}</span></div>
+			<div class="is-ready"><strong>${data.ready_count || 0}</strong><span>${__("可导入")}</span></div>
+			<div class="is-skip"><strong>${data.skipped_count || 0}</strong><span>${__("将跳过")}</span></div>
+			<div class="is-error"><strong>${data.error_count || 0}</strong><span>${__("无法识别")}</span></div>
+		</div>
+		<div class="hr-archive-import-table"><table class="table"><thead><tr><th>${__("文件名")}</th><th>${__("员工")}</th><th>${__("材料类型")}</th><th>${__("校验结果")}</th></tr></thead><tbody>${body}</tbody></table></div>
+		${(data.items || []).length > 100 ? `<div class="text-muted small">${__("仅展示前 100 条，导入时会处理全部文件。")}</div>` : ""}`;
+}
+
+function open_export_dialog($main, state) {
+	const departments = $main.find(".hr-archive-dept option").map((_, el) => ({ label: $(el).text(), value: $(el).val() })).get();
+	const documentTypes = $main.find(".hr-archive-doc-type option").map((_, el) => ({ label: $(el).text(), value: $(el).val() })).get();
+	const dialog = new frappe.ui.Dialog({
+		title: __("导出员工档案"),
+		fields: [
+			{ fieldname: "export_type", label: __("导出内容"), fieldtype: "Select", options: [{ label: __("缺失材料清单"), value: "missing" }, { label: __("档案材料明细"), value: "detail" }], default: "missing", reqd: 1 },
+			{ fieldname: "department", label: __("部门"), fieldtype: "Select", options: departments, default: state.department || "" },
+			{ fieldname: "status", label: __("员工状态"), fieldtype: "Select", options: [{ label: __("全部"), value: "" }, { label: __("在职"), value: "Active" }, { label: __("离职"), value: "Left" }], default: state.doc_status || "" },
+			{ fieldname: "document_type", label: __("材料类型"), fieldtype: "Select", options: documentTypes, default: state.document_type || "" },
+			{ fieldname: "export_hint", fieldtype: "HTML", options: `<div class="hr-archive-export-hint">${frappe.utils.icon("info", "sm")}<span>${__("导出为 UTF-8 CSV，可直接使用 Excel 打开。导出结果仅包含您有权查看的档案数据。")}</span></div>` },
+		],
+		primary_action_label: __("生成并下载"),
+		primary_action(values) {
+			dialog.get_primary_btn().prop("disabled", true).text(__("正在生成…"));
+			frappe.call({
+				method: `${ARCHIVE_API}.get_archive_export`,
+				args: values,
+				callback: (r) => {
+					const result = r.message || {};
+					download_text_file(result.filename || "employee_archive.csv", result.content || "");
+					frappe.show_alert({ message: __("已导出 {0} 条记录", [result.count || 0]), indicator: "green" });
+					dialog.hide();
+				},
+				error: () => dialog.get_primary_btn().prop("disabled", false).text(__("重新生成")),
+			});
+		},
+	});
+	dialog.show();
+	dialog.$wrapper.addClass("hr-archive-export-dialog");
+}
+
+function download_text_file(filename, content) {
+	const url = URL.createObjectURL(new Blob([content], { type: "text/csv;charset=utf-8" }));
+	const link = document.createElement("a");
+	link.href = url;
+	link.download = filename;
+	document.body.appendChild(link);
+	link.click();
+	link.remove();
+	URL.revokeObjectURL(url);
 }
 
 function format_bytes(bytes) {

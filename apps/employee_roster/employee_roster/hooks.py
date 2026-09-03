@@ -11,6 +11,14 @@ after_install = "employee_roster.install.after_install"
 # bodies instead of form-encoded, per-key JSON-stringified values.
 use_json_request_body = True
 
+# Route HR business File uploads through Tencent COS. Non-HR files retain Frappe's
+# filesystem storage, and all files fall back locally when USE_TENCENT_COS is false.
+write_file = "employee_roster.integrations.tencent_cos.storage.write_file"
+delete_file_data_content = "employee_roster.integrations.tencent_cos.storage.delete_file_data_content"
+extend_doctype_class = {
+	"File": ["employee_roster.integrations.tencent_cos.file_mixin.TencentCOSFileMixin"],
+}
+
 # Apps
 # ------------------
 
@@ -328,4 +336,3 @@ require_type_annotated_api_methods = True
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-

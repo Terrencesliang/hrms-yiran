@@ -75,6 +75,15 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 
 
 ## Development setup
+
+### YiRan Docker hot reload
+
+This repository includes a Windows/macOS-compatible Docker development mode. It watches the host source tree through polling, synchronizes changes into Bench, runs `bench watch`, and enables Python reload.
+
+- macOS: `bash deploy/dev.sh`
+- Windows PowerShell: `.\deploy\dev.ps1`
+- Detailed guide: [other/DEVELOPMENT.md](other/DEVELOPMENT.md)
+
 ### Docker
 You need Docker, docker-compose and git setup on your machine. Refer [Docker documentation](https://docs.docker.com/). After that, run the following commands:
 ```
@@ -135,4 +144,3 @@ Please read our [Logo and Trademark Policy](TRADEMARK_POLICY.md).
 		</picture>
 	</a>
 </div>
-
