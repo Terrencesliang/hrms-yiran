@@ -49,7 +49,7 @@ app_include_css = [
 ]
 app_include_js = [
 	"/assets/employee_roster/js/recruiting_candidates.js",
-	"/assets/employee_roster/js/unified_sidebar.js",
+	"/assets/employee_roster/js/unified_sidebar.js?v=20260303a",
 ]
 
 # include js, css files in header of web template

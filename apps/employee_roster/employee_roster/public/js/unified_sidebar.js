@@ -1,6 +1,24 @@
 frappe.provide("employee_roster.unified_sidebar");
 
 (function () {
+	// Harden Frappe helper: current_route may be null before first resolve.
+	if (typeof frappe.get_route_str === "function") {
+		const _orig_get_route_str = frappe.get_route_str;
+		frappe.get_route_str = function () {
+			try {
+				const parts = frappe.router?.current_route;
+				if (!Array.isArray(parts)) return "";
+				return parts.filter(Boolean).join("/");
+			} catch (e) {
+				try {
+					return _orig_get_route_str();
+				} catch (err) {
+					return "";
+				}
+			}
+		};
+	}
+
 	const ROOT_ID = "hr-unified-sidebar-root";
 	const BODY_CLASS = "hr-unified-sidebar-active";
 
@@ -87,24 +105,48 @@ frappe.provide("employee_roster.unified_sidebar");
 			return (frappe.boot.apps_data?.apps || []).find((app) => app.name === "hrms");
 		},
 
-		isHrContext() {
-			const current = frappe.app?.sidebar?.current_module;
-			if (current && HR_CONTEXT_MODULES.has(current)) return true;
+		getRouteStrSafe() {
+			try {
+				const parts = frappe.router?.current_route;
+				if (!Array.isArray(parts)) return "";
+				return parts.filter(Boolean).join("/");
+			} catch (e) {
+				return "";
+			}
+		},
 
-			const route = frappe.get_route_str() || "";
-			const hrPrefixes = [
-				"recruiting-",
-				"org-diagram",
-				"orgchart",
-				"roster",
-				"employee-archive",
-				"attendance-rules",
-			];
-			return hrPrefixes.some((prefix) => route.startsWith(prefix));
+		isHrContext() {
+			try {
+				const current = frappe.app?.sidebar?.current_module;
+				if (current && HR_CONTEXT_MODULES.has(current)) return true;
+
+				// Never call frappe.get_route_str() — it does current_route.join
+				// and throws when current_route is still null during boot.
+				const route = this.getRouteStrSafe();
+				if (!route) return false;
+
+				const hrPrefixes = [
+					"List/Employee",
+					"Form/Employee",
+					"recruiting-",
+					"org-diagram",
+					"orgchart",
+					"roster",
+					"employee-archive",
+					"attendance-rules",
+				];
+				return hrPrefixes.some((prefix) => route.startsWith(prefix));
+			} catch (e) {
+				return false;
+			}
 		},
 
 		shouldActivate() {
-			return !!this.getHrmsApp() && this.isHrContext();
+			try {
+				return !!this.getHrmsApp() && this.isHrContext();
+			} catch (e) {
+				return false;
+			}
 		},
 
 		onSidebarSetup(sidebar) {
@@ -113,18 +155,22 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		refresh() {
-			if (!this.shouldActivate()) {
-				this.deactivate();
-				return;
-			}
+			try {
+				if (!this.shouldActivate()) {
+					this.deactivate();
+					return;
+				}
 
-			document.body.classList.add(BODY_CLASS);
-			this.ensureRoot();
-			this.hideStandardChrome();
-			this.renderHeader();
-			this.renderTabs();
-			this.renderMenu();
-			this.enhanceUserFooter();
+				document.body.classList.add(BODY_CLASS);
+				this.ensureRoot();
+				this.hideStandardChrome();
+				this.renderHeader();
+				this.renderTabs();
+				this.renderMenu();
+				this.enhanceUserFooter();
+			} catch (e) {
+				console.warn("[hr-unified-sidebar] refresh skipped:", e);
+			}
 		},
 
 		deactivate() {
@@ -294,8 +340,8 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		inferModuleFromRoute() {
-			const route = frappe.get_route_str() || "";
-			const pathname = window.location.pathname.replace(/\/$/, "");
+			const route = this.getRouteStrSafe();
+			const pathname = (window.location.pathname || "").replace(/\/$/, "");
 
 			if (currentHrSetupRoute(route, pathname)) {
 				return "HR Setup";
