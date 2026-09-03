@@ -157,13 +157,15 @@ function bind_stat_board(listview) {
 		const $cell = $(this);
 		const field = $cell.attr("data-filter-field");
 		const value = $cell.attr("data-filter-value") || "";
+		const operator = $cell.attr("data-filter-operator") || "=";
 		if (!field || !value) return;
 
 		const current = get_filter_value(listview, field);
-		if (current === value) {
+		const currentOp = get_filter_operator(listview, field);
+		if (current === value && currentOp === operator) {
 			await remove_filter(listview, field);
 		} else {
-			await set_filter(listview, field, value);
+			await set_filter(listview, field, value, operator);
 		}
 	});
 }
@@ -192,11 +194,14 @@ function escape_attr(value) {
 	return frappe.utils.escape_html(String(value || ""));
 }
 
-function stat_cell(label, value, filterField, filterValue, extraClass) {
-	const attrs =
-		filterField && filterValue
-			? ` data-filter-field="${escape_attr(filterField)}" data-filter-value="${escape_attr(filterValue)}"`
-			: "";
+function stat_cell(label, value, filterField, filterValue, extraClass, filterOperator) {
+	let attrs = "";
+	if (filterField && filterValue) {
+		attrs = ` data-filter-field="${escape_attr(filterField)}" data-filter-value="${escape_attr(filterValue)}"`;
+		if (filterOperator && filterOperator !== "=") {
+			attrs += ` data-filter-operator="${escape_attr(filterOperator)}"`;
+		}
+	}
 	return `<button type="button" class="hr-stat-cell${extraClass || ""}"${attrs}>
 		<div class="hr-stat-label">${label}</div>
 		<div class="hr-stat-num">${value}<span class="hr-stat-unit">${__("人")}</span></div>
@@ -211,13 +216,13 @@ function render_stat_board($wrap, stats, listview) {
 	$wrap.find(".hr-stat-board").html(`
 		<div class="hr-stat-card">${stat_cell(__("在职"), stats.active || 0, "status", "Active", " is-green")}</div>
 		<div class="hr-stat-card hr-stat-card--split2">
-			${stat_cell(__("全职"), fulltime, "employment_type", "Full-time", "")}
-			${stat_cell(__("实习生"), intern, "employment_type", "Intern", "")}
+			${stat_cell(__("全职"), fulltime, "designation", "实习生", "", "!=")}
+			${stat_cell(__("实习生"), intern, "designation", "实习生", "")}
 		</div>
 		<div class="hr-stat-card hr-stat-card--split3">
 			${stat_cell(__("试用期"), probation, "employment_type", "Probation", "")}
 			${stat_cell(__("停用"), stats.inactive || 0, "status", "Inactive", "")}
-			${stat_cell(__("正式"), fulltime, "employment_type", "Full-time", "")}
+			${stat_cell(__("正式"), fulltime, "designation", "实习生", "", "!=")}
 		</div>
 		<div class="hr-stat-card hr-stat-card--split2">
 			${stat_cell(__("待入职") + " ›", 0, "", "", "")}
@@ -232,11 +237,22 @@ function sync_stat_active($wrap, listview) {
 	$wrap.find(".hr-stat-cell").removeClass("is-active");
 
 	const status = get_filter_value(listview, "status");
+	const designation = get_filter_value(listview, "designation");
+	const designationOp = get_filter_operator(listview, "designation");
 	const employment_type = get_filter_value(listview, "employment_type");
 
 	if (status) {
 		$wrap
 			.find(`.hr-stat-cell[data-filter-field="status"][data-filter-value="${css_escape(status)}"]`)
+			.addClass("is-active");
+	}
+	if (designation === "实习生") {
+		const opSel =
+			designationOp === "!="
+				? '[data-filter-operator="!="]'
+				: ':not([data-filter-operator])';
+		$wrap
+			.find(`.hr-stat-cell[data-filter-field="designation"][data-filter-value="实习生"]${opSel}`)
 			.addClass("is-active");
 	}
 	if (employment_type) {
@@ -247,7 +263,7 @@ function sync_stat_active($wrap, listview) {
 			.addClass("is-active");
 	}
 
-	if (!status && !employment_type) {
+	if (!status && !designation && !employment_type) {
 		$wrap.find('.hr-stat-cell[data-filter-field="status"][data-filter-value="Active"]').addClass("is-active");
 	}
 }
@@ -259,8 +275,14 @@ function css_escape(value) {
 
 function get_filter_value(listview, fieldname) {
 	const filters = listview.filter_area.get() || [];
-	const match = filters.find((f) => f[1] === fieldname && (f[2] === "=" || f[2] === "like"));
+	const match = filters.find((f) => f[1] === fieldname);
 	return match ? match[3] : "";
+}
+
+function get_filter_operator(listview, fieldname) {
+	const filters = listview.filter_area.get() || [];
+	const match = filters.find((f) => f[1] === fieldname);
+	return match ? match[2] : "";
 }
 
 async function remove_filter(listview, fieldname) {
@@ -269,7 +291,7 @@ async function remove_filter(listview, fieldname) {
 	}
 }
 
-async function set_filter(listview, fieldname, value) {
+async function set_filter(listview, fieldname, value, operator) {
 	await remove_filter(listview, fieldname);
-	await listview.filter_area.add([[listview.doctype, fieldname, "=", value]]);
+	await listview.filter_area.add([[listview.doctype, fieldname, operator || "=", value]]);
 }

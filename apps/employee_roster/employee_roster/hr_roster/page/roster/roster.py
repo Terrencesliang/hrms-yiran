@@ -34,14 +34,30 @@ def _serialize_row(row):
 	}
 
 
+def _is_intern_designation(designation: str | None) -> bool:
+	"""职位为「实习生」视为实习生（按职位列精确匹配）。"""
+	return (designation or "").strip() == "实习生"
+
+
 def _build_stats(rows):
 	status_counts = {}
 	employment_counts = {}
+	intern = 0
+	fulltime = 0
 	for row in rows:
 		status = row.status or ""
 		status_counts[status] = status_counts.get(status, 0) + 1
-		if status == "Active" and row.employment_type:
+		if status == "Active" and getattr(row, "employment_type", None):
 			employment_counts[row.employment_type] = employment_counts.get(row.employment_type, 0) + 1
+		# 全职 / 实习生按在职员工的职位列统计，不依赖 employment_type
+		if status == "Active":
+			if _is_intern_designation(getattr(row, "designation", None)):
+				intern += 1
+			else:
+				fulltime += 1
+
+	employment_counts["Intern"] = intern
+	employment_counts["Full-time"] = fulltime
 
 	group_counts = {}
 	for row in rows:
@@ -166,7 +182,7 @@ def get_employee_stats(company: str | None = None):
 
 	rows = frappe.db.get_all(
 		"Employee",
-		fields=["status", "employment_type", "group_name"],
+		fields=["status", "employment_type", "designation", "group_name"],
 		filters=filters,
 		limit_page_length=None,
 	)
