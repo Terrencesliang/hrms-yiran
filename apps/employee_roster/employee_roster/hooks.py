@@ -45,11 +45,12 @@ app_include_css = [
 	"/assets/employee_roster/css/orgchart.css",
 	"/assets/employee_roster/css/recruiting.css",
 	"/assets/employee_roster/css/attendance_rules.css",
-	"/assets/employee_roster/css/unified_sidebar.css",
+	"/assets/employee_roster/css/attendance_deduction_rule_form.css?v=20260303b",
+	"/assets/employee_roster/css/unified_sidebar.css?v=20260903c",
 ]
 app_include_js = [
 	"/assets/employee_roster/js/recruiting_candidates.js",
-	"/assets/employee_roster/js/unified_sidebar.js?v=20260303a",
+	"/assets/employee_roster/js/unified_sidebar.js?v=20260903c",
 ]
 
 # include js, css files in header of web template
@@ -68,7 +69,7 @@ page_js = {
 	"recruiting-active": "public/js/recruiting_active.js",
 	"recruiting-hired": "public/js/recruiting_hired.js",
 	"recruiting-rejected": "public/js/recruiting_rejected.js",
-	"attendance-rules": "public/js/attendance_rules.js",
+	"attendance-rules": "public/js/attendance_rules_v3.js",
 }
 
 # include js in doctype views
@@ -79,6 +80,7 @@ doctype_list_js = {
 doctype_js = {
 	"Payroll Entry": "public/js/attendance_deduction.js",
 	"Attendance Deduction Summary": "public/js/attendance_deduction.js",
+	"Attendance Deduction Rule": "public/js/attendance_deduction_rule_form.js",
 }
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
 # doctype_calendar_js = {"doctype" : "public/js/doctype_calendar.js"}

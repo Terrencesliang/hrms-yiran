@@ -89,6 +89,10 @@ frappe.provide("employee_roster.unified_sidebar");
 				window.requestAnimationFrame(() => this.refresh());
 			});
 
+			$(document).on("sidebar-expand.hr-unified", () => {
+				this.syncCollapseControls();
+			});
+
 			this.waitForSidebar(() => this.refresh());
 		},
 
@@ -168,6 +172,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				this.renderTabs();
 				this.renderMenu();
 				this.enhanceUserFooter();
+				this.ensureCollapseControls();
 			} catch (e) {
 				console.warn("[hr-unified-sidebar] refresh skipped:", e);
 			}
@@ -177,6 +182,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			document.body.classList.remove(BODY_CLASS);
 			this.$root?.remove();
 			this.$root = null;
+			document.querySelector(".hr-unified-expand-btn")?.remove();
 			this.restoreStandardChrome();
 		},
 
@@ -265,11 +271,16 @@ frappe.provide("employee_roster.unified_sidebar");
 			if (!header.length) {
 				header = $(`
 					<div class="hr-unified-header">
-						<button type="button" class="hr-unified-workspace-btn">
-							<span class="hr-unified-workspace-icon"></span>
-							<span class="hr-unified-workspace-title"></span>
-							<span class="hr-unified-workspace-chevron">${frappe.utils.icon("chevron-down", "xs")}</span>
-						</button>
+						<div class="hr-unified-header-row">
+							<button type="button" class="hr-unified-workspace-btn">
+								<span class="hr-unified-workspace-icon"></span>
+								<span class="hr-unified-workspace-title"></span>
+								<span class="hr-unified-workspace-chevron">${frappe.utils.icon("chevron-down", "xs")}</span>
+							</button>
+							<button type="button" class="hr-unified-collapse-btn" aria-label="${__("收起侧边栏")}" title="${__("收起侧边栏")}">
+								${frappe.utils.icon("chevron-left", "sm")}
+							</button>
+						</div>
 						<div class="hr-unified-search">
 							<span class="hr-unified-search-icon">${frappe.utils.icon("search", "sm")}</span>
 							<input type="text" class="hr-unified-search-input navbar-modal-search-mobile" readonly placeholder="${__("搜索功能")}" aria-label="${__("搜索功能")}">
@@ -283,6 +294,12 @@ frappe.provide("employee_roster.unified_sidebar");
 					event.preventDefault();
 					event.stopPropagation();
 					this.openWorkspaceMenu(event.currentTarget);
+				});
+
+				header.find(".hr-unified-collapse-btn").on("click", (event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					frappe.app?.sidebar?.close?.();
 				});
 
 				header.find(".hr-unified-search-input").on("click", (event) => {
@@ -595,6 +612,33 @@ frappe.provide("employee_roster.unified_sidebar");
 			if (frappe.user.has_role("HR User")) return __("HR 用户");
 			const roles = frappe.user_roles || [];
 			return roles.length ? __(roles[0]) : __("用户");
+		},
+
+		ensureCollapseControls() {
+			let btn = document.querySelector(".hr-unified-expand-btn");
+			if (!btn) {
+				btn = document.createElement("button");
+				btn.type = "button";
+				btn.className = "hr-unified-expand-btn";
+				btn.setAttribute("aria-label", __("展开侧边栏"));
+				btn.title = __("展开侧边栏");
+				btn.innerHTML = frappe.utils.icon("chevron-right", "sm");
+				btn.addEventListener("click", (event) => {
+					event.preventDefault();
+					event.stopPropagation();
+					frappe.app?.sidebar?.open?.();
+				});
+				document.body.appendChild(btn);
+			}
+			this.syncCollapseControls();
+		},
+
+		syncCollapseControls() {
+			const collapsed = document.body.classList.contains("sidebar-collapsed");
+			const btn = document.querySelector(".hr-unified-expand-btn");
+			if (btn) {
+				btn.hidden = !document.body.classList.contains(BODY_CLASS) || !collapsed;
+			}
 		},
 
 		enhanceUserFooter() {

@@ -163,11 +163,18 @@ body.hr-unified-sidebar-active .body-sidebar-top {
 	flex: 0 0 auto;
 }
 
+.hr-unified-header-row {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .hr-unified-workspace-btn {
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	width: 100%;
+	flex: 1;
+	min-width: 0;
 	padding: 6px 8px;
 	border: none;
 	background: transparent;
@@ -178,6 +185,57 @@ body.hr-unified-sidebar-active .body-sidebar-top {
 
 .hr-unified-workspace-btn:hover {
 	background: var(--hr-unified-green-soft);
+}
+
+.hr-unified-collapse-btn {
+	flex: 0 0 auto;
+	width: 28px;
+	height: 28px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--hr-unified-border);
+	background: var(--hr-unified-bg);
+	border-radius: 6px;
+	color: var(--hr-unified-muted);
+	cursor: pointer;
+	padding: 0;
+}
+
+.hr-unified-collapse-btn:hover {
+	background: var(--hr-unified-green-soft);
+	color: var(--hr-unified-green-text);
+	border-color: var(--hr-unified-green);
+}
+
+.hr-unified-expand-btn {
+	display: none;
+	position: fixed;
+	left: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 2000;
+	width: 28px;
+	height: 28px;
+	align-items: center;
+	justify-content: center;
+	border: 1px solid var(--hr-unified-border);
+	background: var(--hr-unified-bg);
+	border-radius: 50%;
+	box-shadow: 0 2px 8px rgba(16, 24, 40, 0.12);
+	color: var(--hr-unified-text);
+	cursor: pointer;
+	padding: 0;
+}
+
+body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-expand-btn:not([hidden]) {
+	display: inline-flex;
+}
+
+.hr-unified-expand-btn:hover {
+	background: var(--hr-unified-green-soft);
+	color: var(--hr-unified-green-text);
+	border-color: var(--hr-unified-green);
 }
 
 .hr-unified-workspace-title {

@@ -1,91 +1,398 @@
-/* 考勤规则页面 */
+/* 考勤规则 — 白色紧凑内容区 + 表格 */
+
+.ar-page-shell .page-head {
+	display: none;
+}
+
 .attendance-rules-page {
-	font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
-	font-size: 13px;
-}
-
-.ar-help {
-	background: #f0fdf4;
-	border: 1px solid #bbf7d0;
-	border-radius: 8px;
-	padding: 12px 16px;
-	margin-bottom: 16px;
-	color: #166534;
-}
-
-.ar-toolbar {
-	display: flex;
-	gap: 10px;
-	margin-bottom: 16px;
-	flex-wrap: wrap;
-}
-
-.ar-rule-list {
-	display: grid;
-	grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-	gap: 16px;
-}
-
-.ar-card {
+	--ar-green: #31aa78;
+	--ar-green-text: #28a673;
+	--ar-green-active: #2caf7c;
+	--ar-border: #e6ebee;
+	--ar-border-soft: #edf0f2;
+	--ar-head-bg: #f4f7f8;
+	--ar-text: #28394b;
+	--ar-title: #192e42;
+	--ar-muted: #8493a2;
+	--ar-cell: #5c6e7e;
+	--ar-radius: 6px;
+	font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+	font-size: 14px;
+	color: var(--ar-text);
 	background: #fff;
-	border: 1px solid #e5e7eb;
-	border-radius: 10px;
-	padding: 16px;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.ar-card-head {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	margin-bottom: 8px;
-}
-
-.ar-card-head h4 {
+	width: 100%;
+	max-width: none;
+	padding: 0;
 	margin: 0;
-	font-size: 15px;
+	display: block;
+	min-height: 100%;
+	box-sizing: border-box;
+}
+
+body.hr-unified-sidebar-active .page-container:has(.attendance-rules-page),
+.ar-page-shell .layout-main-section {
+	background: #fff !important;
+}
+
+.ar-page-shell .layout-main-section {
+	padding: 0 !important;
+}
+
+/* 紧凑左右留白，贴合主内容两侧，不做大留白居中 */
+.attendance-rules-page .ar-page-frame {
+	width: 100%;
+	max-width: none;
+	margin: 0;
+	box-sizing: border-box;
+	padding: 20px 24px 40px;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	background: #fff;
+}
+
+.attendance-rules-page .ar-page-header {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	margin-bottom: 18px;
+}
+
+.attendance-rules-page .ar-page-title {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 800;
+	color: var(--ar-title);
+	line-height: 1.25;
+}
+
+.attendance-rules-page .ar-page-subtitle {
+	margin: 6px 0 0;
+	font-size: 13px;
+	color: var(--ar-muted);
+	line-height: 1.4;
+}
+
+.attendance-rules-page .ar-page-actions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	margin-top: 2px;
+}
+
+.attendance-rules-page .ar-page-actions .btn {
+	height: auto;
+	border-radius: 5px;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 10px 16px;
+	line-height: 1.2;
+}
+
+.attendance-rules-page .ar-import-rule {
+	background: #fff;
+	border: 1px solid var(--ar-border);
+	color: #334151;
 	font-weight: 600;
 }
 
-.ar-groups {
-	font-size: 12px;
-	color: #6b7280;
+.attendance-rules-page .ar-add-rule,
+.attendance-rules-page .btn-primary.ar-add-rule {
+	background: var(--ar-green) !important;
+	border-color: var(--ar-green) !important;
+	color: #fff !important;
+	box-shadow: none;
 }
 
-.ar-desc {
-	color: #6b7280;
-	font-size: 12px;
-	margin-bottom: 10px;
-	min-height: 32px;
+.attendance-rules-page .ar-add-rule:disabled,
+.attendance-rules-page .ar-import-rule:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
 }
 
-.ar-tags {
+.attendance-rules-page .ar-tabs {
+	height: 44px;
+	border-bottom: 1px solid var(--ar-border);
 	display: flex;
-	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 28px;
+	margin: 0 0 18px;
+	padding: 0;
+}
+
+.attendance-rules-page .ar-tab {
+	appearance: none;
+	border: none;
+	background: transparent;
+	padding: 4px 0 12px;
+	margin: 0 0 -1px;
+	font-size: 15px;
+	font-weight: 700;
+	color: #334151;
+	cursor: pointer;
+	border-bottom: 3px solid transparent;
+	border-radius: 0;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.attendance-rules-page .ar-tab:hover {
+	color: var(--ar-green-text);
+}
+
+.attendance-rules-page .ar-tab.is-active {
+	color: var(--ar-green-text);
+	border-bottom-color: var(--ar-green-active);
+}
+
+.attendance-rules-page .ar-guide {
+	padding: 0 0 18px;
+	line-height: 1.85;
+	color: #617182;
+}
+
+.attendance-rules-page .ar-guide b {
+	display: block;
+	font-size: 15px;
+	color: #2b3d50;
+	margin-bottom: 6px;
+	font-weight: 700;
+}
+
+.attendance-rules-page .ar-guide-body p {
+	margin: 0 0 2px;
+}
+
+.attendance-rules-page .ar-guide a {
+	color: #19a16d;
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.attendance-rules-page .ar-guide a:hover {
+	text-decoration: underline;
+}
+
+/* 统计卡：白底 + 浅灰描边，避免大色块 */
+.attendance-rules-page .ar-stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+	margin: 0 0 16px;
+}
+
+.attendance-rules-page .ar-stats[hidden] {
+	display: none !important;
+}
+
+.attendance-rules-page .ar-stat-card {
+	background: #fff;
+	border: 1px solid #e5eaee;
+	border-radius: 8px;
+	padding: 14px 16px;
+	min-height: 74px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
 	gap: 6px;
-	margin-bottom: 12px;
+	box-shadow: none;
 }
 
-.ar-tag {
-	background: #f3f4f6;
-	border-radius: 4px;
-	padding: 4px 8px;
-	font-size: 11px;
-	color: #374151;
+.attendance-rules-page .ar-stat-card.is-highlight {
+	background: #fff;
+	border-color: #d7ebe1;
 }
 
-.ar-tag b {
-	color: #111827;
-	margin-right: 4px;
+.attendance-rules-page .ar-stat-label {
+	font-size: 13px;
+	color: var(--ar-muted);
 }
 
-.ar-empty {
+.attendance-rules-page .ar-stat-card.is-highlight .ar-stat-label {
+	color: var(--ar-green-text);
+}
+
+.attendance-rules-page .ar-stat-value {
+	display: flex;
+	align-items: baseline;
+	gap: 4px;
+}
+
+.attendance-rules-page .ar-stat-num {
+	font-size: 24px;
+	font-weight: 800;
+	line-height: 1;
+	color: #2f4051;
+}
+
+.attendance-rules-page .ar-stat-card.is-highlight .ar-stat-num {
+	color: var(--ar-green-text);
+}
+
+.attendance-rules-page .ar-stat-unit {
+	font-size: 13px;
+	color: var(--ar-muted);
+}
+
+.attendance-rules-page .ar-list-section {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	width: 100%;
+}
+
+.attendance-rules-page .ar-table-wrap {
+	border: 1px solid #e8edf0;
+	border-radius: var(--ar-radius);
+	overflow: auto;
+	background: #fff;
+	width: 100%;
+}
+
+.attendance-rules-page .ar-table {
+	border-collapse: collapse;
+	width: 100%;
+	table-layout: fixed;
+	margin: 0;
+	display: table !important;
+}
+
+.attendance-rules-page .ar-table thead {
+	display: table-header-group !important;
+}
+
+.attendance-rules-page .ar-table tbody {
+	display: table-row-group !important;
+}
+
+.attendance-rules-page .ar-table tr {
+	display: table-row !important;
+}
+
+.attendance-rules-page .ar-table th,
+.attendance-rules-page .ar-table td {
+	display: table-cell !important;
+}
+
+.attendance-rules-page .ar-table th {
+	height: 48px;
+	text-align: left;
+	background: var(--ar-head-bg);
+	color: #2f4051;
+	font-size: 14px;
+	font-weight: 700;
+	padding: 0 18px;
+	border: none;
+	vertical-align: middle;
+}
+
+.attendance-rules-page .ar-table td {
+	height: 64px;
+	padding: 0 18px;
+	border-bottom: 1px solid var(--ar-border-soft);
+	color: #415468;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	vertical-align: middle;
+	background: #fff;
+}
+
+.attendance-rules-page .ar-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.attendance-rules-page .ar-table td.ar-name {
+	font-weight: 700;
+	color: #26394d;
+}
+
+.attendance-rules-page .ar-table td.ar-rule-cell {
+	color: var(--ar-cell);
+	font-weight: 400;
+}
+
+.attendance-rules-page .ar-actions {
+	white-space: nowrap;
+}
+
+.attendance-rules-page .ar-actions .ar-edit {
+	color: #1fa36e !important;
+	font-weight: 600;
+	padding: 0;
+	margin-right: 14px;
+	text-decoration: none;
+}
+
+.attendance-rules-page .ar-actions .ar-delete {
+	color: #ed726e !important;
+	font-weight: 600;
+	padding: 0;
+	text-decoration: none;
+}
+
+.attendance-rules-page .ar-actions .btn-link:hover {
+	text-decoration: underline;
+}
+
+.attendance-rules-page .ar-footer-note,
+.attendance-rules-page .ar-list-count {
+	color: #9aa6b2;
+	font-size: 13px;
+	margin-top: 14px;
+}
+
+.attendance-rules-page .ar-empty,
+.attendance-rules-page .ar-empty-panel {
 	text-align: center;
-	padding: 48px;
-	color: #9ca3af;
+	padding: 36px 20px !important;
+	height: auto !important;
+	white-space: normal !important;
+	color: var(--ar-muted);
 }
 
-.ar-add-rule {
-	background: #00a870 !important;
-	border-color: #00a870 !important;
+.attendance-rules-page .ar-empty-panel {
+	border: 1px dashed var(--ar-border);
+	border-radius: var(--ar-radius);
+	background: #fafbfc;
+}
+
+@media (max-width: 1100px) {
+	.attendance-rules-page .ar-page-frame {
+		padding: 16px 16px 32px;
+	}
+
+	.attendance-rules-page .ar-tabs {
+		gap: 18px;
+		overflow-x: auto;
+	}
+
+	.attendance-rules-page .ar-stats {
+		grid-template-columns: 1fr;
+	}
+
+	.attendance-rules-page .ar-table {
+		min-width: 920px;
+	}
+
+	.attendance-rules-page .ar-table-wrap {
+		overflow: auto;
+	}
+}
+
+@media (max-width: 640px) {
+	.attendance-rules-page .ar-page-frame {
+		padding: 14px 12px 28px;
+	}
+
+	.attendance-rules-page .ar-page-header {
+		flex-direction: column;
+	}
+
+	.attendance-rules-page .ar-page-title {
+		font-size: 22px;
+	}
 }

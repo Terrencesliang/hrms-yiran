@@ -1,0 +1,473 @@
+/* Attendance Deduction Rule — 编辑页自定义主内容区 */
+
+.adr-form-page {
+	--adr-bg: #f7f8fa;
+	--adr-card: #ffffff;
+	--adr-line: #eef0f2;
+	--adr-green: #0a8f5b;
+	--adr-green-bg: #e6f6ef;
+	--adr-red: #e5484d;
+	--adr-ink: #262626;
+	--adr-muted: #8c8c8c;
+	--adr-th: #f3f4f5;
+	--adr-radius: 8px;
+}
+
+/* 隐藏 Frappe 单据头、右侧分配/附件栏、底部评论活动 */
+body.adr-form-active .page-head,
+body.adr-form-active .layout-side-section,
+body.adr-form-active .form-dashboard,
+body.adr-form-active .form-comments,
+body.adr-form-active .form-footer,
+body.adr-form-active .comment-box,
+body.adr-form-active .new-timeline,
+body.adr-form-active .timeline-content,
+body.adr-form-active .form-message {
+	display: none !important;
+}
+
+body.adr-form-active .layout-main-section-wrapper {
+	margin-right: 0 !important;
+}
+
+body.adr-form-active .page-container .layout-main-section {
+	border-right: none !important;
+}
+
+.adr-form-page {
+	background: var(--adr-bg);
+	color: var(--adr-ink);
+	font-family: "PingFang SC", "Microsoft YaHei", -apple-system, "Segoe UI", sans-serif;
+	padding: 8px 4px 28px;
+	margin: -8px -4px 0;
+}
+
+.adr-form-page .adr-head {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	background: var(--adr-bg);
+	padding: 8px 8px 14px;
+	margin-bottom: 4px;
+}
+
+.adr-form-page .adr-head-top {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.adr-form-page .adr-head-title {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.adr-form-page .adr-back {
+	width: 30px;
+	height: 30px;
+	border: 1px solid var(--adr-line);
+	background: var(--adr-card);
+	border-radius: 6px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	color: var(--adr-ink);
+	font-size: 16px;
+	padding: 0;
+}
+
+.adr-form-page .adr-back:hover {
+	background: var(--adr-th);
+}
+
+.adr-form-page .adr-head-title h1 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 700;
+	line-height: 1.3;
+}
+
+.adr-form-page .adr-chip {
+	font-size: 12px;
+	color: var(--adr-muted);
+	background: var(--adr-th);
+	border-radius: 20px;
+	padding: 2px 10px;
+	font-weight: 500;
+	max-width: 280px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.adr-form-page .adr-head-actions {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.adr-form-page .adr-btn {
+	font-size: 13px;
+	border-radius: 6px;
+	padding: 8px 14px;
+	cursor: pointer;
+	border: 1px solid var(--adr-line);
+	background: var(--adr-card);
+	color: var(--adr-ink);
+	font-weight: 500;
+	line-height: 1.2;
+}
+
+.adr-form-page .adr-btn.ghost {
+	background: var(--adr-th);
+	border-color: transparent;
+}
+
+.adr-form-page .adr-btn.danger {
+	color: var(--adr-red);
+	border-color: #f5c2c4;
+}
+
+.adr-form-page .adr-btn.primary {
+	background: var(--adr-green);
+	border-color: var(--adr-green);
+	color: #fff;
+	font-weight: 600;
+}
+
+.adr-form-page .adr-head-sub {
+	font-size: 13px;
+	color: var(--adr-muted);
+	margin-top: 10px;
+	padding-left: 8px;
+}
+
+.adr-form-page .adr-grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 320px;
+	gap: 16px;
+	align-items: start;
+	padding: 0 8px;
+}
+
+.adr-form-page .adr-card {
+	background: var(--adr-card);
+	border: 1px solid var(--adr-line);
+	border-radius: var(--adr-radius);
+	padding: 16px 18px;
+	margin-bottom: 16px;
+}
+
+.adr-form-page .adr-card-title {
+	font-size: 14px;
+	font-weight: 700;
+	margin-bottom: 12px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.adr-form-page .adr-card-title .adr-act {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--adr-green);
+	cursor: pointer;
+	background: none;
+	border: none;
+	padding: 0;
+}
+
+.adr-form-page .adr-card-title .adr-act:hover {
+	opacity: 0.85;
+}
+
+/* hide labels duplication when field wrappers move in */
+.adr-form-page .adr-field-host .form-group {
+	margin-bottom: 0;
+}
+
+.adr-form-page .adr-frow {
+	display: grid;
+	grid-template-columns: 110px minmax(0, 1fr);
+	align-items: center;
+	gap: 12px;
+	padding: 10px 0;
+	border-top: 1px solid var(--adr-line);
+}
+
+.adr-form-page .adr-frow:first-of-type {
+	border-top: none;
+	padding-top: 0;
+}
+
+.adr-form-page .adr-frow > label {
+	font-size: 13px;
+	color: var(--adr-ink);
+	margin: 0;
+}
+
+.adr-form-page .adr-frow > label .req {
+	color: var(--adr-red);
+}
+
+.adr-form-page .adr-frow.is-top {
+	align-items: flex-start;
+}
+
+.adr-form-page .adr-frow .adr-ctl .control-input,
+.adr-form-page .adr-frow .adr-ctl input.form-control,
+.adr-form-page .adr-frow .adr-ctl textarea.form-control,
+.adr-form-page .adr-frow .adr-ctl .input-with-feedback {
+	border: 1px solid var(--adr-line) !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	box-shadow: none !important;
+}
+
+.adr-form-page .adr-frow .adr-ctl .clearfix,
+.adr-form-page .adr-frow .adr-ctl .help-box,
+.adr-form-page .adr-field-host .help-box {
+	display: none !important;
+}
+
+.adr-form-page .adr-field-host[data-field="rule_name"] .control-label,
+.adr-form-page .adr-field-host[data-field="description"] .control-label,
+.adr-form-page .adr-field-host[data-field="is_active"] .control-label,
+.adr-form-page .adr-field-host[data-field="is_active"] .label-area,
+.adr-form-page .adr-field-host[data-field="is_active"] .checkbox .label-area,
+.adr-form-page .adr-field-host[data-field="rule_items"] > .form-group > .control-label,
+.adr-form-page .adr-field-host[data-field="rule_items"] > .control-label,
+.adr-form-page .adr-field-host[data-field="rule_tiers"] > .form-group > .control-label,
+.adr-form-page .adr-field-host[data-field="rule_tiers"] > .control-label {
+	display: none !important;
+}
+
+.adr-form-page .adr-field-host[data-field="is_active"] .checkbox {
+	margin: 0;
+}
+
+.adr-form-page .adr-status-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.adr-form-page .adr-status-text {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--adr-muted);
+}
+
+.adr-form-page .adr-status-text.is-on {
+	color: var(--adr-green);
+}
+
+/* child tables inside cards */
+.adr-form-page .adr-grid-host .grid-heading-row,
+.adr-form-page .adr-grid-host .row-check,
+.adr-form-page .adr-grid-host .row-index {
+	/* keep usable */
+}
+
+.adr-form-page .adr-grid-host .form-grid {
+	border: 1px solid var(--adr-line);
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+.adr-form-page .adr-grid-host .grid-heading-row {
+	background: var(--adr-th) !important;
+}
+
+.adr-form-page .adr-grid-host .grid-row {
+	border-color: var(--adr-line) !important;
+}
+
+.adr-form-page .adr-tiers {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 14px;
+}
+
+.adr-form-page .adr-tier-box {
+	border: 1px solid var(--adr-line);
+	border-radius: var(--adr-radius);
+	padding: 12px;
+	background: #fff;
+}
+
+.adr-form-page .adr-tier-box .tb-title {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 13px;
+	font-weight: 700;
+	margin-bottom: 10px;
+	gap: 8px;
+}
+
+.adr-form-page .adr-tier-box table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+}
+
+.adr-form-page .adr-tier-box thead th {
+	background: var(--adr-th);
+	color: var(--adr-muted);
+	font-weight: 600;
+	text-align: left;
+	padding: 8px 8px;
+	border-bottom: 1px solid var(--adr-line);
+	white-space: nowrap;
+}
+
+.adr-form-page .adr-tier-box tbody td {
+	padding: 8px;
+	border-bottom: 1px solid var(--adr-line);
+	vertical-align: middle;
+}
+
+.adr-form-page .adr-tier-box tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.adr-form-page .adr-tier-box input {
+	width: 100%;
+	border: 1px solid var(--adr-line);
+	border-radius: 4px;
+	padding: 4px 6px;
+	font-size: 12px;
+}
+
+.adr-form-page .adr-tier-empty {
+	font-size: 12px;
+	color: var(--adr-muted);
+	padding: 10px 4px;
+}
+
+.adr-form-page .adr-side {
+	position: sticky;
+	top: 96px;
+}
+
+.adr-form-page .adr-side-card {
+	background: var(--adr-card);
+	border: 1px solid var(--adr-line);
+	border-radius: var(--adr-radius);
+	padding: 14px 16px;
+	margin-bottom: 14px;
+}
+
+.adr-form-page .adr-side-card h4 {
+	font-size: 13px;
+	font-weight: 700;
+	margin: 0 0 10px;
+}
+
+.adr-form-page .adr-preview-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 0;
+	border-bottom: 1px dashed var(--adr-line);
+	font-size: 13px;
+}
+
+.adr-form-page .adr-preview-item:last-child {
+	border-bottom: none;
+}
+
+.adr-form-page .adr-dot {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	flex: none;
+}
+
+.adr-form-page .adr-dot.green {
+	background: var(--adr-green);
+}
+.adr-form-page .adr-dot.orange {
+	background: #e8912d;
+}
+.adr-form-page .adr-dot.red {
+	background: var(--adr-red);
+}
+
+.adr-form-page .adr-pv-left {
+	flex: 1;
+	min-width: 0;
+}
+
+.adr-form-page .adr-pv-amt {
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.adr-form-page .adr-disclaimer {
+	font-size: 12px;
+	color: var(--adr-muted);
+	margin-top: 10px;
+	line-height: 1.6;
+}
+
+.adr-form-page .adr-side-card p {
+	font-size: 13px;
+	line-height: 1.7;
+	margin: 0;
+	color: var(--adr-ink);
+}
+
+.adr-form-page .adr-unit-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 13px;
+	padding: 5px 0;
+}
+
+.adr-form-page .adr-help-link {
+	display: block;
+	font-size: 13px;
+	color: var(--adr-green);
+	padding: 4px 0;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.adr-form-page .adr-help-link:hover {
+	text-decoration: underline;
+}
+
+/* hide native layout while custom shell is active; keep fields alive offscreen for controls */
+.form-layout.adr-native-parked {
+	position: absolute !important;
+	left: -10000px !important;
+	top: 0 !important;
+	width: 720px !important;
+	height: 1px !important;
+	overflow: hidden !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+
+@media (max-width: 1100px) {
+	.adr-form-page .adr-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.adr-form-page .adr-side {
+		position: static;
+	}
+
+	.adr-form-page .adr-tiers {
+		grid-template-columns: 1fr;
+	}
+}

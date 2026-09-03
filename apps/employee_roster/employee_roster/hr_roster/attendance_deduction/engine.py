@@ -176,19 +176,22 @@ def _get_shift(shift_name: str | None, cache: dict) -> dict | None:
 	if not shift_name:
 		return None
 	if shift_name not in cache:
+		fields = [
+			"name",
+			"start_time",
+			"end_time",
+			"late_entry_grace_period",
+			"early_exit_grace_period",
+			"enable_late_entry_marking",
+			"enable_early_exit_marking",
+		]
+		meta = frappe.get_meta("Shift Type")
+		if meta.has_field("standard_working_hours"):
+			fields.append("standard_working_hours")
 		cache[shift_name] = frappe.db.get_value(
 			"Shift Type",
 			shift_name,
-			[
-				"name",
-				"start_time",
-				"end_time",
-				"late_entry_grace_period",
-				"early_exit_grace_period",
-				"enable_late_entry_marking",
-				"enable_early_exit_marking",
-				"standard_working_hours",
-			],
+			fields,
 			as_dict=True,
 		)
 	return cache.get(shift_name)
@@ -196,34 +199,47 @@ def _get_shift(shift_name: str | None, cache: dict) -> dict | None:
 
 def _late_minutes(in_time, shift: dict) -> float:
 	grace = int(shift.get("late_entry_grace_period") or 0)
+	in_time = _as_datetime(in_time)
 	start = _combine_datetime(in_time, shift.get("start_time"))
-	if not start:
+	if not in_time or not start:
 		return 0
 	threshold = start + timedelta(minutes=grace)
-	if getdate(in_time) != getdate(threshold):
-		return 0
 	delta = in_time - threshold
 	return max(delta.total_seconds() / 60, 0)
 
 
 def _early_minutes(out_time, shift: dict) -> float:
 	grace = int(shift.get("early_exit_grace_period") or 0)
+	out_time = _as_datetime(out_time)
 	end = _combine_datetime(out_time, shift.get("end_time"))
-	if not end:
+	if not out_time or not end:
 		return 0
 	threshold = end - timedelta(minutes=grace)
 	delta = threshold - out_time
 	return max(delta.total_seconds() / 60, 0)
 
 
-def _combine_datetime(dt, time_value):
-	if not dt or not time_value:
-		return None
+def _as_datetime(dt):
 	from frappe.utils import get_datetime
 
-	if hasattr(time_value, "hour"):
-		return get_datetime(f"{getdate(dt)} {time_value}")
-	return None
+	if not dt:
+		return None
+	return get_datetime(dt)
+
+
+def _combine_datetime(dt, time_value):
+	from datetime import datetime, time as time_cls
+
+	if not dt or time_value is None:
+		return None
+	d = getdate(dt)
+	if isinstance(time_value, timedelta):
+		return datetime.combine(d, time_cls.min) + time_value
+	if hasattr(time_value, "hour") and hasattr(time_value, "minute"):
+		return datetime.combine(d, time_value)
+	from frappe.utils import get_datetime
+
+	return get_datetime(f"{d} {time_value}")
 
 
 def calculate_deductions(rule_name: str, metrics: AttendanceMetrics, employee: str, end_date) -> tuple[list[dict], float]:

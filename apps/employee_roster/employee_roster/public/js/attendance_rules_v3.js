@@ -1,4 +1,5 @@
 // Copyright (c) 2026 stillgroup
+// attendance-rules table UI (v3 — fixed column mapping)
 frappe.pages["attendance-rules"].on_page_load = function (wrapper) {
 	if (!document.getElementById("attendance-rules-css")) {
 		const link = document.createElement("link");
@@ -48,21 +49,7 @@ frappe.pages["attendance-rules"].on_page_load = function (wrapper) {
 			<div class="ar-stats" hidden></div>
 
 			<section class="ar-list-section" data-ar-panel="deduction">
-				<div class="ar-table-wrap">
-					<table class="ar-table">
-						<thead>
-							<tr>
-								<th style="width:18%">${__("规则名称")}</th>
-								<th style="width:19%">${__("迟到扣款")}</th>
-								<th style="width:19%">${__("早退扣款")}</th>
-								<th style="width:18%">${__("缺卡处理")}</th>
-								<th style="width:18%">${__("旷工扣款")}</th>
-								<th style="width:8%">${__("操作")}</th>
-							</tr>
-						</thead>
-						<tbody class="ar-rule-list"></tbody>
-					</table>
-				</div>
+				<div class="ar-table-wrap"></div>
 				<div class="ar-footer-note ar-list-count"></div>
 			</section>
 
@@ -174,19 +161,31 @@ function stat_card(label, value, unit, highlight) {
 	`;
 }
 
-function get_item_modes(items) {
+function cell_text(value) {
+	const text = String(value == null || value === "" ? "—" : value);
+	// Avoid "/" which historically broke HTML string assembly in this page.
+	return text.replace(/\//g, "·");
+}
+
+function rule_columns(rule) {
+	// Prefer backend-provided fixed fields; fall back to items mapping.
+	if (rule.late_mode != null || rule.early_mode != null || rule.missing_mode != null || rule.absent_mode != null) {
+		return [
+			cell_text(rule.late_mode),
+			cell_text(rule.early_mode),
+			cell_text(rule.missing_mode),
+			cell_text(rule.absent_mode),
+		];
+	}
+
 	const by_type = Object.create(null);
 	const by_label = Object.create(null);
-
-	(items || []).forEach((it) => {
+	(rule.items || []).forEach((it) => {
 		if (!it) return;
-		const mode = String(it.mode || it.calc_mode || "").trim() || "—";
-		const type = String(it.item_type || "").trim();
-		const label = String(it.label || "").trim();
-		if (type) by_type[type] = mode;
-		if (label) by_label[label] = mode;
+		const mode = cell_text(it.mode || it.calc_mode);
+		if (it.item_type) by_type[String(it.item_type).trim()] = mode;
+		if (it.label) by_label[String(it.label).trim()] = mode;
 	});
-
 	const pick = (...keys) => {
 		for (const key of keys) {
 			if (by_type[key] != null) return by_type[key];
@@ -194,8 +193,6 @@ function get_item_modes(items) {
 		}
 		return "—";
 	};
-
-	// Fixed column order: 迟到扣款 / 早退扣款 / 缺卡处理 / 旷工扣款
 	return [
 		pick("Late Entry", "迟到"),
 		pick("Early Exit", "早退"),
@@ -210,58 +207,92 @@ function render_rules($main, rules) {
 		.find(".ar-list-count")
 		.text(active_count ? __("共 {0} 条规则", [active_count]) : __("暂无规则"));
 
-	const $tbody = $main.find(".ar-rule-list");
-	$tbody.empty();
+	const $wrap = $main.find(".ar-table-wrap");
+	$wrap.empty();
+
+	const table = document.createElement("table");
+	table.className = "ar-table";
+
+	const colgroup = document.createElement("colgroup");
+	["18%", "19%", "19%", "18%", "18%", "8%"].forEach((w) => {
+		const col = document.createElement("col");
+		col.style.width = w;
+		colgroup.appendChild(col);
+	});
+	table.appendChild(colgroup);
+
+	const thead = document.createElement("thead");
+	const head_row = document.createElement("tr");
+	[
+		__("规则名称"),
+		__("迟到扣款"),
+		__("早退扣款"),
+		__("缺卡处理"),
+		__("旷工扣款"),
+		__("操作"),
+	].forEach((label) => {
+		const th = document.createElement("th");
+		th.textContent = label;
+		head_row.appendChild(th);
+	});
+	thead.appendChild(head_row);
+	table.appendChild(thead);
+
+	const tbody = document.createElement("tbody");
+	tbody.className = "ar-rule-list";
 
 	if (!rules.length) {
-		$tbody.append(
-			$("<tr>").append(
-				$("<td>")
-					.attr("colspan", 6)
-					.addClass("ar-empty")
-					.text(__("暂无规则"))
-			)
-		);
-		return;
+		const tr = document.createElement("tr");
+		const td = document.createElement("td");
+		td.colSpan = 6;
+		td.className = "ar-empty";
+		td.textContent = __("暂无规则");
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+	} else {
+		rules.forEach((rule) => {
+			const tr = document.createElement("tr");
+			tr.className = "ar-row";
+			tr.setAttribute("data-name", rule.name || "");
+
+			const name_td = document.createElement("td");
+			name_td.className = "ar-name";
+			name_td.title = rule.rule_name || "";
+			name_td.textContent = rule.rule_name || "";
+			tr.appendChild(name_td);
+
+			rule_columns(rule).forEach((mode) => {
+				const td = document.createElement("td");
+				td.className = "ar-rule-cell";
+				td.title = mode;
+				td.textContent = mode;
+				tr.appendChild(td);
+			});
+
+			const action_td = document.createElement("td");
+			action_td.className = "ar-actions";
+
+			const edit_btn = document.createElement("button");
+			edit_btn.type = "button";
+			edit_btn.className = "btn btn-link btn-sm ar-edit";
+			edit_btn.textContent = __("修改");
+			action_td.appendChild(edit_btn);
+
+			const del_btn = document.createElement("button");
+			del_btn.type = "button";
+			del_btn.className = "btn btn-link btn-sm ar-delete";
+			del_btn.textContent = __("删除");
+			action_td.appendChild(del_btn);
+
+			tr.appendChild(action_td);
+			tbody.appendChild(tr);
+		});
 	}
 
-	rules.forEach((rule) => {
-		const modes = get_item_modes(rule.items);
-		const $tr = $("<tr>")
-			.addClass("ar-row")
-			.attr("data-name", rule.name || "");
+	table.appendChild(tbody);
+	$wrap[0].appendChild(table);
 
-		$("<td>")
-			.addClass("ar-name")
-			.attr("title", rule.rule_name || "")
-			.text(rule.rule_name || "")
-			.appendTo($tr);
-
-		modes.forEach((mode) => {
-			$("<td>")
-				.addClass("ar-rule-cell")
-				.attr("title", mode)
-				.text(mode)
-				.appendTo($tr);
-		});
-
-		const $actions = $("<td>").addClass("ar-actions");
-		$("<button>")
-			.addClass("btn btn-link btn-sm ar-edit")
-			.attr("type", "button")
-			.text(__("修改"))
-			.appendTo($actions);
-		$("<button>")
-			.addClass("btn btn-link btn-sm ar-delete")
-			.attr("type", "button")
-			.text(__("删除"))
-			.appendTo($actions);
-		$actions.appendTo($tr);
-
-		$tbody.append($tr);
-	});
-
-	$tbody
+	$(tbody)
 		.find(".ar-edit")
 		.off("click.ar")
 		.on("click.ar", function (e) {
@@ -272,7 +303,7 @@ function render_rules($main, rules) {
 			}
 		});
 
-	$tbody
+	$(tbody)
 		.find(".ar-delete")
 		.off("click.ar")
 		.on("click.ar", function (e) {
