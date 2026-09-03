@@ -45,8 +45,12 @@ app_include_css = [
 	"/assets/employee_roster/css/orgchart.css",
 	"/assets/employee_roster/css/recruiting.css",
 	"/assets/employee_roster/css/attendance_rules.css",
+	"/assets/employee_roster/css/unified_sidebar.css",
 ]
-app_include_js = "/assets/employee_roster/js/recruiting_candidates.js"
+app_include_js = [
+	"/assets/employee_roster/js/recruiting_candidates.js",
+	"/assets/employee_roster/js/unified_sidebar.js",
+]
 
 # include js, css files in header of web template
 # web_include_css = "/assets/employee_roster/css/employee_roster.css"
@@ -61,7 +65,6 @@ app_include_js = "/assets/employee_roster/js/recruiting_candidates.js"
 
 # include js in page
 page_js = {
-	"org-diagram": "public/js/org_diagram.js",
 	"recruiting-active": "public/js/recruiting_active.js",
 	"recruiting-hired": "public/js/recruiting_hired.js",
 	"recruiting-rejected": "public/js/recruiting_rejected.js",
