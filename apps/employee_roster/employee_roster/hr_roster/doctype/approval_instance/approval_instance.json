@@ -1,0 +1,186 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-04 16:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "approval_form",
+  "form_title",
+  "status",
+  "column_break_1",
+  "applicant_user",
+  "applicant_employee",
+  "section_current",
+  "current_node_id",
+  "current_node_label",
+  "finished_on",
+  "section_payload",
+  "form_schema_json",
+  "form_data_json",
+  "process_snapshot_json",
+  "section_hook",
+  "business_hook",
+  "hook_result_json"
+ ],
+ "fields": [
+  {
+   "fieldname": "approval_form",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "审批表单",
+   "options": "Approval Form",
+   "reqd": 1
+  },
+  {
+   "fieldname": "form_title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "表单标题",
+   "reqd": 1
+  },
+  {
+   "default": "进行中",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "状态",
+   "options": "进行中\n已通过\n已驳回\n已撤销",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "applicant_user",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "发起人",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "fieldname": "applicant_employee",
+   "fieldtype": "Link",
+   "label": "发起员工",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "section_current",
+   "fieldtype": "Section Break",
+   "label": "当前节点"
+  },
+  {
+   "fieldname": "current_node_id",
+   "fieldtype": "Data",
+   "label": "当前节点 ID"
+  },
+  {
+   "fieldname": "current_node_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "当前节点"
+  },
+  {
+   "fieldname": "finished_on",
+   "fieldtype": "Datetime",
+   "label": "结束时间"
+  },
+  {
+   "fieldname": "section_payload",
+   "fieldtype": "Section Break",
+   "label": "快照"
+  },
+  {
+   "fieldname": "form_schema_json",
+   "fieldtype": "Code",
+   "label": "表单 Schema",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "form_data_json",
+   "fieldtype": "Code",
+   "label": "表单数据",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "process_snapshot_json",
+   "fieldtype": "Code",
+   "label": "流程快照",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_hook",
+   "fieldtype": "Section Break",
+   "label": "业务钩子"
+  },
+  {
+   "fieldname": "business_hook",
+   "fieldtype": "Data",
+   "label": "业务钩子"
+  },
+  {
+   "fieldname": "hook_result_json",
+   "fieldtype": "Code",
+   "label": "钩子结果",
+   "options": "JSON"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-04 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "Approval Instance",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "HR User",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Employee",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "form_title",
+ "track_changes": 1,
+ "translated_doctype": 1
+}

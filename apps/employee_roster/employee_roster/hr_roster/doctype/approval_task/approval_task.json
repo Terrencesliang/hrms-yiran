@@ -1,0 +1,157 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "hash",
+ "creation": "2026-09-04 16:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "instance",
+  "node_id",
+  "node_label",
+  "task_type",
+  "column_break_1",
+  "assignee",
+  "status",
+  "mode",
+  "section_action",
+  "action",
+  "comment",
+  "acted_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "instance",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "审批实例",
+   "options": "Approval Instance",
+   "reqd": 1
+  },
+  {
+   "fieldname": "node_id",
+   "fieldtype": "Data",
+   "label": "节点 ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "node_label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "节点"
+  },
+  {
+   "default": "approve",
+   "fieldname": "task_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "任务类型",
+   "options": "approve\ncc",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "assignee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "处理人",
+   "options": "User",
+   "reqd": 1
+  },
+  {
+   "default": "待处理",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "状态",
+   "options": "待处理\n已同意\n已驳回\n已转交\n已取消\n已抄送",
+   "reqd": 1
+  },
+  {
+   "default": "or",
+   "fieldname": "mode",
+   "fieldtype": "Select",
+   "label": "会签模式",
+   "options": "or\nand"
+  },
+  {
+   "fieldname": "section_action",
+   "fieldtype": "Section Break",
+   "label": "处理结果"
+  },
+  {
+   "fieldname": "action",
+   "fieldtype": "Data",
+   "label": "动作"
+  },
+  {
+   "fieldname": "comment",
+   "fieldtype": "Small Text",
+   "label": "意见"
+  },
+  {
+   "fieldname": "acted_on",
+   "fieldtype": "Datetime",
+   "label": "处理时间"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-04 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "Approval Task",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "HR User",
+   "write": 1
+  },
+  {
+   "create": 1,
+   "read": 1,
+   "role": "Employee",
+   "write": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "node_label",
+ "track_changes": 1,
+ "translated_doctype": 1
+}

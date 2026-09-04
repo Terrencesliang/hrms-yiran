@@ -25,8 +25,8 @@ const formsPanel = ref(null);
 
 function onTemplateUsed(result) {
 	Message.success(`已从模板创建「${result.form_name}」`);
-	if (window.frappe?.set_route) {
-		window.frappe.set_route("approvals");
+	if (window.frappe?.set_route && result?.name) {
+		window.frappe.set_route("approval-form-designer", result.name);
 		return;
 	}
 	activeNav.value = "forms";

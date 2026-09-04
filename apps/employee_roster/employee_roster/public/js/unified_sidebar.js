@@ -143,6 +143,8 @@ frappe.provide("employee_roster.unified_sidebar");
 					"attendance-rules",
 					"approvals",
 					"approval-templates",
+					"approval-workspace",
+					"approval-form-designer",
 				];
 				return hrPrefixes.some((prefix) => route.startsWith(prefix));
 			} catch (e) {

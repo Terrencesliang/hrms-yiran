@@ -1,0 +1,32 @@
+{
+ "content": null,
+ "creation": "2026-09-04 16:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-09-04 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "approval-workspace",
+ "owner": "Administrator",
+ "page_name": "approval-workspace",
+ "roles": [
+  {
+   "role": "System Manager"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "Employee"
+  }
+ ],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "\u5ba1\u6279\u5de5\u4f5c\u533a"
+}

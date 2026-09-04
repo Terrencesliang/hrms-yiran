@@ -3,7 +3,7 @@
 		<div class="ap-panel-header">
 			<div>
 				<h1 class="oc-page-title" style="margin-bottom: 4px">审批表单</h1>
-				<p class="ap-hint">配置企业可用的审批表单、可见范围与流程摘要（一期管理端壳）</p>
+				<p class="ap-hint">配置审批表单、拖拽设计字段与流程</p>
 			</div>
 			<div class="ap-actions">
 				<a-input-search
@@ -66,6 +66,7 @@
 				</template>
 				<template #ops="{ record }">
 					<a-space>
+						<a-link @click="openDesigner(record)">设计</a-link>
 						<a-link @click="openEditForm(record)">设置</a-link>
 						<a-dropdown>
 							<a-link><icon-more /></a-link>
@@ -191,8 +192,16 @@ const columns = [
 	{ title: "表单名称", slotName: "formName", width: 320 },
 	{ title: "可见范围", dataIndex: "visibility", width: 120 },
 	{ title: "审批流程", slotName: "process" },
-	{ title: "操作", slotName: "ops", width: 120 },
+	{ title: "操作", slotName: "ops", width: 180 },
 ];
+
+function openDesigner(record) {
+	if (window.frappe?.set_route) {
+		window.frappe.set_route("approval-form-designer", record.name);
+		return;
+	}
+	Message.info("请在 Desk 中打开设计器");
+}
 
 async function loadGroups() {
 	groups.value = (await call("employee_roster.hr_roster.approval_admin.list_approval_groups")) || [];

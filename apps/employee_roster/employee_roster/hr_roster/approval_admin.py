@@ -10,17 +10,44 @@ import frappe
 from frappe import _
 from frappe.utils import cint
 
-DEFAULT_PROCESS = {
-	"nodes": [
-		{"type": "start", "label": "发起人"},
-		{"type": "approver", "label": "直属上级"},
-		{"type": "approver", "label": "HR"},
-		{"type": "cc", "label": "抄送 HR"},
-		{"type": "end", "label": "结束"},
+from employee_roster.hr_roster.approval_engine.process_schema import (
+	DEFAULT_PROCESS,
+	summarize_process,
+)
+from employee_roster.hr_roster.approval_engine.schema import dumps as dumps_schema
+
+DEFAULT_PROCESS_SUMMARY = summarize_process(DEFAULT_PROCESS)
+
+LEAVE_SCHEMA = {
+	"fields": [
+		{
+			"key": "leave_type",
+			"label": "假期类型",
+			"type": "select",
+			"required": 1,
+			"options": ["年假", "事假", "病假", "调休", "其他"],
+		},
+		{"key": "from_date", "label": "开始日期", "type": "date", "required": 1},
+		{"key": "to_date", "label": "结束日期", "type": "date", "required": 1},
+		{"key": "days", "label": "天数", "type": "number", "required": 1},
+		{"key": "reason", "label": "事由", "type": "textarea", "required": 1},
+		{"key": "attachment", "label": "附件", "type": "attachment", "required": 0},
 	]
 }
 
-DEFAULT_PROCESS_SUMMARY = "直属上级 → HR → 抄送：HR"
+OUT_SCHEMA = {
+	"fields": [
+		{"key": "out_date", "label": "外出日期", "type": "date", "required": 1},
+		{"key": "destination", "label": "目的地", "type": "text", "required": 1},
+		{"key": "reason", "label": "事由", "type": "textarea", "required": 1},
+		{"key": "employee_contact", "label": "联系人", "type": "employee", "required": 0},
+	]
+}
+
+FORM_SEED_EXTRAS = {
+	"请假": {"form_schema": LEAVE_SCHEMA, "business_hook": "leave_application"},
+	"外出": {"form_schema": OUT_SCHEMA, "business_hook": "out_of_office"},
+}
 
 SEED_GROUPS = [
 	{"group_name": "考勤审批", "sort_order": 1},
@@ -170,13 +197,33 @@ def seed_approval_admin_data() -> None:
 		).insert(ignore_permissions=True)
 
 	process_json = json.dumps(DEFAULT_PROCESS, ensure_ascii=False)
+	empty_schema_json = json.dumps({"fields": []}, ensure_ascii=False)
 
 	for row in SEED_FORMS:
 		exists = frappe.db.exists(
 			"Approval Form",
 			{"form_name": row["form_name"], "group": row["group"]},
 		)
+		extras = FORM_SEED_EXTRAS.get(row["form_name"], {})
+		schema_json = dumps_schema(extras["form_schema"]) if extras.get("form_schema") else empty_schema_json
 		if exists:
+			# backfill schema/hook for existing seed forms when empty
+			doc = frappe.get_doc("Approval Form", exists)
+			dirty = False
+			if extras.get("form_schema") and (
+				not doc.form_schema_json or doc.form_schema_json.strip() in ("", "{}", '{"fields":[]}')
+			):
+				doc.form_schema_json = schema_json
+				dirty = True
+			if extras.get("business_hook") and not doc.business_hook:
+				doc.business_hook = extras["business_hook"]
+				dirty = True
+			if not doc.process_json:
+				doc.process_json = process_json
+				doc.process_summary = DEFAULT_PROCESS_SUMMARY
+				dirty = True
+			if dirty:
+				doc.save(ignore_permissions=True)
 			continue
 		frappe.get_doc(
 			{
@@ -190,12 +237,28 @@ def seed_approval_admin_data() -> None:
 				"status": "使用中",
 				"process_summary": DEFAULT_PROCESS_SUMMARY,
 				"process_json": process_json,
+				"form_schema_json": schema_json,
+				"business_hook": extras.get("business_hook") or "",
 				"sort_order": row["sort_order"],
 			}
 		).insert(ignore_permissions=True)
 
 	for row in SEED_TEMPLATES:
+		tpl_schema = empty_schema_json
+		if row["template_name"] == "请假申请":
+			tpl_schema = dumps_schema(LEAVE_SCHEMA)
+		elif row["template_name"] in ("外出",):
+			tpl_schema = dumps_schema(OUT_SCHEMA)
 		if frappe.db.exists("Approval Template", row["template_name"]):
+			tpl = frappe.get_doc("Approval Template", row["template_name"])
+			if (
+				row["template_name"] == "请假申请"
+				and (not tpl.form_schema_json or tpl.form_schema_json.strip() in ("", "{}", '{"fields":[]}'))
+			):
+				tpl.form_schema_json = dumps_schema(LEAVE_SCHEMA)
+				tpl.process_json = process_json
+				tpl.default_process_summary = DEFAULT_PROCESS_SUMMARY
+				tpl.save(ignore_permissions=True)
 			continue
 		frappe.get_doc(
 			{
@@ -208,7 +271,7 @@ def seed_approval_admin_data() -> None:
 				"is_system": 1,
 				"default_group": row["default_group"],
 				"default_process_summary": DEFAULT_PROCESS_SUMMARY,
-				"form_schema_json": json.dumps({"fields": []}, ensure_ascii=False),
+				"form_schema_json": tpl_schema,
 				"process_json": process_json,
 				"sort_order": row["sort_order"],
 			}
@@ -343,6 +406,8 @@ def use_approval_template(template_name: str, group: str | None = None):
 			"status": "使用中",
 			"process_summary": tpl.default_process_summary or DEFAULT_PROCESS_SUMMARY,
 			"process_json": tpl.process_json or json.dumps(DEFAULT_PROCESS, ensure_ascii=False),
+			"form_schema_json": tpl.form_schema_json
+			or json.dumps({"fields": []}, ensure_ascii=False),
 			"source_template": tpl.name,
 			"sort_order": 99,
 		}

@@ -15,11 +15,15 @@
   "icon",
   "color",
   "description",
+  "section_schema",
+  "form_schema_json",
+  "visibility_json",
   "section_process",
   "process_summary",
   "process_json",
   "section_meta",
   "source_template",
+  "business_hook",
   "sort_order"
  ],
  "fields": [
@@ -81,6 +85,24 @@
    "label": "描述"
   },
   {
+   "fieldname": "section_schema",
+   "fieldtype": "Section Break",
+   "label": "表单设计"
+  },
+  {
+   "default": "{\"fields\":[]}",
+   "fieldname": "form_schema_json",
+   "fieldtype": "Code",
+   "label": "表单 Schema JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "visibility_json",
+   "fieldtype": "Code",
+   "label": "可见范围规则 JSON",
+   "options": "JSON"
+  },
+  {
    "fieldname": "section_process",
    "fieldtype": "Section Break",
    "label": "审批流程"
@@ -107,6 +129,11 @@
    "fieldtype": "Link",
    "label": "来源模板",
    "options": "Approval Template"
+  },
+  {
+   "fieldname": "business_hook",
+   "fieldtype": "Data",
+   "label": "业务钩子"
   },
   {
    "default": "0",
@@ -150,6 +177,10 @@
   {
    "read": 1,
    "role": "HR User"
+  },
+  {
+   "read": 1,
+   "role": "Employee"
   }
  ],
  "search_fields": "form_name,group,status",

@@ -10,6 +10,8 @@ import OrgDiagramPage from "./pages/orgdiagram/OrgDiagramPage.vue";
 import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
 import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
+import ApprovalDesignerApp from "./pages/approvals/designer/ApprovalDesignerApp.vue";
+import ApprovalsWorkspace from "./pages/approvals/workspace/ApprovalsWorkspace.vue";
 
 function boot(app) {
 	app.use(ArcoVue);
@@ -48,6 +50,36 @@ export function mountApprovals(el, options = {}) {
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () => h(ApprovalsApp, { tab }));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountApprovalDesigner(el, options = {}) {
+	const formName = options.formName || "";
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(ApprovalDesignerApp, { formName })
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountApprovalsWorkspace(el, options = {}) {
+	const view = options.view || "todo";
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(ApprovalsWorkspace, { view })
+				);
 			},
 		})
 	);
