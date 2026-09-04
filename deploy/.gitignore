@@ -1,2 +1,8 @@
 # 本地环境变量（含密码），勿提交到 Git
 .env
+.env.bak
+.env.*.bak
+
+# 数据库备份（体积大、含业务数据）
+data/backups/
+*.dump

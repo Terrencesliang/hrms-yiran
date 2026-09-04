@@ -1,0 +1,40 @@
+# ============================================================
+# 行尾统一规则(根治 Windows 上 CRLF 导致容器内脚本崩溃的问题)
+# 背景:deploy/*.sh 由容器内 bash 执行,CRLF 会报
+#       "set: pipefail: invalid option name" 而崩溃,故脚本必须 LF。
+# 配合:本机 git config core.autocrlf false(仓库级已设)
+# ============================================================
+
+# 自动探测文本/二进制
+* text=auto
+
+# 容器内会执行的脚本 / 代码统一 LF
+*.sh      text eol=lf
+*.py      text eol=lf
+*.js      text eol=lf
+*.jsx     text eol=lf
+*.ts      text eol=lf
+*.tsx     text eol=lf
+*.css     text eol=lf
+*.scss    text eol=lf
+*.html    text eol=lf
+*.json    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.md      text eol=lf
+*.txt     text eol=lf
+*.cfg     text eol=lf
+*.toml    text eol=lf
+
+# 二进制文件不做转换
+*.png     binary
+*.jpg     binary
+*.jpeg    binary
+*.gif     binary
+*.ico     binary
+*.pdf     binary
+*.woff    binary
+*.woff2   binary
+*.ttf     binary
+*.eot     binary
+*.dump    binary
