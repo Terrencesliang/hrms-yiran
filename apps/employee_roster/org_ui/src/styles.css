@@ -256,246 +256,21 @@ html body {
 	color: #fff;
 }
 
-/* ---------- Arco Pro-style compact HR sidebar ---------- */
+/* ---------- Arco Pro-style HR sidebar ---------- */
 .arco-hr-sidebar {
-	position: relative;
-	display: block;
-	width: 100%;
-	height: 100%;
-	background: var(--color-bg-2, #fff);
-	color: var(--color-text-1);
-}
-
-.arco-hr-compact-shell {
-	position: relative;
-	display: none;
-	width: 56px;
-	height: 100%;
-}
-
-.arco-hr-sidebar.is-compact .arco-hr-compact-shell {
-	display: block;
-}
-
-.arco-hr-rail {
 	display: flex;
-	width: 56px;
-	height: 100%;
-	box-sizing: border-box;
 	flex-direction: column;
-	align-items: center;
-	padding: 10px 8px 8px;
-	background: var(--color-bg-2, #fff);
-	border-right: 1px solid var(--color-border-2, #e5e6eb);
-}
-
-.arco-hr-rail-button {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 40px;
-	height: 40px;
-	margin: 1px 0;
-	padding: 0;
-	border: 0;
-	border-radius: 4px;
-	background: transparent;
-	color: var(--color-text-3, #86909c);
-	cursor: pointer;
-	flex-shrink: 0;
-	transition: color 0.15s ease, background-color 0.15s ease;
-}
-
-.arco-hr-rail-button .arco-icon {
-	font-size: 18px;
-}
-
-.arco-hr-rail-button:hover,
-.arco-hr-rail-button:focus-visible,
-.arco-hr-rail-button.is-open {
-	outline: none;
-	background: var(--color-fill-2, #f2f3f5);
-	color: var(--color-text-1, #1d2129);
-}
-
-.arco-hr-rail-button.is-active {
-	background: rgb(var(--arcoblue-1));
-	color: rgb(var(--arcoblue-6));
-}
-
-.arco-hr-rail-button.is-active::before {
-	position: absolute;
-	left: -8px;
-	top: 8px;
-	width: 2px;
-	height: 24px;
-	border-radius: 0 2px 2px 0;
-	background: rgb(var(--arcoblue-6));
-	content: "";
-}
-
-.arco-hr-brand-button {
-	margin-bottom: 10px;
-	background: rgb(var(--arcoblue-6));
-	color: #fff;
-}
-
-.arco-hr-brand-button:hover,
-.arco-hr-brand-button:focus-visible {
-	background: rgb(var(--arcoblue-5));
-	color: #fff;
-}
-
-.arco-hr-rail-menu {
-	display: flex;
 	width: 100%;
-	flex: 1 1 auto;
-	flex-direction: column;
-	align-items: center;
-	min-height: 0;
-	overflow-x: hidden;
-	overflow-y: auto;
-	scrollbar-width: none;
-}
-
-.arco-hr-rail-menu::-webkit-scrollbar {
-	display: none;
-}
-
-.arco-hr-rail-collapse {
-	margin-top: 8px;
-}
-
-.arco-hr-flyout {
-	position: absolute;
-	z-index: 10001;
-	left: 56px;
-	width: 190px;
-	max-height: 336px;
-	box-sizing: border-box;
-	padding: 5px;
-	background: var(--color-bg-popup, #fff) !important;
-	border: 1px solid var(--color-border-2, #e5e6eb);
-	border-radius: 4px;
-	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-	isolation: isolate;
-}
-
-.arco-hr-flyout-menu {
-	max-height: 324px;
-	overflow-y: auto;
-	background: inherit;
-	scrollbar-width: thin;
-}
-
-.arco-hr-flyout-item {
-	display: flex;
-	width: 100%;
-	min-height: 34px;
-	align-items: center;
-	gap: 8px;
-	margin: 0;
-	padding: 6px 9px;
-	border: 0;
-	border-radius: 2px;
-	background: var(--color-bg-popup, #fff);
-	color: var(--color-text-2, #4e5969);
-	cursor: pointer;
-	font-size: 13px;
-	line-height: 20px;
-	text-align: left;
-}
-
-.arco-hr-flyout-item span {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.arco-hr-flyout-item .arco-icon {
-	flex: 0 0 auto;
-	color: var(--color-text-4, #c9cdd4);
-	font-size: 12px;
-}
-
-.arco-hr-flyout-item:hover,
-.arco-hr-flyout-item:focus-visible {
-	outline: none;
-	background: var(--color-fill-2, #f2f3f5);
-	color: var(--color-text-1, #1d2129);
-}
-
-.arco-hr-flyout-item.is-active {
-	background: rgb(var(--arcoblue-1));
-	color: rgb(var(--arcoblue-6));
-	font-weight: 500;
-}
-
-.arco-hr-panel-enter-active,
-.arco-hr-panel-leave-active {
-	transition: opacity 0.12s ease, transform 0.12s ease;
-}
-
-.arco-hr-panel-enter-from,
-.arco-hr-panel-leave-to {
-	opacity: 0;
-	transform: translateX(-4px);
-}
-
-.arco-hr-expanded-shell {
-	display: flex;
 	height: 100%;
 	min-height: 0;
-	flex-direction: column;
-}
-
-.arco-hr-sidebar.is-compact .arco-hr-expanded-shell {
-	display: none;
-}
-
-.arco-hr-logo {
-	display: flex;
-	height: 52px;
-	align-items: center;
-	gap: 10px;
-	padding: 0 12px;
-	border-bottom: 1px solid var(--color-border-2, #e5e6eb);
-}
-
-.arco-hr-logo-mark {
-	display: inline-flex;
-	width: 28px;
-	height: 28px;
-	align-items: center;
-	justify-content: center;
-	border-radius: 4px;
-	background: rgb(var(--arcoblue-6));
-	color: #fff;
-}
-
-.arco-hr-logo-title {
-	flex: 1;
-	justify-content: flex-start;
-	min-width: 0;
-	overflow: hidden;
+	background: var(--color-bg-2, #fff);
 	color: var(--color-text-1);
-	font-size: 15px;
-	font-weight: 600;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.arco-hr-logo-title > span {
 	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 .arco-hr-search-wrap {
-	padding: 10px 12px 6px;
+	flex: 0 0 auto;
+	padding: 12px 12px 8px;
 }
 
 .arco-hr-kbd {
@@ -504,8 +279,31 @@ html body {
 	white-space: nowrap;
 }
 
+.arco-hr-compact-search {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	margin: 8px auto 4px;
+	padding: 0;
+	border: 0;
+	border-radius: 4px;
+	background: transparent;
+	color: var(--color-text-3, #86909c);
+	cursor: pointer;
+	transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.arco-hr-compact-search:hover,
+.arco-hr-compact-search:focus-visible {
+	outline: none;
+	background: var(--color-fill-2, #f2f3f5);
+	color: var(--color-text-1, #1d2129);
+}
+
 .arco-hr-menu-wrap {
-	flex: 1;
+	flex: 1 1 auto;
 	min-height: 0;
 	overflow: hidden;
 }
@@ -513,6 +311,7 @@ html body {
 .arco-hr-menu-wrap .arco-menu {
 	width: 100%;
 	height: 100%;
+	overflow-x: hidden;
 	overflow-y: auto;
 	border-right: 0;
 	background: transparent;
@@ -522,10 +321,15 @@ html body {
 	padding: 4px 8px 12px;
 }
 
+.arco-hr-menu-wrap .arco-menu-collapsed .arco-menu-inner {
+	padding: 4px;
+}
+
 .arco-hr-menu-wrap .arco-menu-item,
 .arco-hr-menu-wrap .arco-menu-inline-header {
 	margin-bottom: 2px;
 	border-radius: 4px;
+	transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .arco-hr-menu-wrap .arco-menu-item.arco-menu-selected {
@@ -533,17 +337,41 @@ html body {
 	color: rgb(var(--arcoblue-6));
 }
 
-.arco-hr-expanded-footer {
+.arco-hr-menu-wrap .arco-menu-inline-content {
+	overflow: hidden;
+	transition: height 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
+}
+
+.arco-hr-collapse-bar {
 	flex: 0 0 auto;
-	padding: 6px 8px;
+	display: flex;
+	align-items: center;
+	min-height: 48px;
+	padding: 4px 8px;
 	border-top: 1px solid var(--color-border-2, #e5e6eb);
 }
 
-.arco-hr-expanded-footer .arco-btn {
+.arco-hr-sidebar.is-compact .arco-hr-collapse-bar {
+	justify-content: center;
+	padding: 4px;
+}
+
+.arco-hr-collapse-bar .arco-btn {
 	width: 100%;
 	justify-content: flex-start;
 	gap: 8px;
 	color: var(--color-text-3, #86909c);
+	transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.arco-hr-sidebar.is-compact .arco-hr-collapse-bar .arco-btn {
+	width: 40px;
+	justify-content: center;
+	padding: 0;
+}
+
+.arco-hr-collapse-bar .arco-btn:hover {
+	color: rgb(var(--arcoblue-6));
 }
 
 .arco-drawer-wrapper,
@@ -551,29 +379,12 @@ html body {
 .arco-trigger-popup,
 .arco-message-wrapper,
 .arco-notification-wrapper {
-	z-index: 2100;
+	z-index: 1910;
 }
 
 @media (max-width: 1100px) {
 	.arco-org-ui .oc-stat-grid {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
-	}
-}
-
-@media (max-width: 768px) {
-	.arco-hr-compact-shell {
-		display: none;
-	}
-
-	.arco-hr-sidebar.is-compact .arco-hr-compact-shell {
-		display: none;
-	}
-
-	.arco-hr-expanded-shell,
-	.arco-hr-sidebar.is-compact .arco-hr-expanded-shell {
-		display: flex;
-		height: 100%;
-		flex-direction: column;
 	}
 }
 
@@ -1668,4 +1479,494 @@ html body {
 	.ap-panel-header {
 		flex-direction: column;
 	}
+}
+
+/* —— HR Workplace / Dashboard —— */
+.arco-hr-home-wrapper .page-head,
+.arco-hr-dashboard-wrapper .page-head {
+	display: none !important;
+}
+
+.arco-hr-home-wrapper .layout-main-section,
+.arco-hr-dashboard-wrapper .layout-main-section {
+	border: none !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	padding: 0 !important;
+}
+
+.arco-hr-home-wrapper .page-content,
+.arco-hr-home-wrapper .layout-main,
+.arco-hr-home-wrapper .layout-main-section-wrapper,
+.arco-hr-dashboard-wrapper .page-content,
+.arco-hr-dashboard-wrapper .layout-main,
+.arco-hr-dashboard-wrapper .layout-main-section-wrapper {
+	background: #f2f3f5 !important;
+}
+
+.hr-workplace,
+.hr-dashboard {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.hr-wp-banner {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 20px 24px;
+	border-radius: 4px;
+	background:
+		linear-gradient(90deg, rgba(22, 93, 255, 0.08), rgba(22, 93, 255, 0.02)),
+		#fff;
+	border: 1px solid var(--color-border-2, #e5e6eb);
+}
+
+.hr-wp-greeting {
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--color-text-1);
+}
+
+.hr-wp-sub {
+	margin: 4px 0 0;
+	font-size: 13px;
+	color: var(--color-text-3);
+}
+
+.hr-wp-stats {
+	margin: 0 !important;
+}
+
+.hr-wp-stats > .arco-col,
+.hr-wp-main > .arco-col {
+	margin-bottom: 16px;
+}
+
+.hr-wp-stat-card {
+	cursor: default;
+	transition: box-shadow 0.2s ease;
+}
+
+.hr-wp-stat-card:hover {
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.hr-wp-stat-card .arco-card-body {
+	padding: 16px 20px;
+}
+
+.hr-wp-stat-suffix {
+	margin-left: 4px;
+	font-size: 14px;
+	color: var(--color-text-3);
+}
+
+.hr-wp-stat-extra {
+	margin-top: 8px;
+	font-size: 12px;
+	color: var(--color-text-3);
+}
+
+.hr-wp-main {
+	margin: 0 !important;
+}
+
+.hr-wp-panel {
+	margin-bottom: 0;
+}
+
+.hr-wp-panel + .hr-wp-panel,
+.hr-wp-main + .hr-wp-panel {
+	margin-top: 0;
+}
+
+.hr-wp-panel .arco-card-header {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.hr-wp-panel .arco-card-body {
+	padding-top: 12px;
+}
+
+.hr-wp-quick-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 12px;
+}
+
+.hr-wp-quick {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 14px;
+	border: 1px solid var(--color-border-2, #e5e6eb);
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+	text-align: left;
+	font-size: 13px;
+	color: var(--color-text-1);
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hr-wp-quick:hover {
+	border-color: rgb(var(--primary-6));
+	box-shadow: 0 2px 8px rgba(22, 93, 255, 0.08);
+}
+
+.hr-wp-quick-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 4px;
+	background: rgba(22, 93, 255, 0.1);
+	color: rgb(var(--primary-6));
+	font-size: 18px;
+}
+
+.hr-bar-list {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	min-height: 120px;
+}
+
+.hr-bar-empty {
+	padding: 24px 0;
+	text-align: center;
+	color: var(--color-text-3);
+	font-size: 13px;
+}
+
+.hr-bar-meta {
+	display: flex;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 6px;
+	font-size: 13px;
+}
+
+.hr-bar-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--color-text-1);
+}
+
+.hr-bar-count {
+	flex: 0 0 auto;
+	color: var(--color-text-2);
+	font-variant-numeric: tabular-nums;
+}
+
+.hr-bar-track {
+	height: 8px;
+	border-radius: 4px;
+	background: var(--color-fill-2, #f2f3f5);
+	overflow: hidden;
+}
+
+.hr-bar-fill {
+	height: 100%;
+	border-radius: 4px;
+	transition: width 0.35s ease;
+}
+
+.hr-series-chart {
+	min-height: 220px;
+}
+
+.hr-series-legend {
+	display: flex;
+	gap: 16px;
+	margin-bottom: 12px;
+	font-size: 12px;
+	color: var(--color-text-2);
+}
+
+.hr-series-legend-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.hr-series-legend-item i {
+	width: 8px;
+	height: 8px;
+	border-radius: 2px;
+}
+
+.hr-series-body {
+	display: flex;
+	align-items: flex-end;
+	gap: 8px;
+	height: 180px;
+	padding-top: 8px;
+	overflow-x: auto;
+}
+
+.hr-series-col {
+	flex: 1 0 28px;
+	min-width: 28px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	height: 100%;
+}
+
+.hr-series-bars {
+	flex: 1;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	gap: 3px;
+	width: 100%;
+	min-height: 0;
+}
+
+.hr-series-bar {
+	width: 8px;
+	min-height: 2px;
+	border-radius: 2px 2px 0 0;
+	transition: height 0.3s ease;
+}
+
+.hr-series-label {
+	margin-top: 8px;
+	font-size: 11px;
+	color: var(--color-text-3);
+	white-space: nowrap;
+}
+
+.hr-wp-panel .arco-table-tr {
+	cursor: pointer;
+}
+
+@media (max-width: 768px) {
+	.hr-wp-banner {
+		flex-direction: column;
+	}
+
+	.hr-wp-quick-grid {
+		grid-template-columns: 1fr;
+	}
+}
+
+/* —— HR Analysis Dashboard —— */
+.arco-org-ui.hr-analysis {
+	--hr-dash-gap: 16px;
+	padding: var(--hr-dash-gap);
+	box-sizing: border-box;
+}
+
+.hr-analysis {
+	display: block;
+}
+
+.hr-analysis > .arco-spin {
+	width: 100%;
+	display: block;
+}
+
+/* 行与行、卡与卡统一 16px；不依赖 Arco Spin 内部包装层 */
+.hr-analysis-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--hr-dash-gap, 16px);
+	width: 100%;
+}
+
+.hr-analysis-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.hr-analysis-kpis {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--hr-dash-gap, 16px);
+}
+
+.hr-analysis-mid {
+	display: grid;
+	grid-template-columns: minmax(0, 15fr) minmax(0, 9fr);
+	gap: var(--hr-dash-gap, 16px);
+	align-items: stretch;
+}
+
+@media (max-width: 1200px) {
+	.hr-analysis-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 992px) {
+	.hr-analysis-mid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 640px) {
+	.hr-analysis-kpis {
+		grid-template-columns: 1fr;
+	}
+}
+
+.hr-kpi-card .arco-card-body {
+	padding: 16px 20px;
+}
+
+.hr-kpi-head {
+	display: flex;
+	align-items: stretch;
+	justify-content: space-between;
+	gap: 8px;
+	min-height: 92px;
+}
+
+.hr-kpi-title {
+	font-size: 13px;
+	color: var(--color-text-3);
+	margin-bottom: 8px;
+}
+
+.hr-kpi-value {
+	font-size: 26px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--color-text-1);
+	font-variant-numeric: tabular-nums;
+}
+
+.hr-kpi-delta {
+	margin-top: 8px;
+	font-size: 12px;
+	color: var(--color-text-3);
+}
+
+.hr-kpi-delta.is-up {
+	color: rgb(var(--danger-6));
+}
+
+.hr-kpi-delta.is-down {
+	color: rgb(var(--success-6));
+}
+
+.hr-kpi-chart {
+	flex: 1 1 120px;
+	min-width: 100px;
+	max-width: 160px;
+	align-self: center;
+}
+
+.hr-panel-card .arco-card-header {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.hr-panel-card .arco-card-body {
+	padding-top: 8px;
+}
+
+.hr-panel-card--fill {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 420px;
+}
+
+.hr-panel-card--fill .arco-card-body {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.hr-panel-body {
+	flex: 1;
+	min-height: 340px;
+}
+
+.hr-rank-wrap {
+	display: flex;
+	flex-direction: column;
+}
+
+.hr-rank-table {
+	flex: 1;
+}
+
+.hr-rank-table .arco-table-th {
+	background: transparent;
+	color: var(--color-text-3);
+	font-weight: 500;
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+.hr-rank-table .arco-table-td {
+	font-size: 13px;
+}
+
+.hr-rank-table .arco-table-cell {
+	padding: 10px 8px;
+}
+
+.hr-rank-table .arco-table-th[align="right"] .arco-table-cell,
+.hr-rank-table .arco-table-td[align="right"] .arco-table-cell,
+.hr-rank-table th.arco-table-col-align-right .arco-table-cell,
+.hr-rank-table td.arco-table-col-align-right .arco-table-cell {
+	justify-content: flex-end;
+	text-align: right;
+}
+
+.hr-num {
+	display: block;
+	width: 100%;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+	color: var(--color-text-1);
+	font-weight: 500;
+}
+
+.hr-rank {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border-radius: 2px;
+	font-size: 12px;
+	background: var(--color-fill-2);
+	color: var(--color-text-2);
+}
+
+.hr-rank.r1 {
+	background: #f53f3f;
+	color: #fff;
+}
+
+.hr-rank.r2 {
+	background: #ff7d00;
+	color: #fff;
+}
+
+.hr-rank.r3 {
+	background: #ffb400;
+	color: #fff;
+}
+
+.hr-echart {
+	width: 100%;
 }

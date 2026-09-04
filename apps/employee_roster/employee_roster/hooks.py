@@ -54,17 +54,17 @@ app_include_css = [
 	"/assets/employee_roster/css/recruiting.css",
 	"/assets/employee_roster/css/attendance_rules.css",
 	"/assets/employee_roster/css/attendance_deduction_rule_form.css?v=20260303b",
-	"/assets/employee_roster/css/unified_sidebar.css?v=20260904u",
-	"/assets/employee_roster/org_ui/org_ui.css?v=20260904u",
+	"/assets/employee_roster/css/unified_sidebar.css?v=20260904x",
+	"/assets/employee_roster/org_ui/org_ui.css?v=20260904aj",
 	"/assets/employee_roster/css/employee_checkin_list.css?v=20260903e",
 	"/assets/employee_roster/css/employee_list.css?v=20260903a",
 	"/assets/employee_roster/css/employee_form.css?v=20260904i",
 ]
 app_include_js = [
 	"/assets/employee_roster/js/apps_screen.js?v=20260904a",
-	"/assets/employee_roster/org_ui/org_ui.js?v=20260904u",
+	"/assets/employee_roster/org_ui/org_ui.js?v=20260904aj",
 	"/assets/employee_roster/js/recruiting_candidates.js",
-	"/assets/employee_roster/js/unified_sidebar.js?v=20260904u",
+	"/assets/employee_roster/js/unified_sidebar.js?v=20260904ac",
 	"/assets/employee_roster/js/employee_form.js?v=20260904i",
 ]
 

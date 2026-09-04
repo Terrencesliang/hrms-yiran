@@ -13,6 +13,8 @@ import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
 import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
 import ApprovalDesignerApp from "./pages/approvals/designer/ApprovalDesignerApp.vue";
 import ApprovalsWorkspace from "./pages/approvals/workspace/ApprovalsWorkspace.vue";
+import HrHomePage from "./pages/home/HrHomePage.vue";
+import HrDashboardPage from "./pages/dashboard/HrDashboardPage.vue";
 
 function boot(app) {
 	app.use(ArcoVue);
@@ -81,6 +83,30 @@ export function mountApprovalsWorkspace(el, options = {}) {
 				return h(ConfigProvider, { locale: zhCN }, () =>
 					h(ApprovalsWorkspace, { view })
 				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountHrHome(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(HrHomePage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountHrDashboard(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(HrDashboardPage));
 			},
 		})
 	);
