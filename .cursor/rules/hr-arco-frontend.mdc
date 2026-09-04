@@ -1,5 +1,5 @@
 ---
-description: HR 模块前端统一使用 Arco Design，并按页面/公共组件拆分
+description: HR 模块前端统一使用 Arco Design，组件化拆分与复用
 globs: apps/employee_roster/org_ui/**,apps/employee_roster/employee_roster/public/**,apps/employee_roster/employee_roster/hr_roster/page/**,apps/employee_roster/employee_roster/hr_roster/sidebar/**
 alwaysApply: false
 ---
@@ -8,11 +8,20 @@ alwaysApply: false
 
 HR 新页面和改造一律走 `apps/employee_roster/org_ui`（Vue 3 + `@arco-design/web-vue`）。Frappe Desk 的 `page/*.js` 只负责挂载，不写整页 UI。
 
-## 组件优先
+## 原则
 
-- 按钮、表格、表单、抽屉、弹窗、菜单、分页、空状态、反馈：直接用 Arco 官方组件（`a-button`、`a-table`、`a-form`、`a-drawer`、`a-modal`、`a-menu`、`a-empty`、`Message`）。
-- 不要手写同类控件，不要再为新 HR 页面堆 jQuery / 原生 HTML 表单。
-- 图标用 `@arco-design/web-vue/es/icon`，不要 emoji 当图标。
+1. **优先官方组件**：按钮、表格、表单、抽屉、弹窗、菜单、分页、空状态、反馈等直接用 Arco（`a-button`、`a-table`、`a-form`、`a-drawer`、`a-modal`、`a-menu`、`a-empty`、`Message`），避免重复造轮子。
+2. **模块化拆分**：页面按功能拆组件；跨页公共能力抽到可复用组件 / composable。
+3. **杜绝复制粘贴**：禁止超大单文件、重复逻辑堆叠；`.vue` 约超 250 行或职责过多时拆分。
+4. **统一 UI / 交互**：沿用现有 HR 风格与组件用法；主色为企业 B 端蓝 `#165DFF`（Arco 默认 `--arcoblue-*` / `--primary-6`），不散落新色板。
+5. **先复用再新建**：改功能先搜 `components/`、`composables/`；确认无同类实现再新增。
+6. **可维护性优先、业务不变**：持续优化结构，但不改接口、路由和业务结果。
+
+## 禁止
+
+- 手写同类控件，或为新 HR 页堆 jQuery / 原生 HTML 表单。
+- 用 emoji 当图标（用 `@arco-design/web-vue/es/icon`）。
+- 无关的整页重写；旧 jQuery HR 页按需迁移。
 
 ```vue
 <!-- ❌ -->
@@ -22,22 +31,14 @@ HR 新页面和改造一律走 `apps/employee_roster/org_ui`（Vue 3 + `@arco-de
 <a-button type="primary" :loading="saving" @click="save">保存</a-button>
 ```
 
-## 目录与复用
+## 目录
 
 ```
 org_ui/src/
-  pages/<feature>/     页面编排，只拼组件、接数据
-  components/          跨页面公共组件（先搜这里再新建）
+  pages/<feature>/     页面编排：拼组件、接数据
+  components/          跨页面公共组件
   composables/         跨页面逻辑
   api/                 frappe.call 与业务 API
 ```
 
-- 单个 `.vue` 超过约 250 行或承担多种职责时，拆成页面子组件或 composable。
-- 新增功能先复用 `components/`、`composables/`；确认没有同类实现再新增。
-- 颜色、间距、主色沿用 `styles.css` 的 HR token（主色 `#00b386` / `--arcoblue-*`），不要页面内散落新色板。
-
-## 改造边界
-
-- 只改当前需求涉及的页面；旧 jQuery HR 页按需迁移，不做无关重写。
-- 拆分和抽取不得改变接口、路由和业务结果。
-- 改完 `org_ui/src` 后执行 `npm run build`，让 `public/org_ui/` 产物同步。
+改完 `org_ui/src` 后执行 `npm run build`，同步 `public/org_ui/` 产物。

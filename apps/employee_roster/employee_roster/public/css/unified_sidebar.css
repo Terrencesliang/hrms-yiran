@@ -1,20 +1,20 @@
 /* Unified HR business-module sidebar */
 
 :root {
-	--hr-unified-green: #1fa884;
-	--hr-unified-green-soft: #e8f7f2;
-	--hr-unified-green-text: #12896d;
-	--hr-unified-border: #eceff1;
-	--hr-unified-muted: #8d98a4;
-	--hr-unified-text: #1f2937;
+	--hr-unified-primary: #165dff;
+	--hr-unified-primary-soft: #e8f3ff;
+	--hr-unified-primary-text: #0e4be5;
+	--hr-unified-border: #e5e6eb;
+	--hr-unified-muted: #86909c;
+	--hr-unified-text: #1d2129;
 	--hr-unified-bg: #ffffff;
-	--hr-unified-radius: 9px;
+	--hr-unified-radius: 4px;
 }
 
 [data-theme="dark"] {
-	--hr-unified-green: #34d399;
-	--hr-unified-green-soft: rgba(52, 211, 153, 0.12);
-	--hr-unified-green-text: #6ee7b7;
+	--hr-unified-primary: #3c7eff;
+	--hr-unified-primary-soft: rgba(60, 126, 255, 0.12);
+	--hr-unified-primary-text: #6aa1ff;
 	--hr-unified-border: rgba(255, 255, 255, 0.08);
 	--hr-unified-muted: #9ca3af;
 	--hr-unified-text: #f3f4f6;
@@ -25,8 +25,8 @@
 /* Desk shell layout: sidebar + main in one flex row (no absolute overlay)      */
 /* -------------------------------------------------------------------------- */
 body.hr-unified-sidebar-active {
-	--sidebar-width: 320px;
-	--hr-unified-sidebar-width: 320px;
+	--sidebar-width: 240px;
+	--hr-unified-sidebar-width: 240px;
 	--hr-unified-content-gutter: 16px;
 	display: flex;
 	flex-direction: row;
@@ -86,6 +86,7 @@ body.hr-unified-sidebar-active .body-sidebar.hr-unified-host {
 	display: flex !important;
 	flex-direction: column !important;
 	padding: 0 !important;
+	overflow: hidden !important;
 }
 
 body.hr-unified-sidebar-active .body-sidebar-container:not(.expanded) .body-sidebar > *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
@@ -200,7 +201,7 @@ body.hr-unified-sidebar-active .body-sidebar-top {
 }
 
 .hr-unified-workspace-btn:hover {
-	background: var(--hr-unified-green-soft);
+	background: var(--hr-unified-primary-soft);
 }
 
 .hr-unified-collapse-btn {
@@ -219,9 +220,9 @@ body.hr-unified-sidebar-active .body-sidebar-top {
 }
 
 .hr-unified-collapse-btn:hover {
-	background: var(--hr-unified-green-soft);
-	color: var(--hr-unified-green-text);
-	border-color: var(--hr-unified-green);
+	background: var(--hr-unified-primary-soft);
+	color: var(--hr-unified-primary-text);
+	border-color: var(--hr-unified-primary);
 }
 
 .hr-unified-expand-btn {
@@ -249,9 +250,9 @@ body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-expand-btn:not([hid
 }
 
 .hr-unified-expand-btn:hover {
-	background: var(--hr-unified-green-soft);
-	color: var(--hr-unified-green-text);
-	border-color: var(--hr-unified-green);
+	background: var(--hr-unified-primary-soft);
+	color: var(--hr-unified-primary-text);
+	border-color: var(--hr-unified-primary);
 }
 
 .hr-unified-workspace-title {
@@ -297,8 +298,8 @@ body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-expand-btn:not([hid
 
 .hr-unified-search-input:focus {
 	outline: none;
-	border-color: var(--hr-unified-green);
-	box-shadow: 0 0 0 3px var(--hr-unified-green-soft);
+	border-color: var(--hr-unified-primary);
+	box-shadow: 0 0 0 3px var(--hr-unified-primary-soft);
 }
 
 .hr-unified-search-kbd {
@@ -350,7 +351,7 @@ body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-expand-btn:not([hid
 
 .hr-unified-tab.is-active {
 	background: var(--hr-unified-bg);
-	color: var(--hr-unified-green-text);
+	color: var(--hr-unified-primary-text);
 	font-weight: 600;
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
@@ -426,14 +427,14 @@ body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-expand-btn:not([hid
 }
 
 .hr-unified-item.is-active {
-	background: var(--hr-unified-green-soft);
-	color: var(--hr-unified-green-text);
+	background: var(--hr-unified-primary-soft);
+	color: var(--hr-unified-primary-text);
 	font-weight: 600;
 }
 
 .hr-unified-item.is-active .hr-unified-item-icon,
 .hr-unified-item.is-active .hr-unified-item-arrow {
-	color: var(--hr-unified-green-text);
+	color: var(--hr-unified-primary-text);
 }
 
 .hr-unified-item-icon {

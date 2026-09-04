@@ -237,6 +237,9 @@ frappe.provide("employee_roster.unified_sidebar");
 					this.pushArcoState();
 				},
 				onNavigate: (item) => {
+					if (item?.module) {
+						this.menuModule = item.module;
+					}
 					if (frappe.is_mobile()) {
 						frappe.app.sidebar.close();
 					}
@@ -258,41 +261,56 @@ frappe.provide("employee_roster.unified_sidebar");
 		pushArcoState() {
 			if (!window.OrgUI?.updateSidebar) return;
 
-			const moduleKey = this.getMenuModuleKey();
-			const sidebarData = frappe.boot.module_sidebars?.[moduleKey];
-			const groups = sidebarData?.items?.length
-				? this.buildGroups(sidebarData.items, moduleKey).map((group) => ({
-						label: group.label,
-						collapsible: !!group.collapsible,
-						open: group.open !== false,
-						items: group.items.map((item) => ({
-							key: `${frappe.ui.sidebar_item.get_route(item) || "#"}::${item.label}`,
-							label: __(item.label),
-							path: frappe.ui.sidebar_item.get_route(item) || "#",
-							iconHtml: frappe.utils.icon(item.icon || "list", "sm", "", "", "", true),
-							openInNewTab: item.link_type === "URL" && item.open_in_new_tab,
-						})),
-					}))
-				: [];
-
+			const activeModule = this.getMenuModuleKey();
+			const modules = this.getTabModules();
 			const pathname = decodeURIComponent((window.location.pathname || "").replace(/\/$/, ""));
+
+			const groups = [];
 			let activeKey = "";
 			let matchedLength = 0;
-			groups.forEach((group) => {
-				group.items.forEach((item) => {
-					const href = decodeURIComponent((item.path || "").split("?")[0].split("#")[0].replace(/\/$/, ""));
-					if (!href || href === "#") return;
-					if ((pathname === href || pathname.startsWith(href + "/")) && href.length >= matchedLength) {
-						activeKey = item.key;
-						matchedLength = href.length;
-					}
+
+			modules.forEach((mod) => {
+				const sidebarData = frappe.boot.module_sidebars?.[mod.key];
+				if (!sidebarData?.items?.length) return;
+
+				const built = this.buildGroups(sidebarData.items, mod.key);
+				const items = [];
+				built.forEach((group) => {
+					(group.items || []).forEach((item) => {
+						const path = frappe.ui.sidebar_item.get_route(item) || "#";
+						const key = `${mod.key}::${path}::${item.label}`;
+						items.push({
+							key,
+							label: __(item.label),
+							path,
+							module: mod.key,
+							openInNewTab: item.link_type === "URL" && item.open_in_new_tab,
+						});
+
+						const href = decodeURIComponent((path || "").split("?")[0].split("#")[0].replace(/\/$/, ""));
+						if (!href || href === "#") return;
+						if ((pathname === href || pathname.startsWith(href + "/")) && href.length >= matchedLength) {
+							activeKey = key;
+							matchedLength = href.length;
+						}
+					});
+				});
+
+				if (!items.length) return;
+
+				groups.push({
+					key: `mod:${mod.key}`,
+					label: mod.label,
+					collapsible: true,
+					open: mod.key === activeModule || (!activeModule && mod.key === modules[0]?.key),
+					items,
 				});
 			});
 
 			window.OrgUI.updateSidebar({
-				title: MODULE_TAB_LABELS[moduleKey] || this.getWorkspaceTitle(),
-				tabs: this.getTabModules(),
-				activeTab: moduleKey || this.getTabModules()[0]?.key || "",
+				title: this.getWorkspaceTitle(),
+				tabs: [],
+				activeTab: "",
 				activeKey,
 				groups,
 				workspaces: this.getDockEntries().map((entry) => ({
@@ -414,7 +432,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			}
 
 			header.find(".hr-unified-workspace-icon").html(
-				frappe.utils.icon(icon, "sm", "", "", "text-green-600", true)
+				frappe.utils.icon(icon, "sm", "", "", "text-blue-600", true)
 			);
 			header.find(".hr-unified-workspace-title").text(title);
 		},

@@ -48,13 +48,23 @@ def seed_document_types():
 
 
 def get_active_document_types():
-	seed_document_types()
-	return frappe.get_all(
+	# Keep request-time setup to a single lookup.  The previous implementation
+	# issued one existence query per default type every time the archive page was
+	# opened (and the page used to call this endpoint twice on first load).
+	rows = frappe.get_all(
 		"Archive Document Type",
-		filters={"is_active": 1},
-		fields=["name", "document_type", "document_name", "is_required", "sort_order"],
+		fields=["name", "document_type", "document_name", "is_required", "sort_order", "is_active"],
 		order_by="sort_order asc, document_name asc",
 	)
+	existing = {row.name for row in rows}
+	if any(row["document_type"] not in existing for row in DEFAULT_DOCUMENT_TYPES):
+		seed_document_types()
+		rows = frappe.get_all(
+			"Archive Document Type",
+			fields=["name", "document_type", "document_name", "is_required", "sort_order", "is_active"],
+			order_by="sort_order asc, document_name asc",
+		)
+	return [row for row in rows if int(row.is_active or 0)]
 
 
 def _employee_filters(department=None, status=None):
@@ -66,11 +76,23 @@ def _employee_filters(department=None, status=None):
 	return filters
 
 
-def _get_employees(department=None, status=None):
+def _get_employees(department=None, status=None, include_completeness=False):
+	fields = ["name", "employee_name", "employee_number", "department", "status"]
+	if include_completeness:
+		fields.extend(
+			[
+				"designation",
+				"date_of_joining",
+				"cell_number",
+				"person_to_be_contacted",
+				"emergency_phone_number",
+				"relation",
+			]
+		)
 	return frappe.get_all(
 		"Employee",
 		filters=_employee_filters(department, status),
-		fields=["name", "employee_name", "employee_number", "department", "status"],
+		fields=fields,
 		order_by="employee_number asc",
 	)
 
@@ -89,32 +111,30 @@ def _uploaded_map(employee_names):
 	return result
 
 
-def _file_size_bytes(file_url):
-	if not file_url:
-		return 0
-	return frappe.db.get_value("File", {"file_url": file_url}, "file_size") or 0
-
-
-def _completeness_score(employee_name):
-	emp = frappe.db.get_value(
-		"Employee",
-		employee_name,
-		[
-			"employee_name",
-			"employee_number",
-			"department",
-			"designation",
-			"date_of_joining",
-			"cell_number",
-			"person_to_be_contacted",
-			"emergency_phone_number",
-			"relation",
-		],
-		as_dict=True,
+def _education_employee_names(employee_names):
+	if not employee_names:
+		return set()
+	rows = frappe.get_all(
+		"Employee Education",
+		filters={"parent": ("in", employee_names)},
+		fields=["parent"],
 	)
-	if not emp:
-		return 0, 0
+	return {row.parent for row in rows}
 
+
+def _file_size_map(uploads):
+	file_urls = {row.file for employee_uploads in uploads.values() for row in employee_uploads.values() if row.file}
+	if not file_urls:
+		return {}
+	rows = frappe.get_all(
+		"File",
+		filters={"file_url": ("in", list(file_urls))},
+		fields=["file_url", "file_size"],
+	)
+	return {row.file_url: row.file_size or 0 for row in rows}
+
+
+def _completeness_score(emp, employees_with_education):
 	checks = [
 		bool(emp.employee_name),
 		bool(emp.employee_number),
@@ -124,14 +144,13 @@ def _completeness_score(employee_name):
 		bool(emp.cell_number),
 		bool(emp.person_to_be_contacted and emp.emergency_phone_number and emp.relation),
 	]
-	education_count = frappe.db.count("Employee Education", {"parent": employee_name})
-	checks.append(education_count > 0)
+	checks.append(emp.name in employees_with_education)
 
 	filled = sum(1 for item in checks if item)
 	return filled, len(checks)
 
 
-def _group_stats(employees, doc_types, uploads):
+def _group_stats(employees, doc_types, uploads, employees_with_education, file_sizes):
 	required_types = [d.name for d in doc_types if d.is_required]
 	total = len(employees)
 	archived = 0
@@ -147,8 +166,8 @@ def _group_stats(employees, doc_types, uploads):
 		for row in emp_uploads.values():
 			if row.file:
 				material_count += 1
-				storage_bytes += _file_size_bytes(row.file)
-		filled, total_fields = _completeness_score(emp.name)
+				storage_bytes += file_sizes.get(row.file, 0)
+		filled, total_fields = _completeness_score(emp, employees_with_education)
 		if total_fields:
 			completeness_total += filled / total_fields
 
@@ -207,19 +226,27 @@ def get_archive_options() -> dict:
 def get_archive_overview(department: str | None = None) -> dict:
 	_require_archive_permission()
 	doc_types = get_active_document_types()
-	active_employees = _get_employees(department=department, status="Active")
-	left_employees = _get_employees(department=department, status="Left")
+	employees = _get_employees(
+		department=department,
+		status=("in", ["Active", "Left"]),
+		include_completeness=True,
+	)
+	active_employees = [employee for employee in employees if employee.status == "Active"]
+	left_employees = [employee for employee in employees if employee.status == "Left"]
 	all_names = [e.name for e in active_employees + left_employees]
 	uploads = _uploaded_map(all_names)
+	employees_with_education = _education_employee_names(all_names)
+	file_sizes = _file_size_map(uploads)
 
 	return {
+		"departments": frappe.get_all("Department", fields=["name"], order_by="name asc", pluck="name"),
 		"document_types": doc_types,
 		"active": {
-			**_group_stats(active_employees, doc_types, uploads),
+			**_group_stats(active_employees, doc_types, uploads, employees_with_education, file_sizes),
 			"progress": _document_progress(active_employees, doc_types, uploads),
 		},
 		"left": {
-			**_group_stats(left_employees, doc_types, uploads),
+			**_group_stats(left_employees, doc_types, uploads, employees_with_education, file_sizes),
 			"progress": _document_progress(left_employees, doc_types, uploads),
 		},
 	}

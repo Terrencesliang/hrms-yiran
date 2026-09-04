@@ -6,6 +6,10 @@ export function getOrgTree(company) {
 	return call(`${ORG_API}.get_org_tree`, { company: company || undefined });
 }
 
+export function getOrgDiagram(company) {
+	return call(`${ORG_API}.get_org_diagram`, { company: company || undefined });
+}
+
 export function searchEmployees(txt, company) {
 	return call(`${ORG_API}.search_employees`, { txt, company });
 }

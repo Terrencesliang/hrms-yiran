@@ -5,6 +5,7 @@ export {
 	filterTree,
 	flattenTree,
 	getImportTemplate,
+	getOrgDiagram,
 	getOrgTree,
 	importOrgUnits,
 	orgTypeOf,

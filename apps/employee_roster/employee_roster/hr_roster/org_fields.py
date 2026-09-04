@@ -107,11 +107,52 @@ def get_org_custom_fields():
 	}
 
 
+def db_table_has_column(doctype: str, column: str) -> bool:
+	"""Check the real database table, ignoring Frappe's stale table_columns cache."""
+	table = f"tab{doctype}"
+	cache = getattr(frappe.local, "_org_table_columns", None)
+	if cache is None:
+		cache = {}
+		frappe.local._org_table_columns = cache
+	if table not in cache:
+		if getattr(frappe.db, "db_type", None) == "postgres":
+			schema = getattr(frappe.db, "db_schema", None) or "public"
+			cols = frappe.db.sql(
+				"""
+				SELECT column_name
+				FROM information_schema.columns
+				WHERE table_name = %s AND table_schema = %s
+				""",
+				(table, schema),
+				pluck=True,
+			)
+		else:
+			cols = frappe.db.sql(
+				"""
+				SELECT column_name
+				FROM information_schema.columns
+				WHERE table_name = %s AND table_schema = DATABASE()
+				""",
+				(table,),
+				pluck=True,
+			)
+		cache[table] = {str(col).lower() for col in (cols or [])}
+	return column.lower() in cache[table]
+
+
 def ensure_org_custom_fields():
 	create_custom_fields(get_org_custom_fields(), ignore_validate=True, update=True)
 	for doctype in ("Department", "Company"):
+		try:
+			frappe.client_cache.delete_value(f"table_columns::tab{doctype}")
+		except Exception:
+			pass
 		meta = get_meta(doctype, cached=False)
 		frappe.db.updatedb(doctype, meta)
+		try:
+			frappe.client_cache.delete_value(f"table_columns::tab{doctype}")
+		except Exception:
+			pass
 	frappe.clear_cache(doctype="Department")
 	frappe.clear_cache(doctype="Company")
 	frappe.db.commit()

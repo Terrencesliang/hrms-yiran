@@ -235,11 +235,13 @@ trim_procfile() {
 	cd "${BENCH_DIR}"
 	sed -i '/^redis/d' ./Procfile || true
 	sed -i '/^dev_sync:/d' ./Procfile || true
+	sed -i '/^org_ui_watch:/d' ./Procfile || true
 	if developer_mode_enabled; then
 		if ! grep -q '^watch:' ./Procfile; then
 			printf '\nwatch: bench watch\n' >> ./Procfile
 		fi
 		printf 'dev_sync: python /workspace/source/deploy/dev_sync.py\n' >> ./Procfile
+		printf 'org_ui_watch: cd apps/employee_roster/org_ui && npm run build -- --watch\n' >> ./Procfile
 	else
 		sed -i '/^watch/d' ./Procfile || true
 	fi
@@ -255,6 +257,18 @@ ensure_development_dependencies() {
 		(
 			cd apps/hrms
 			yarn install --frozen-lockfile --ignore-scripts --non-interactive
+		)
+	fi
+	if [ -f "apps/employee_roster/org_ui/package-lock.json" ] && ! (
+		cd apps/employee_roster/org_ui
+		node -e "require('rollup')" >/dev/null 2>&1
+	); then
+		log "安装 Arco org_ui 热更新依赖..."
+		(
+			cd apps/employee_roster/org_ui
+			# npm ci replaces host-specific optional binaries with the Linux
+			# container variants on both Docker Desktop for Windows and macOS.
+			npm ci --include=optional
 		)
 	fi
 }

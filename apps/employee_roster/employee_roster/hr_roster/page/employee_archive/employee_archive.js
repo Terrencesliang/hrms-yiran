@@ -17,7 +17,7 @@ function ensure_archive_styles() {
 	const link = document.createElement("link");
 	link.id = "hr-archive-stylesheet";
 	link.rel = "stylesheet";
-	link.href = `/assets/employee_roster/css/archive.css?v=${Date.now()}`;
+	link.href = "/assets/employee_roster/css/archive.css";
 	document.head.appendChild(link);
 }
 
@@ -44,6 +44,7 @@ frappe.pages["employee-archive"].on_page_load = function (wrapper) {
 		document_type: "",
 		missing_only: false,
 		overview: null,
+		load_token: 0,
 	};
 
 	const tab_html = ARCHIVE_TABS.map(
@@ -92,9 +93,11 @@ frappe.pages["employee-archive"].on_page_load = function (wrapper) {
 };
 
 function init_archive_page($main, state) {
-	load_archive_options($main, state);
 	bind_archive_events($main, state);
 	parse_route_filters(state);
+	// The overview payload already contains departments and document types.  A
+	// separate options request on the default route duplicated setup work.
+	if (state.tab !== "overview") load_archive_options($main, state);
 	switch_archive_tab($main, state, state.tab);
 }
 
@@ -115,10 +118,19 @@ function load_archive_options($main, state) {
 		method: `${ARCHIVE_API}.get_archive_options`,
 		callback: (r) => {
 			const data = r.message || {};
-			(data.departments || []).forEach((d) => $dept.append(`<option value="${escape_html(d)}">${escape_html(d)}</option>`));
+			populate_department_filter($main, data.departments || [], state.department);
 			populate_doc_type_filter($main, state, data.document_types || []);
 		},
 	});
+}
+
+function populate_department_filter($main, departments, selected = "") {
+	const $dept = $main.find(".hr-archive-dept");
+	if ($dept.data("loaded")) return;
+	$dept.html(`<option value="">${__("全部")}</option>`);
+	departments.forEach((d) => $dept.append(`<option value="${escape_html(d)}">${escape_html(d)}</option>`));
+	$dept.data("loaded", true);
+	if (selected) $dept.val(selected);
 }
 
 function bind_archive_events($main, state) {
@@ -139,7 +151,7 @@ function bind_archive_events($main, state) {
 	$main.find(".hr-archive-doc-type, .hr-archive-missing-only").on("change", function () {
 		state.document_type = $main.find(".hr-archive-doc-type").val();
 		state.missing_only = $main.find(".hr-archive-missing-only").is(":checked");
-		if (state.tab === "documents") load_documents($main, state);
+		if (state.tab === "documents") reload_archive($main, state);
 	});
 
 	$main.find(".hr-archive-refresh-btn").on("click", () => reload_archive($main, state));
@@ -151,7 +163,6 @@ function bind_archive_events($main, state) {
 		state.document_type = $(this).data("document-type");
 		switch_archive_tab($main, state, "documents");
 		$main.find(".hr-archive-doc-type").val(state.document_type);
-		load_documents($main, state);
 	});
 
 	$main.on("click", ".hr-archive-upload-row", function () {
@@ -188,7 +199,8 @@ function reload_archive($main, state) {
 		emergency: load_emergency,
 		skills: load_skills,
 	};
-	(loaders[state.tab] || load_overview)($main, state);
+	const token = ++state.load_token;
+	(loaders[state.tab] || load_overview)($main, state, token);
 }
 
 function archive_panel($main) {
@@ -202,6 +214,10 @@ function show_loading($panel) {
 function show_error($panel, err) {
 	const msg = (err && (err.message || err.exc || err.responseText)) || __("加载失败");
 	$panel.html(`<div class="hr-archive-error">${escape_html(String(msg))}</div>`);
+}
+
+function is_current_load(state, token, tab) {
+	return token === state.load_token && state.tab === tab;
 }
 
 function render_table_card($panel, rows, columns, count_label) {
@@ -232,18 +248,22 @@ function employee_edit_col() {
 	};
 }
 
-function load_overview($main, state) {
+function load_overview($main, state, token) {
 	const $panel = archive_panel($main);
 	show_loading($panel);
 	frappe.call({
 		method: `${ARCHIVE_API}.get_archive_overview`,
 		args: { department: state.department || "" },
 		callback: (r) => {
+			if (!is_current_load(state, token, "overview")) return;
 			state.overview = r.message;
+			populate_department_filter($main, r.message?.departments || [], state.department);
 			populate_doc_type_filter($main, state, r.message?.document_types || []);
 			render_overview($panel, state.overview);
 		},
-		error: (err) => show_error($panel, err),
+		error: (err) => {
+			if (is_current_load(state, token, "overview")) show_error($panel, err);
+		},
 	});
 }
 
@@ -314,13 +334,14 @@ function list_args(state) {
 	};
 }
 
-function load_education($main, state) {
+function load_education($main, state, token) {
 	const $panel = archive_panel($main);
 	show_loading($panel);
 	frappe.call({
 		method: `${ARCHIVE_API}.list_education_records`,
 		args: list_args(state),
 		callback: (r) => {
+			if (!is_current_load(state, token, "education")) return;
 			const rows = r.message || [];
 			render_table_card($panel, rows, [
 				{ label: __("姓名"), render: (row) => escape_html(row.employee_name) },
@@ -333,17 +354,20 @@ function load_education($main, state) {
 				employee_edit_col(),
 			]);
 		},
-		error: (err) => show_error($panel, err),
+		error: (err) => {
+			if (is_current_load(state, token, "education")) show_error($panel, err);
+		},
 	});
 }
 
-function load_work($main, state) {
+function load_work($main, state, token) {
 	const $panel = archive_panel($main);
 	show_loading($panel);
 	frappe.call({
 		method: `${ARCHIVE_API}.list_work_history`,
 		args: list_args(state),
 		callback: (r) => {
+			if (!is_current_load(state, token, "work")) return;
 			const rows = r.message || [];
 			render_table_card($panel, rows, [
 				{ label: __("姓名"), render: (row) => escape_html(row.employee_name) },
@@ -354,17 +378,20 @@ function load_work($main, state) {
 				employee_edit_col(),
 			]);
 		},
-		error: (err) => show_error($panel, err),
+		error: (err) => {
+			if (is_current_load(state, token, "work")) show_error($panel, err);
+		},
 	});
 }
 
-function load_emergency($main, state) {
+function load_emergency($main, state, token) {
 	const $panel = archive_panel($main);
 	show_loading($panel);
 	frappe.call({
 		method: `${ARCHIVE_API}.list_emergency_contacts`,
 		args: list_args(state),
 		callback: (r) => {
+			if (!is_current_load(state, token, "emergency")) return;
 			const rows = r.message || [];
 			render_table_card($panel, rows, [
 				{ label: __("姓名"), render: (row) => escape_html(row.employee_name) },
@@ -381,17 +408,20 @@ function load_emergency($main, state) {
 				employee_edit_col(),
 			]);
 		},
-		error: (err) => show_error($panel, err),
+		error: (err) => {
+			if (is_current_load(state, token, "emergency")) show_error($panel, err);
+		},
 	});
 }
 
-function load_skills($main, state) {
+function load_skills($main, state, token) {
 	const $panel = archive_panel($main);
 	show_loading($panel);
 	frappe.call({
 		method: `${ARCHIVE_API}.list_skill_records`,
 		args: list_args(state),
 		callback: (r) => {
+			if (!is_current_load(state, token, "skills")) return;
 			const rows = r.message || [];
 			render_table_card($panel, rows, [
 				{ label: __("姓名"), render: (row) => escape_html(row.employee_name) },
@@ -403,11 +433,13 @@ function load_skills($main, state) {
 				employee_edit_col(),
 			]);
 		},
-		error: (err) => show_error($panel, err),
+		error: (err) => {
+			if (is_current_load(state, token, "skills")) show_error($panel, err);
+		},
 	});
 }
 
-function load_documents($main, state) {
+function load_documents($main, state, token) {
 	const $panel = archive_panel($main);
 	show_loading($panel);
 	frappe.call({
@@ -419,6 +451,7 @@ function load_documents($main, state) {
 			missing_only: state.missing_only ? 1 : 0,
 		},
 		callback: (r) => {
+			if (!is_current_load(state, token, "documents")) return;
 			const rows = r.message || [];
 			render_table_card($panel, rows, [
 				{ label: __("姓名"), render: (row) => escape_html(row.employee_name) },
@@ -445,7 +478,9 @@ function load_documents($main, state) {
 				},
 			]);
 		},
-		error: (err) => show_error($panel, err),
+		error: (err) => {
+			if (is_current_load(state, token, "documents")) show_error($panel, err);
+		},
 	});
 }
 
