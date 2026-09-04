@@ -16,12 +16,15 @@ def after_install():
 	from employee_roster.hr_roster.attendance_deduction.setup import setup_attendance_deduction_module
 	from employee_roster.hr_roster.org_fields import ensure_org_custom_fields
 
+	from employee_roster.hr_roster.approval_admin import seed_approval_admin_data
+
 	seed_document_types()
 	ensure_group_name_field()
 	ensure_org_custom_fields()
 	ensure_employee_checkin_day_fields()
 	sync_hr_roster_sidebar()
 	setup_attendance_deduction_module()
+	seed_approval_admin_data()
 
 
 ARCHIVE_SIDEBAR_ITEM = {
@@ -75,17 +78,40 @@ def sync_hr_roster_sidebar():
 		return
 	with open(path, encoding="utf-8") as handle:
 		data = json.load(handle)
-	sidebar_name = data.get("name") or data.get("module") or "hr_roster"
+	sidebar_name = "hr_roster"
+
+	# Heal accidental title-based rename (e.g. to 审批)
+	if frappe.db.exists("Sidebar", "审批") and not frappe.db.exists("Sidebar", sidebar_name):
+		frappe.rename_doc("Sidebar", "审批", sidebar_name, force=True)
+		frappe.db.commit()
+	elif frappe.db.exists("Sidebar", "审批") and frappe.db.exists("Sidebar", sidebar_name):
+		frappe.delete_doc("Sidebar", "审批", force=True, ignore_permissions=True)
+		frappe.db.commit()
+
 	if frappe.db.exists("Sidebar", sidebar_name):
 		doc = frappe.get_doc("Sidebar", sidebar_name)
 	else:
-		doc = frappe.get_doc({"doctype": "Sidebar", "name": sidebar_name})
-	for key, value in data.items():
-		if key in ("doctype", "items", "name"):
-			continue
-		doc.set(key, value)
+		doc = frappe.new_doc("Sidebar")
+		doc.name = sidebar_name
+
+	doc.app = data.get("app") or "employee_roster"
+	doc.module = "hr_roster"
+	# Keep ASCII title — display label is overridden in unified_sidebar.js as「审批」
+	doc.title = "hr_roster"
+	doc.header_icon = data.get("header_icon") or "approve"
+	doc.standard = 1
 	doc.items = []
 	for row in data.get("items", []):
-		doc.append("items", row)
-	doc.save(ignore_permissions=True)
+		payload = {k: v for k, v in row.items() if k != "doctype"}
+		doc.append("items", payload)
+	doc.flags.ignore_version = True
+	prev_dev = frappe.conf.developer_mode
+	frappe.conf.developer_mode = 1
+	try:
+		if doc.is_new():
+			doc.insert(ignore_permissions=True)
+		else:
+			doc.save(ignore_permissions=True)
+	finally:
+		frappe.conf.developer_mode = prev_dev
 	frappe.db.commit()

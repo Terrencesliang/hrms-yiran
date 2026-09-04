@@ -1,0 +1,162 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "hash",
+ "creation": "2026-09-04 14:00:00.000000",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "form_name",
+  "group",
+  "column_break_basic",
+  "status",
+  "visibility",
+  "icon",
+  "color",
+  "description",
+  "section_process",
+  "process_summary",
+  "process_json",
+  "section_meta",
+  "source_template",
+  "sort_order"
+ ],
+ "fields": [
+  {
+   "fieldname": "form_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "表单名称",
+   "reqd": 1
+  },
+  {
+   "fieldname": "group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "分组",
+   "options": "Approval Form Group",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_basic",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "使用中",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "状态",
+   "options": "使用中\n已停用",
+   "reqd": 1
+  },
+  {
+   "default": "全公司",
+   "fieldname": "visibility",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "可见范围",
+   "options": "全公司\n自定义",
+   "reqd": 1
+  },
+  {
+   "default": "file",
+   "fieldname": "icon",
+   "fieldtype": "Data",
+   "label": "图标"
+  },
+  {
+   "default": "#165DFF",
+   "fieldname": "color",
+   "fieldtype": "Color",
+   "label": "颜色"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "描述"
+  },
+  {
+   "fieldname": "section_process",
+   "fieldtype": "Section Break",
+   "label": "审批流程"
+  },
+  {
+   "fieldname": "process_summary",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "流程摘要"
+  },
+  {
+   "fieldname": "process_json",
+   "fieldtype": "Code",
+   "label": "流程 JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "section_meta",
+   "fieldtype": "Section Break",
+   "label": "其他"
+  },
+  {
+   "fieldname": "source_template",
+   "fieldtype": "Link",
+   "label": "来源模板",
+   "options": "Approval Template"
+  },
+  {
+   "default": "0",
+   "fieldname": "sort_order",
+   "fieldtype": "Int",
+   "label": "排序"
+  }
+ ],
+ "links": [],
+ "modified": "2026-09-04 14:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "Approval Form",
+ "naming_rule": "Random",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "HR User"
+  }
+ ],
+ "search_fields": "form_name,group,status",
+ "sort_field": "sort_order",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "form_name",
+ "track_changes": 1,
+ "translated_doctype": 1
+}

@@ -9,6 +9,7 @@ import OrgChartPage from "./pages/orgchart/OrgChartPage.vue";
 import OrgDiagramPage from "./pages/orgdiagram/OrgDiagramPage.vue";
 import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
+import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
 
 function boot(app) {
 	app.use(ArcoVue);
@@ -34,6 +35,19 @@ export function mountOrgDiagram(el) {
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () => h(OrgDiagramPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountApprovals(el, options = {}) {
+	const tab = options.tab === "templates" ? "templates" : "forms";
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(ApprovalsApp, { tab }));
 			},
 		})
 	);

@@ -32,6 +32,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		Performance: __("绩效"),
 		Payroll: __("薪酬"),
 		"Tax & Benefits": __("个税"),
+		hr_roster: __("审批"),
 	};
 
 	const FALLBACK_TAB_MODULES = Object.entries(MODULE_TAB_LABELS).map(([key, label]) => ({
@@ -49,6 +50,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		"Leaves",
 		"Expenses",
 		"Performance",
+		"hr_roster",
 	]);
 
 	const SKIP_LINK_LABELS = new Set(["Home", "Dashboard"]);
@@ -139,6 +141,8 @@ frappe.provide("employee_roster.unified_sidebar");
 					"roster",
 					"employee-archive",
 					"attendance-rules",
+					"approvals",
+					"approval-templates",
 				];
 				return hrPrefixes.some((prefix) => route.startsWith(prefix));
 			} catch (e) {
@@ -348,6 +352,9 @@ frappe.provide("employee_roster.unified_sidebar");
 		getWorkspaceTitle() {
 			const sidebar = frappe.app?.sidebar;
 			const current = sidebar?.current_module;
+			if (current && MODULE_TAB_LABELS[current]) {
+				return MODULE_TAB_LABELS[current];
+			}
 			const data = current ? frappe.boot.module_sidebars?.[current] : null;
 			return __(data?.title || data?.name || "HR Setup");
 		},

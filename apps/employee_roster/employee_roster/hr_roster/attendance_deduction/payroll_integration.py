@@ -3,6 +3,7 @@
 """Payroll Entry 与 Salary Slip 集成。"""
 import frappe
 from frappe import _
+from frappe.utils import flt
 
 from employee_roster.hr_roster.attendance_deduction.engine import create_or_update_summary
 from employee_roster.hr_roster.doctype.attendance_deduction_settings.attendance_deduction_settings import (
