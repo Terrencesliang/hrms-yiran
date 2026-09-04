@@ -2,6 +2,8 @@
 # License: MIT
 """默认考勤扣款规则与示例分组 fixture 数据。"""
 
+from copy import deepcopy
+
 DEFAULT_RULES = [
 	{
 		"doctype": "Attendance Deduction Rule",
@@ -49,7 +51,15 @@ def seed_default_rules() -> None:
 	for data in DEFAULT_RULES:
 		if frappe.db.exists("Attendance Deduction Rule", data["rule_name"]):
 			continue
-		doc = frappe.get_doc(data)
+		prepared = deepcopy(data)
+		for item in prepared.get("rule_items", []):
+			component = item.get("base_salary_component")
+			if component and not frappe.db.exists("Salary Component", component):
+				# A fresh/test site may not have completed the payroll setup wizard.
+				# Leaving this optional link empty makes the calculation engine fall
+				# back to the first earning component instead of failing app install.
+				item.pop("base_salary_component", None)
+		doc = frappe.get_doc(prepared)
 		doc.insert(ignore_permissions=True)
 
 

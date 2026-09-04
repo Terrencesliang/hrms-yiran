@@ -6,6 +6,7 @@ import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import "@arco-design/web-vue/dist/arco.css";
 import "./styles.css";
 import OrgChartPage from "./pages/orgchart/OrgChartPage.vue";
+import OrgDiagramPage from "./pages/orgdiagram/OrgDiagramPage.vue";
 import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
 
@@ -21,6 +22,18 @@ export function mountOrgChart(el) {
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () => h(OrgChartPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountOrgDiagram(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(OrgDiagramPage));
 			},
 		})
 	);

@@ -8,7 +8,11 @@ import frappe
 from frappe import _
 from frappe.utils import cint, getdate, today
 
-from employee_roster.hr_roster.org_fields import COMPANY_ORG_FIELDS, DEPARTMENT_ORG_FIELDS
+from employee_roster.hr_roster.org_fields import (
+	COMPANY_ORG_FIELDS,
+	DEPARTMENT_ORG_FIELDS,
+	db_table_has_column,
+)
 
 ALL_DEPTS = "All Departments"
 NON_FULLTIME_TYPES = {"Part-time", "Intern", "Contract"}
@@ -29,11 +33,11 @@ def _resolve_company(company: str | None = None) -> str | None:
 
 
 def _has_dept_org_fields() -> bool:
-	return frappe.db.has_column("Department", "org_code")
+	return db_table_has_column("Department", "org_code")
 
 
 def _has_company_org_fields() -> bool:
-	return frappe.db.has_column("Company", "org_head")
+	return db_table_has_column("Company", "org_head")
 
 
 def _company_id(company: str | None) -> str:
@@ -679,14 +683,19 @@ def get_org_diagram(company: str | None = None):
 	company_node = roots[0]
 	departments = []
 	for dept in company_node.get("children") or []:
+		if dept.get("is_employee"):
+			continue
 		departments.append(_build_diagram_department(dept, dept.get("title") or ""))
 
 	departments.sort(key=lambda d: (d["title"] != "总经办", d["title"]))
-	gm = _get_general_manager(tree.get("company"))
+	gm_info = _get_general_manager_info(tree.get("company"))
 	return {
+		"company": tree.get("company") or company,
 		"company_name": company_node.get("title") or tree.get("company_name") or "",
 		"company_emp_count": company_node.get("employee_count") or 0,
-		"general_manager": gm,
+		"general_manager": gm_info.get("label") or "",
+		"general_manager_info": gm_info,
+		"companies": tree.get("companies") or [],
 		"departments": departments,
 	}
 
@@ -707,12 +716,48 @@ def _build_diagram_department(dept_node, dept_title):
 	merged_roles = [{"title": title, "count": count} for title, count in role_counter.items()]
 	merged_roles.sort(key=lambda r: (-r["count"], r["title"]))
 
+	unit = _diagram_unit(dept_node)
+	unit.update(
+		{
+			"title": dept_title or dept_node.get("title"),
+			"manager": manager,
+			"manager_info": {
+				"employee": manager_emp.get("name") if manager_emp else "",
+				"name": manager_emp.get("employee_name") if manager_emp else (dept_node.get("head_name") or ""),
+				"designation": manager_emp.get("designation") if manager_emp else "",
+				"image": manager_emp.get("image") if manager_emp else "",
+				"label": manager,
+			},
+			"roles": merged_roles,
+		}
+	)
+	return unit
+
+
+def _diagram_unit(node):
+	"""组织单元（部门/组）→ 下级组织 children + 直属成员 members，供架构图递归渲染。"""
+	children = node.get("children") or []
+	sub_units = [c for c in children if not c.get("is_employee")]
+	members = [c for c in children if c.get("is_employee")]
 	return {
-		"name": dept_node.get("name"),
-		"title": dept_title or dept_node.get("title"),
-		"employee_count": dept_node.get("employee_count") or 0,
-		"manager": manager,
-		"roles": merged_roles,
+		"name": node.get("name"),
+		"title": node.get("title") or "",
+		"org_type": node.get("org_type") or "部门",
+		"employee_count": node.get("employee_count") or 0,
+		"staff_quota": node.get("staff_quota") or 0,
+		"head_name": node.get("head_name") or "",
+		"supervisor_name": node.get("supervisor_name") or "",
+		"children": [_diagram_unit(c) for c in sub_units],
+		"members": [
+			{
+				"name": m.get("name"),
+				"employee": m.get("employee") or "",
+				"title": m.get("title") or "",
+				"designation": m.get("designation") or "",
+				"employment_type": m.get("employment_type") or "",
+			}
+			for m in members
+		],
 	}
 
 
@@ -720,7 +765,7 @@ def _find_department_manager_employee(dept_names, dept_title):
 	rows = frappe.get_all(
 		"Employee",
 		filters=[["status", "=", "Active"], ["department", "in", dept_names]],
-		fields=["name", "employee_name", "designation"],
+		fields=["name", "employee_name", "designation", "image"],
 		limit_page_length=None,
 	)
 	dept_hint = (dept_title or "").replace("部", "")
@@ -738,7 +783,13 @@ def _find_department_manager_employee(dept_names, dept_title):
 			if "经理" in designation:
 				score += 1
 			if not best or score > best["score"]:
-				best = {"score": score, "employee_name": row.employee_name, "designation": designation}
+				best = {
+					"score": score,
+					"name": row.name,
+					"employee_name": row.employee_name,
+					"designation": designation,
+					"image": row.image or "",
+				}
 	return best
 
 
@@ -776,6 +827,8 @@ def _get_designation_counts(dept_names, exclude_names=None):
 
 
 def _collect_dept_names(node):
+	if node.get("is_employee"):
+		return []
 	names = [node["name"]]
 	for child in node.get("children") or []:
 		names.extend(_collect_dept_names(child))
@@ -783,8 +836,13 @@ def _collect_dept_names(node):
 
 
 def _get_general_manager(company):
+	manager = _get_general_manager_info(company)
+	return manager.get("label") or ""
+
+
+def _get_general_manager_info(company):
 	if not company:
-		return ""
+		return {}
 	rows = frappe.get_all(
 		"Employee",
 		filters=[
@@ -792,13 +850,19 @@ def _get_general_manager(company):
 			["company", "=", company],
 			["designation", "like", "%总经理%"],
 		],
-		fields=["employee_name", "designation"],
-		limit=1,
+		fields=["name", "employee_name", "designation", "image"],
+		limit_page_length=1,
 	)
 	if rows:
 		row = rows[0]
-		return f"{row.designation or '总经理'} {row.employee_name}".strip()
-	return ""
+		return {
+			"employee": row.name,
+			"name": row.employee_name or "",
+			"designation": row.designation or "总经理",
+			"image": row.image or "",
+			"label": f"{row.designation or '总经理'} {row.employee_name}".strip(),
+		}
+	return {}
 
 
 ERPNext_DEFAULT_DEPARTMENTS = [

@@ -7,6 +7,7 @@ Windows and macOS, while stat-based polling is predictable on both platforms.
 
 from __future__ import annotations
 
+import argparse
 import os
 import shutil
 import signal
@@ -131,10 +132,17 @@ def sync_mapping(mapping: SyncMapping, previous: dict[Path, tuple[int, int]]) ->
 
 
 def main() -> None:
+	parser = argparse.ArgumentParser(description="Sync mounted development sources into the Bench apps directory.")
+	parser.add_argument("--once", action="store_true", help="Run one synchronization pass and exit.")
+	args = parser.parse_args()
+
 	signal.signal(signal.SIGTERM, stop)
 	signal.signal(signal.SIGINT, stop)
 	snapshots: dict[Path, dict[Path, tuple[int, int]]] = {mapping.source: {} for mapping in MAPPINGS}
-	print(f"[dev-sync] watching {SOURCE_ROOT} every {POLL_INTERVAL:.1f}s", flush=True)
+	if args.once:
+		print(f"[dev-sync] synchronizing {SOURCE_ROOT}", flush=True)
+	else:
+		print(f"[dev-sync] watching {SOURCE_ROOT} every {POLL_INTERVAL:.1f}s", flush=True)
 
 	while running:
 		for mapping in MAPPINGS:
@@ -149,6 +157,8 @@ def main() -> None:
 					)
 			except Exception as exc:
 				print(f"[dev-sync] sync failed for {mapping.source}: {exc}", flush=True)
+		if args.once:
+			break
 		time.sleep(POLL_INTERVAL)
 
 
