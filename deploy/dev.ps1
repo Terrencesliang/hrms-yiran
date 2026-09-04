@@ -71,10 +71,12 @@ try {
     Write-Host "Development mode is ready: http://localhost:$port" -ForegroundColor Green
     Write-Host "Source sync: enabled (Windows/macOS polling)"
     Write-Host "Frontend watch: enabled"
+    Write-Host "Watched apps: hrms, employee_roster (ERPNext excluded)"
     Write-Host "Python reload: enabled"
     Write-Host "Arco org_ui watch: enabled"
     Write-Host ""
     Write-Host "Follow logs: .\dev.ps1 -Logs"
+    Write-Host "Stop: .\stop.ps1"
 
     if ($Logs) {
         & docker compose @composeOptions logs -f backend

@@ -76,10 +76,12 @@ echo
 echo "Development mode is ready: http://localhost:${port}"
 echo "Source sync: enabled (Windows/macOS polling)"
 echo "Frontend watch: enabled"
+echo "Watched apps: hrms, employee_roster (ERPNext excluded)"
 echo "Python reload: enabled"
 echo "Arco org_ui watch: enabled"
 echo
 echo "Follow logs: bash deploy/dev.sh --logs"
+echo "Stop: bash deploy/stop.sh"
 
 if [ "${show_logs}" = true ]; then
 	docker compose "${compose_args[@]}" logs -f backend

@@ -30,9 +30,36 @@ frappe.provide("employee_roster.unified_sidebar");
 		Leaves: __("假期"),
 		Expenses: __("费用"),
 		Performance: __("绩效"),
-		Payroll: __("薪酬"),
+		Payroll: __("薪资"),
 		"Tax & Benefits": __("个税"),
 		hr_roster: __("审批"),
+		Contract: __("合同"),
+	};
+
+	/** Preferred module order; unlisted modules keep their relative default order after these. */
+	const MODULE_ORDER = [
+		"HR Setup",
+		"Shift & Attendance",
+		"hr_roster",
+		"Contract",
+		"Recruitment",
+		"Payroll",
+	];
+
+	/** Modules injected into the Arco menu when no Dock/Sidebar entry exists yet. */
+	const SYNTHETIC_MODULES = {
+		Contract: {
+			items: [
+				{
+					label: __("合同台账"),
+					path: "/app/employee-archive",
+				},
+				{
+					label: __("劳动合同"),
+					path: "/app/employee-archive",
+				},
+			],
+		},
 	};
 
 	const FALLBACK_TAB_MODULES = Object.entries(MODULE_TAB_LABELS).map(([key, label]) => ({
@@ -51,38 +78,193 @@ frappe.provide("employee_roster.unified_sidebar");
 		"Expenses",
 		"Performance",
 		"hr_roster",
+		"Contract",
 	]);
 
-	const SKIP_LINK_LABELS = new Set(["Home", "Dashboard"]);
+	const SKIP_LINK_LABELS = new Set([]);
+
+	const SIDEBAR_LABEL_MAP = {
+		// Common
+		Home: "主页",
+		Dashboard: "数据面板",
+		Reports: "报表",
+		Setup: "设置",
+		Settings: "设置",
+		Planning: "计划",
+		Overtime: "日常操作",
+		Travel: "差旅",
+		// HR Setup
+		Company: "公司",
+		Branch: "分支机构",
+		Department: "部门",
+		Designation: "职位",
+		"Employee Group": "员工组",
+		"Employee Grade": "员工职级",
+		"HR Settings": "人事设置",
+		// Tenure
+		"Employee Onboarding": "员工入职",
+		"Employee Separation": "员工离职",
+		"Employee Grievance": "员工申诉",
+		"Employee Exits": "离职报表",
+		"Employee Birthday": "员工生日",
+		"Employee Information": "员工信息",
+		"Employee Analytics": "员工分析",
+		"Employee Skill Map": "员工技能图",
+		"Grievance Type": "申诉类型",
+		"Training Program": "培训项目",
+		"Training Event": "培训活动",
+		"Training Feedback": "培训反馈",
+		"Training Result": "培训结果",
+		// Recruitment
+		"Hiring Pipeline": "招聘流程",
+		"Job Opening": "职位开放",
+		"Job Applicant": "应聘者",
+		Interview: "面试",
+		"Job Offer": "录用通知",
+		"Appointment Letter": "录用函",
+		"Job Requisition": "用人申请",
+		"Staffing Plan": "编制计划",
+		"Employee Referral": "内部推荐",
+		"Recruitment Analytics": "招聘分析",
+		"Interview Type": "面试类型",
+		"Job Opening Template": "职位模板",
+		"Appointment Letter Template": "录用函模板",
+		"Job Offer Term Template": "录用条款模板",
+		"Job Portal": "招聘门户",
+		// Attendance
+		Roster: "排班表",
+		"Employee Attendance Tool": "考勤工具",
+		"Employee Checkin": "打卡记录",
+		"Shift Request": "班次申请",
+		"Attendance Request": "考勤申请",
+		"Overtime Type": "加班类型",
+		"Overtime Slip": "加班单",
+		"Monthly Attendance Sheet": "月度考勤表",
+		"Shift Attendance": "班次考勤",
+		"Employee Hours Utilization": "工时利用率",
+		"Project Profitability": "项目盈利分析",
+		"Shift Type": "班次类型",
+		"Shift Location": "打卡地点",
+		"Shift Schedule": "排班计划",
+		"Activity Type": "活动类型",
+		Timesheet: "工时表",
+		"Attendance Rules": "考勤规则",
+		"Attendance Deduction Rule": "考勤扣款规则",
+		"Attendance Group": "考勤组",
+		// Leaves
+		"Leave Application": "请假申请",
+		"Leave Encashment": "假期折现",
+		"Leave Control Panel": "假期控制台",
+		"Leave Policy Assignment": "假期政策分配",
+		"Leave Allocation": "假期配额",
+		"Leave Balance": "假期余额",
+		"Leave Balance Summary": "假期余额汇总",
+		"Employees Working on a Holiday": "节假日在岗员工",
+		"Holiday List": "节假日列表",
+		"Holiday List Assignment": "节假日分配",
+		"Leave Period": "假期周期",
+		"Leave Policy": "假期政策",
+		"Leave Block List": "假期黑名单",
+		"Leave Type": "假期类型",
+		// Expenses
+		"Employee Advance": "员工预支",
+		"Expense Claim": "费用报销",
+		"Purpose of Travel": "出差事由",
+		"Travel Request": "出差申请",
+		"Vehicle Log": "用车记录",
+		"Accounting Entries": "会计分录",
+		"Payment Entry": "付款凭证",
+		"Journal Entry": "记账凭证",
+		"Unpaid Expense Claim": "未付报销",
+		"Vehicle Expenses": "车辆费用",
+		"Accounts Receivable": "应收账款",
+		"Accounts Payable": "应付账款",
+		"General Ledger": "总账",
+		"Expense Claim Type": "报销类型",
+		Driver: "驾驶员",
+		Vehicle: "车辆",
+		// Performance
+		Goal: "目标",
+		"Appraisal Cycle": "考核周期",
+		Appraisal: "绩效考核",
+		"Employee Performance Feedback": "绩效反馈",
+		"Employee Promotion": "员工晋升",
+		"Appraisal Overview": "考核概览",
+		"Appraisal Template": "考核模板",
+		KRA: "关键结果领域",
+		"Employee Feedback Criteria": "反馈评价标准",
+		// Payroll
+		"Payroll Entry": "薪资发放",
+		"Salary Structure Assignment": "薪资结构分配",
+		"Salary Slip": "工资条",
+		"Additional Salary": "额外薪资",
+		"Salary Withholding": "薪资暂扣",
+		"Employee CTC Break-up": "员工成本明细",
+		"Salary Register": "薪资登记表",
+		"Income Tax Deductions": "个税扣缴",
+		"Professional Tax Deductions": "职业税扣缴",
+		"Salary Component": "薪资项目",
+		"Salary Structure": "薪资结构",
+		// Tax & Benefits
+		"Exemption Declaration": "免税申报",
+		"Exemption Submission Proof": "免税证明提交",
+		"Benefit Application": "福利申请",
+		"Benefit Claim": "福利报销",
+		"Income Tax Computation": "个税计算",
+		"Accrued Earnings Report": "应计收入报表",
+		"Income Tax Slab": "个税税率表",
+		"Exemption Category": "免税类别",
+		// Approval / Contract
+		"Approval Form": "审批表单",
+		"Approval Forms": "审批表单",
+		"Approval Template": "审批模板",
+		"Approval Templates": "审批模板库",
+		"Approval Template Library": "审批模板库",
+	};
 
 	const SECTION_LABEL_MAP = {
-		Reports: __("报表"),
-		Setup: __("设置"),
-		Planning: __("计划"),
-		Overtime: __("日常操作"),
+		Reports: "报表",
+		Setup: "设置",
+		Planning: "计划",
+		Overtime: "日常操作",
+		Travel: "差旅",
+		"Accounting Entries": "会计分录",
 	};
 
 	const MODULE_FLOW_LABELS = {
-		"HR Setup": __("业务主功能"),
-		Tenure: __("业务主功能"),
-		Recruitment: __("招聘流程"),
-		"Shift & Attendance": __("日常操作"),
-		Leaves: __("业务主功能"),
-		Expenses: __("业务主功能"),
-		Performance: __("业务主功能"),
-		Payroll: __("业务主功能"),
-		"Tax & Benefits": __("业务主功能"),
+		"HR Setup": "业务主功能",
+		Tenure: "业务主功能",
+		Recruitment: "招聘流程",
+		"Shift & Attendance": "日常操作",
+		Leaves: "业务主功能",
+		Expenses: "业务主功能",
+		Performance: "业务主功能",
+		Payroll: "业务主功能",
+		"Tax & Benefits": "业务主功能",
+		hr_roster: "业务主功能",
+		Contract: "业务主功能",
 	};
+
+	function translateSidebarLabel(label) {
+		if (!label) return "";
+		if (SIDEBAR_LABEL_MAP[label]) return SIDEBAR_LABEL_MAP[label];
+		if (SECTION_LABEL_MAP[label]) return SECTION_LABEL_MAP[label];
+		if (MODULE_TAB_LABELS[label]) return MODULE_TAB_LABELS[label];
+		const translated = __(label);
+		return translated && translated !== label ? translated : label;
+	}
 
 	const controller = {
 		initialized: false,
 		menuModule: null,
 		$root: null,
 		vueApp: null,
+		compact: false,
 
 		init() {
 			if (this.initialized || !frappe.boot.setup_complete) return;
 			this.initialized = true;
+			this.compact = window.localStorage.getItem("hr_sidebar_compact") === "1";
 
 			$(document).on("sidebar_setup", (_event, data) => {
 				this.onSidebarSetup(data?.sidebar);
@@ -126,6 +308,8 @@ frappe.provide("employee_roster.unified_sidebar");
 			try {
 				const current = frappe.app?.sidebar?.current_module;
 				if (current && HR_CONTEXT_MODULES.has(current)) return true;
+				// Keep sidebar mounted while navigating between items under the last HR module.
+				if (this.menuModule && HR_CONTEXT_MODULES.has(this.menuModule)) return true;
 
 				// Never call frappe.get_route_str() — it does current_route.join
 				// and throws when current_route is still null during boot.
@@ -135,6 +319,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				const hrPrefixes = [
 					"List/Employee",
 					"Form/Employee",
+					"employee",
 					"recruiting-",
 					"org-diagram",
 					"orgchart",
@@ -143,8 +328,22 @@ frappe.provide("employee_roster.unified_sidebar");
 					"attendance-rules",
 					"approvals",
 					"approval-templates",
+					"Company",
+					"Branch",
+					"Department",
+					"Designation",
+					"Employee Group",
+					"Employee Grade",
+					"HR Settings",
+					"hr-settings",
+					"List/Company",
+					"List/Branch",
+					"List/Department",
+					"List/Designation",
 				];
-				return hrPrefixes.some((prefix) => route.startsWith(prefix));
+				return hrPrefixes.some(
+					(prefix) => route === prefix || route.startsWith(prefix + "/") || route.startsWith(prefix)
+				);
 			} catch (e) {
 				return false;
 			}
@@ -166,11 +365,20 @@ frappe.provide("employee_roster.unified_sidebar");
 		refresh() {
 			try {
 				if (!this.shouldActivate()) {
-					this.deactivate();
+					// Debounce teardown so brief route transitions don't remount the sidebar.
+					clearTimeout(this._deactivateTimer);
+					this._deactivateTimer = setTimeout(() => {
+						if (!this.shouldActivate()) this.deactivate();
+					}, 120);
 					return;
 				}
 
+				clearTimeout(this._deactivateTimer);
+				this._deactivateTimer = null;
+
 				document.body.classList.add(BODY_CLASS);
+				if (!frappe.is_mobile()) document.body.classList.remove("sidebar-collapsed");
+				document.body.classList.toggle("hr-sidebar-compact", this.compact);
 				this.ensureRoot();
 				this.hideStandardChrome();
 				if (window.OrgUI?.mountSidebar) {
@@ -190,6 +398,7 @@ frappe.provide("employee_roster.unified_sidebar");
 
 		deactivate() {
 			document.body.classList.remove(BODY_CLASS);
+			document.body.classList.remove("hr-sidebar-compact");
 			try {
 				this.vueApp?.unmount?.();
 			} catch (e) {
@@ -223,12 +432,15 @@ frappe.provide("employee_roster.unified_sidebar");
 			this.vueApp = window.OrgUI.mountSidebar(root, {
 				onWorkspace: (ws) => {
 					if (ws?.module) {
+						this.menuModule = HR_CONTEXT_MODULES.has(ws.module) ? ws.module : null;
 						frappe.app.sidebar.open_module(ws.module);
 					} else if (ws?.route) {
+						this.menuModule = null;
 						frappe.set_route(ws.route);
 					}
 				},
 				onCollapse: () => frappe.app?.sidebar?.close?.(),
+				onToggleCompact: () => this.toggleCompact(),
 				onSearch: () => {
 					$(".navbar-modal-search-mobile").first().trigger("click");
 				},
@@ -247,58 +459,160 @@ frappe.provide("employee_roster.unified_sidebar");
 					if (frappe.is_mobile()) {
 						frappe.app.sidebar.close();
 					}
-					const path = item?.path || "#";
-					if (!path || path === "#") return;
-					if (path.startsWith("http")) {
-						window.location.href = path;
-						return;
-					}
-					const url = new URL(path, window.location.origin);
-					const hash = (url.hash || "").replace(/^#\/?/, "");
-					const clean = decodeURIComponent(url.pathname.replace(/^\/(desk|app)\/?/, "")).replace(/\/$/, "");
-					const route = hash || clean;
-					if (route) frappe.set_route(route.split("/").filter(Boolean));
+					this.navigateSidebarItem(item);
 				},
 			});
+		},
+
+		navigateSidebarItem(item) {
+			if (!item) return;
+			if (item.openInNewTab && item.path) {
+				window.open(item.path, "_blank", "noopener");
+				return;
+			}
+
+			// Prefer typed routes to avoid /app/employee → List/Employee redirect flicker.
+			const type = item.link_type;
+			const linkTo = item.link_to;
+			try {
+				if (type === "DocType" && linkTo) {
+					frappe.set_route("List", linkTo);
+					return;
+				}
+				if (type === "Page" && linkTo) {
+					frappe.set_route(linkTo);
+					return;
+				}
+				if (type === "Workspace" && linkTo) {
+					frappe.set_route(linkTo);
+					return;
+				}
+				if (type === "Dashboard" && linkTo) {
+					frappe.set_route("dashboard-view", linkTo);
+					return;
+				}
+				if (type === "URL" && item.path) {
+					if (item.path.startsWith("http")) {
+						window.location.href = item.path;
+						return;
+					}
+				}
+			} catch (e) {
+				console.warn("[hr-unified-sidebar] typed navigate failed:", e);
+			}
+
+			const path = item.path || "#";
+			if (!path || path === "#") return;
+			if (path.startsWith("http")) {
+				window.location.href = path;
+				return;
+			}
+
+			try {
+				const url = new URL(path, window.location.origin);
+				let parts = url.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
+				if (parts[0] === "desk" || parts[0] === "app") parts = parts.slice(1);
+
+				const hash = (url.hash || "").replace(/^#\/?/, "");
+				if (hash && !parts.length) {
+					frappe.set_route(...hash.split("/").filter(Boolean));
+					return;
+				}
+
+				// Single-segment DocType shortcuts → List/<Doctype>
+				if (parts.length === 1 && frappe.boot?.user?.can_read?.includes?.(parts[0])) {
+					frappe.set_route("List", parts[0]);
+					return;
+				}
+
+				if (parts.length) frappe.set_route(...parts);
+			} catch (e) {
+				window.location.href = path;
+			}
 		},
 
 		pushArcoState() {
 			if (!window.OrgUI?.updateSidebar) return;
 
+			const menuEl = document.querySelector(".arco-hr-menu-wrap .arco-menu, .arco-hr-sidebar .arco-menu");
+			const scrollTop = menuEl?.scrollTop || 0;
+
 			const activeModule = this.getMenuModuleKey();
 			const modules = this.getTabModules();
 			const pathname = decodeURIComponent((window.location.pathname || "").replace(/\/$/, ""));
+			const routeStr = this.getRouteStrSafe();
 
 			const groups = [];
 			let activeKey = "";
 			let matchedLength = 0;
 
+			const markActive = (key, path) => {
+				const href = decodeURIComponent((path || "").split("?")[0].split("#")[0].replace(/\/$/, ""));
+				const candidates = [href, href.replace(/^\/(desk|app)/, "")].filter(Boolean);
+				for (const candidate of candidates) {
+					const clean = candidate.replace(/\/$/, "");
+					if (!clean || clean === "#") continue;
+					const pathMatch =
+						pathname === clean ||
+						pathname.endsWith(clean) ||
+						pathname.startsWith(clean + "/") ||
+						pathname.endsWith("/" + clean.replace(/^\//, ""));
+					const routeMatch =
+						routeStr &&
+						(routeStr === clean.replace(/^\//, "") ||
+							routeStr.startsWith(clean.replace(/^\//, "") + "/") ||
+							("List/" + clean.replace(/^\//, "") === routeStr) ||
+							routeStr.endsWith("/" + clean.replace(/^\//, "")));
+					const score = clean.length;
+					if ((pathMatch || routeMatch) && score >= matchedLength) {
+						activeKey = key;
+						matchedLength = score;
+					}
+				}
+			};
+
 			modules.forEach((mod) => {
 				const sidebarData = frappe.boot.module_sidebars?.[mod.key];
-				if (!sidebarData?.items?.length) return;
-
-				const built = this.buildGroups(sidebarData.items, mod.key);
 				const items = [];
-				built.forEach((group) => {
-					(group.items || []).forEach((item) => {
-						const path = frappe.ui.sidebar_item.get_route(item) || "#";
+
+				if (sidebarData?.items?.length) {
+					const built = this.buildGroups(sidebarData.items, mod.key);
+					built.forEach((group) => {
+						(group.items || []).forEach((item) => {
+							const path = frappe.ui.sidebar_item.get_route(item) || "#";
+							const key = `${mod.key}::${path}::${item.label}`;
+							items.push({
+								key,
+								label: translateSidebarLabel(item.label),
+								path,
+								module: mod.key,
+								link_type: item.link_type,
+								link_to: item.link_to,
+								openInNewTab: item.link_type === "URL" && item.open_in_new_tab,
+							});
+							markActive(key, path);
+							if (item.link_type === "DocType" && item.link_to) {
+								markActive(key, `/app/List/${item.link_to}`);
+								markActive(key, `/app/${item.link_to}`);
+							}
+						});
+					});
+				} else if (SYNTHETIC_MODULES[mod.key]) {
+					SYNTHETIC_MODULES[mod.key].items.forEach((item) => {
+						const path = item.path || "#";
 						const key = `${mod.key}::${path}::${item.label}`;
 						items.push({
 							key,
-							label: __(item.label),
+							label: item.label,
 							path,
 							module: mod.key,
-							openInNewTab: item.link_type === "URL" && item.open_in_new_tab,
+							link_type: item.link_type || "Page",
+							link_to: item.link_to,
+							openInNewTab: false,
 						});
-
-						const href = decodeURIComponent((path || "").split("?")[0].split("#")[0].replace(/\/$/, ""));
-						if (!href || href === "#") return;
-						if ((pathname === href || pathname.startsWith(href + "/")) && href.length >= matchedLength) {
-							activeKey = key;
-							matchedLength = href.length;
-						}
+						markActive(key, path);
 					});
-				});
+				}
 
 				if (!items.length) return;
 
@@ -306,6 +620,7 @@ frappe.provide("employee_roster.unified_sidebar");
 					key: `mod:${mod.key}`,
 					label: mod.label,
 					collapsible: true,
+					// Hint only — Vue keeps user-expanded keys to avoid collapse jump.
 					open: mod.key === activeModule || (!activeModule && mod.key === modules[0]?.key),
 					items,
 				});
@@ -319,12 +634,29 @@ frappe.provide("employee_roster.unified_sidebar");
 				groups,
 				workspaces: this.getDockEntries().map((entry) => ({
 					key: entry.module || entry.route,
-					label: __(entry.title || entry.module),
+					label: MODULE_TAB_LABELS[entry.module] || translateSidebarLabel(entry.title || entry.module),
 					module: entry.module,
 					route: entry.route,
 				})),
 				searchShortcut: /Mac|iPhone|iPad|iPod/i.test(navigator.platform || "") ? "⌘K" : "Ctrl+K",
+				compact: this.compact,
 			});
+
+			requestAnimationFrame(() => {
+				const el = document.querySelector(".arco-hr-menu-wrap .arco-menu, .arco-hr-sidebar .arco-menu");
+				if (el) el.scrollTop = scrollTop;
+			});
+		},
+
+		toggleCompact() {
+			if (frappe.is_mobile()) {
+				frappe.app?.sidebar?.close?.();
+				return;
+			}
+			this.compact = !this.compact;
+			document.body.classList.toggle("hr-sidebar-compact", this.compact);
+			window.localStorage.setItem("hr_sidebar_compact", this.compact ? "1" : "0");
+			this.pushArcoState();
 		},
 
 		hideStandardChrome() {
@@ -356,7 +688,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				return MODULE_TAB_LABELS[current];
 			}
 			const data = current ? frappe.boot.module_sidebars?.[current] : null;
-			return __(data?.title || data?.name || "HR Setup");
+			return MODULE_TAB_LABELS[current] || translateSidebarLabel(data?.title || data?.name || "HR Setup");
 		},
 
 		getDockEntries() {
@@ -371,18 +703,44 @@ frappe.provide("employee_roster.unified_sidebar");
 			const modules = [];
 			const seen = new Set();
 
-			for (const entry of entries) {
-				const key = entry.module;
-				if (!key || seen.has(key)) continue;
-				if (!frappe.boot.module_sidebars?.[key]?.items?.length) continue;
+			const pushModule = (key, label) => {
+				if (!key || seen.has(key)) return;
+				const hasSidebar = !!frappe.boot.module_sidebars?.[key]?.items?.length;
+				const synthetic = !!SYNTHETIC_MODULES[key];
+				if (!hasSidebar && !synthetic) return;
 				seen.add(key);
 				modules.push({
 					key,
-					label: MODULE_TAB_LABELS[key] || __(entry.title || key),
+					label: MODULE_TAB_LABELS[key] || label || __(key),
+					synthetic: !hasSidebar && synthetic,
 				});
+			};
+
+			for (const entry of entries) {
+				pushModule(entry.module, MODULE_TAB_LABELS[entry.module] || translateSidebarLabel(entry.title || entry.module));
 			}
 
-			return modules.length ? modules : FALLBACK_TAB_MODULES;
+			// Ensure preferred modules (incl. 审批 / 合同) always appear when available.
+			for (const key of MODULE_ORDER) {
+				pushModule(key, MODULE_TAB_LABELS[key]);
+			}
+
+			if (!modules.length) {
+				return FALLBACK_TAB_MODULES;
+			}
+
+			const ordered = [];
+			const used = new Set();
+			for (const key of MODULE_ORDER) {
+				const hit = modules.find((m) => m.key === key);
+				if (!hit) continue;
+				ordered.push(hit);
+				used.add(key);
+			}
+			for (const mod of modules) {
+				if (!used.has(mod.key)) ordered.push(mod);
+			}
+			return ordered;
 		},
 
 		getTabModuleKeys() {
@@ -449,7 +807,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			if (!entries.length) return;
 
 			const items = entries.map((entry) => ({
-				label: __(entry.title || entry.module),
+				label: MODULE_TAB_LABELS[entry.module] || translateSidebarLabel(entry.title || entry.module),
 				onClick: () => {
 					if (entry.module) {
 						frappe.app.sidebar.open_module(entry.module);
@@ -467,23 +825,26 @@ frappe.provide("employee_roster.unified_sidebar");
 
 		getMenuModuleKey() {
 			const tabKeys = this.getTabModuleKeys();
-			const current = frappe.app?.sidebar?.current_module;
 
-			if (current && tabKeys.includes(current)) {
-				this.menuModule = current;
-				return current;
+			// Prefer route inference so stale Frappe current_module (e.g. HR Setup)
+			// does not keep reopening 人事 after navigating into 审批 / other modules.
+			const inferred = this.inferModuleFromRoute();
+			if (inferred && tabKeys.includes(inferred)) {
+				this.menuModule = inferred;
+				return inferred;
 			}
 
 			if (this.menuModule && tabKeys.includes(this.menuModule)) {
 				return this.menuModule;
 			}
 
-			const inferred = this.inferModuleFromRoute();
-			if (inferred && tabKeys.includes(inferred)) {
-				return inferred;
+			const current = frappe.app?.sidebar?.current_module;
+			if (current && tabKeys.includes(current)) {
+				this.menuModule = current;
+				return current;
 			}
 
-			return current && tabKeys.includes(current) ? current : null;
+			return null;
 		},
 
 		inferModuleFromRoute() {
@@ -691,7 +1052,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		translateSectionLabel(label) {
-			return SECTION_LABEL_MAP[label] || __(label);
+			return translateSidebarLabel(label);
 		},
 
 		renderMenuItem(item) {
@@ -700,11 +1061,12 @@ frappe.provide("employee_roster.unified_sidebar");
 			const hasArrow = !!item.show_arrow;
 			const target =
 				item.link_type === "URL" && item.open_in_new_tab ? ' target="_blank" rel="noopener"' : "";
+			const label = translateSidebarLabel(item.label);
 
 			return $(`
-				<a href="${path}" class="hr-unified-item" data-label="${frappe.utils.escape_html(item.label)}"${target}>
+				<a href="${path}" class="hr-unified-item" data-label="${frappe.utils.escape_html(label)}"${target}>
 					<span class="hr-unified-item-icon">${frappe.utils.icon(icon, "sm", "", "", "", true)}</span>
-					<span class="hr-unified-item-label">${__(item.label)}</span>
+					<span class="hr-unified-item-label">${frappe.utils.escape_html(label)}</span>
 					${hasArrow ? `<span class="hr-unified-item-arrow">${frappe.utils.icon("chevron-right", "xs")}</span>` : ""}
 				</a>
 			`).on("click", () => {
@@ -745,30 +1107,11 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		ensureCollapseControls() {
-			let btn = document.querySelector(".hr-unified-expand-btn");
-			if (!btn) {
-				btn = document.createElement("button");
-				btn.type = "button";
-				btn.className = "hr-unified-expand-btn";
-				btn.setAttribute("aria-label", __("展开侧边栏"));
-				btn.title = __("展开侧边栏");
-				btn.innerHTML = frappe.utils.icon("chevron-right", "sm");
-				btn.addEventListener("click", (event) => {
-					event.preventDefault();
-					event.stopPropagation();
-					frappe.app?.sidebar?.open?.();
-				});
-				document.body.appendChild(btn);
-			}
-			this.syncCollapseControls();
+			document.querySelector(".hr-unified-expand-btn")?.remove();
 		},
 
 		syncCollapseControls() {
-			const collapsed = document.body.classList.contains("sidebar-collapsed");
-			const btn = document.querySelector(".hr-unified-expand-btn");
-			if (btn) {
-				btn.hidden = !document.body.classList.contains(BODY_CLASS) || !collapsed;
-			}
+			document.querySelector(".hr-unified-expand-btn")?.remove();
 		},
 
 		enhanceUserFooter() {

@@ -25,8 +25,8 @@
 /* Desk shell layout: sidebar + main in one flex row (no absolute overlay)      */
 /* -------------------------------------------------------------------------- */
 body.hr-unified-sidebar-active {
-	--sidebar-width: 240px;
-	--hr-unified-sidebar-width: 240px;
+	--sidebar-width: 220px;
+	--hr-unified-sidebar-width: 220px;
 	--hr-unified-content-gutter: 16px;
 	display: flex;
 	flex-direction: row;
@@ -34,6 +34,11 @@ body.hr-unified-sidebar-active {
 	align-items: stretch;
 	height: 100dvh;
 	overflow: hidden;
+}
+
+body.hr-unified-sidebar-active.hr-sidebar-compact {
+	--sidebar-width: 56px;
+	--hr-unified-sidebar-width: 56px;
 }
 
 body.hr-unified-sidebar-active .dock,
@@ -44,6 +49,11 @@ body.hr-unified-sidebar-active .dock-resize-handle {
 	min-width: 0 !important;
 }
 
+/* The Arco sidebar owns collapse/expand state; suppress Frappe's duplicate edge toggle. */
+body.hr-unified-sidebar-active .sidebar-toggle-btn {
+	display: none !important;
+}
+
 body.hr-unified-sidebar-active .body-sidebar-container {
 	display: flex;
 	flex: 0 0 var(--hr-unified-sidebar-width);
@@ -51,8 +61,17 @@ body.hr-unified-sidebar-active .body-sidebar-container {
 	min-width: var(--hr-unified-sidebar-width);
 	max-width: var(--hr-unified-sidebar-width);
 	height: 100dvh;
-	overflow: hidden;
+	overflow: visible;
 	position: relative;
+}
+
+body.hr-unified-sidebar-active.hr-sidebar-compact .body-sidebar-container {
+	z-index: 2200;
+}
+
+body.hr-unified-sidebar-active.hr-sidebar-compact .main-section {
+	position: relative;
+	z-index: 1;
 }
 
 /* Frappe reserves width via placeholder while sidebar is absolute — disable duplicate slot */
@@ -87,6 +106,10 @@ body.hr-unified-sidebar-active .body-sidebar.hr-unified-host {
 	flex-direction: column !important;
 	padding: 0 !important;
 	overflow: hidden !important;
+}
+
+body.hr-unified-sidebar-active .body-sidebar.hr-unified-host {
+	overflow: visible !important;
 }
 
 body.hr-unified-sidebar-active .body-sidebar-container:not(.expanded) .body-sidebar > *:not(.dropdown-notifications):not(.dropdown-background-tasks) {
@@ -140,11 +163,10 @@ body.hr-unified-sidebar-active .list-sidebar {
 }
 
 body.hr-unified-sidebar-active.sidebar-collapsed .body-sidebar-container {
-	flex: 0 0 0 !important;
-	width: 0 !important;
-	min-width: 0 !important;
-	max-width: 0 !important;
-	border: none;
+	flex: 0 0 var(--hr-unified-sidebar-width) !important;
+	width: var(--hr-unified-sidebar-width) !important;
+	min-width: var(--hr-unified-sidebar-width) !important;
+	max-width: var(--hr-unified-sidebar-width) !important;
 }
 
 body.hr-unified-sidebar-active .body-sidebar.hr-unified-host .hr-unified-hidden {
@@ -152,12 +174,7 @@ body.hr-unified-sidebar-active .body-sidebar.hr-unified-host .hr-unified-hidden 
 }
 
 body.hr-unified-sidebar-active .body-sidebar-top {
-	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 0;
-	overflow: hidden;
-	padding: 0 !important;
+	display: none !important;
 }
 
 .hr-unified-sidebar {
@@ -467,11 +484,7 @@ body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-expand-btn:not([hid
 
 /* Footer user area */
 body.hr-unified-sidebar-active .body-sidebar-bottom.hr-unified-footer {
-	flex: 0 0 auto;
-	margin-top: auto;
-	padding: 10px 12px 12px;
-	border-top: 1px solid var(--hr-unified-border);
-	background: var(--hr-unified-bg);
+	display: none !important;
 }
 
 body.hr-unified-sidebar-active .body-sidebar-bottom.hr-unified-footer .sidebar-user-button {
@@ -518,6 +531,8 @@ body.hr-unified-sidebar-active .body-sidebar-bottom.hr-unified-footer .hr-unifie
 /* Narrow screens */
 @media (max-width: 768px) {
 	body.hr-unified-sidebar-active {
+		--sidebar-width: 280px;
+		--hr-unified-sidebar-width: 280px;
 		--hr-unified-content-gutter: 12px;
 	}
 
@@ -534,11 +549,7 @@ body.hr-unified-sidebar-active .body-sidebar-bottom.hr-unified-footer .hr-unifie
 	}
 }
 
-/* Collapsed sidebar compatibility */
+/* Frappe's legacy collapsed class must not hide the custom two-state sidebar. */
 body.hr-unified-sidebar-active.sidebar-collapsed .hr-unified-sidebar {
-	display: none;
-}
-
-body.hr-unified-sidebar-active.sidebar-collapsed .body-sidebar-bottom.hr-unified-footer {
-	display: none;
+	display: flex;
 }

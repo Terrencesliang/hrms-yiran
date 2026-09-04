@@ -83,6 +83,14 @@ def update_erpnext_access(user_input: dict | None):
 	set_app_logo()
 
 
+def configure_hrms_only_mode():
+	"""Keep ERPNext installed as an HRMS dependency but hide its product UI."""
+	update_erpnext_workspaces(True)
+	update_erpnext_roles(True)
+	set_app_logo()
+	frappe.clear_cache()
+
+
 def update_erpnext_workspaces(disable: bool = True):
 	erpnext_workspaces = [
 		"Home",

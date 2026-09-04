@@ -5,4 +5,4 @@ services:
       DEV_SYNC_INTERVAL: "${DEV_SYNC_INTERVAL:-0.5}"
       # Bump when the development Procfile/runtime changes so Compose performs
       # a one-time recreate, while normal dev starts remain non-destructive.
-      DEV_RUNTIME_VERSION: "20260904b"
+      DEV_RUNTIME_VERSION: "20260904c"
