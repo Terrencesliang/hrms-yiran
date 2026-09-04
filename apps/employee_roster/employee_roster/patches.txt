@@ -6,6 +6,7 @@
 employee_roster.patches.v1_0.setup_attendance_deduction
 employee_roster.patches.v1_0.ensure_org_diagram_page
 employee_roster.patches.v1_0.setup_orgchart_department_fields
+employee_roster.patches.v1_0.ensure_employee_checkin_day_fields
 
 [post_fixture_sync]
 # Patches added in this section will be executed after fixtures and customizations

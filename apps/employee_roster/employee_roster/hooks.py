@@ -56,6 +56,8 @@ app_include_css = [
 	"/assets/employee_roster/css/attendance_deduction_rule_form.css?v=20260303b",
 	"/assets/employee_roster/css/unified_sidebar.css?v=20260903e",
 	"/assets/employee_roster/org_ui/org_ui.css?v=20260903d",
+	"/assets/employee_roster/css/employee_checkin_list.css?v=20260903e",
+	"/assets/employee_roster/css/employee_list.css?v=20260903a",
 ]
 app_include_js = [
 	"/assets/employee_roster/org_ui/org_ui.js?v=20260903d",
@@ -86,6 +88,7 @@ page_js = {
 # doctype_js = {"doctype" : "public/js/doctype.js"}
 doctype_list_js = {
 	"Employee": "public/js/employee_list.js",
+	"Employee Checkin": "public/js/employee_checkin_list.js",
 }
 doctype_js = {
 	"Payroll Entry": "public/js/attendance_deduction.js",

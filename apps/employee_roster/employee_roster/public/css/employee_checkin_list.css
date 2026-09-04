@@ -1,0 +1,578 @@
+/* Employee Checkin List — Arco Design Pro 风格统计面板 */
+
+.layout-main-section.hr-checkin-list-page {
+	display: flex;
+	flex-direction: column;
+}
+
+/* 页面浅灰底，贴近 Arco --color-fill-2 */
+.page-container[data-page-route="List/Employee Checkin"] .layout-main-section-wrapper,
+body[data-route="List/Employee Checkin"] .layout-main-section-wrapper {
+	background: var(--hr-ck-fill-2, #f2f3f5);
+}
+
+.hr-roster-page.hr-checkin-list-stats {
+	--hr-ck-bg: #ffffff;
+	--hr-ck-fill-2: #f2f3f5;
+	--hr-ck-border: #e5e6eb;
+	--hr-ck-text: #1d2129;
+	--hr-ck-text-2: #4e5969;
+	--hr-ck-text-3: #86909c;
+	--hr-ck-primary: #165dff;
+	--hr-ck-success: #00b42a;
+	--hr-ck-warning: #ff7d00;
+	--hr-ck-danger: #f53f3f;
+	--hr-ck-radius: 4px;
+	margin: 0 15px 12px;
+	flex-shrink: 0;
+}
+
+.hr-checkin-list-stats .hr-ck-panel {
+	background: var(--hr-ck-bg);
+	border: 1px solid var(--hr-ck-border);
+	border-radius: var(--hr-ck-radius);
+	overflow: hidden;
+}
+
+.hr-checkin-list-stats .hr-ck-panel-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 20px 0;
+	min-height: 36px;
+}
+
+.hr-checkin-list-stats .hr-ck-panel-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.5;
+	color: var(--hr-ck-text);
+}
+
+.hr-checkin-list-stats .hr-ck-panel-title svg {
+	width: 16px;
+	height: 16px;
+	color: var(--hr-ck-primary);
+	flex-shrink: 0;
+}
+
+.hr-checkin-list-stats .hr-ck-panel-range {
+	font-size: 12px;
+	color: var(--hr-ck-text-3);
+	white-space: nowrap;
+}
+
+.hr-checkin-list-stats .hr-checkin-stat-board {
+	display: grid !important;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0;
+	margin: 0;
+	padding: 16px 4px 4px;
+}
+
+.hr-checkin-list-stats .hr-stat-card {
+	display: flex;
+	min-height: 88px;
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	overflow: visible;
+}
+
+.hr-checkin-list-stats .hr-stat-card:not(:last-child) .hr-stat-cell {
+	border-right: 1px solid var(--hr-ck-border);
+}
+
+.hr-checkin-list-stats .hr-stat-cell {
+	appearance: none;
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 12px;
+	padding: 12px 20px 16px 24px;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	text-align: left;
+	color: var(--hr-ck-text);
+	transition: background-color 0.15s ease;
+}
+
+.hr-checkin-list-stats .hr-stat-cell:hover {
+	background: var(--hr-ck-fill-2);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-active {
+	background: #e8f3ff;
+	box-shadow: inset 0 -2px 0 0 var(--hr-ck-primary);
+}
+
+.hr-checkin-list-stats .hr-stat-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	background: var(--hr-ck-fill-2);
+	color: var(--hr-ck-text-2);
+}
+
+.hr-checkin-list-stats .hr-stat-avatar svg {
+	width: 20px;
+	height: 20px;
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-green .hr-stat-avatar {
+	background: #e8ffea;
+	color: var(--hr-ck-success);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-blue .hr-stat-avatar {
+	background: #e8f3ff;
+	color: var(--hr-ck-primary);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-warn .hr-stat-avatar {
+	background: #fff7e8;
+	color: var(--hr-ck-warning);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-danger .hr-stat-avatar {
+	background: #ffece8;
+	color: var(--hr-ck-danger);
+}
+
+.hr-checkin-list-stats .hr-stat-body {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	min-width: 0;
+}
+
+.hr-checkin-list-stats .hr-stat-label {
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--hr-ck-text-3);
+	line-height: 1.5;
+	margin: 0;
+}
+
+.hr-checkin-list-stats .hr-stat-num {
+	display: inline-flex;
+	align-items: baseline;
+	font-size: 24px;
+	font-weight: 600;
+	color: var(--hr-ck-text);
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+
+.hr-checkin-list-stats .hr-stat-unit {
+	font-size: 12px;
+	font-weight: 400;
+	margin-left: 8px;
+	color: var(--hr-ck-text-2);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-green .hr-stat-num {
+	color: var(--hr-ck-success);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-warn .hr-stat-num {
+	color: var(--hr-ck-warning);
+}
+
+.hr-checkin-list-stats .hr-stat-cell.is-danger .hr-stat-num {
+	color: var(--hr-ck-danger);
+}
+
+.hr-checkin-list-stats .hr-ck-hint {
+	padding: 0 20px 12px;
+	font-size: 12px;
+	color: var(--hr-ck-text-3);
+}
+
+.hr-checkin-list-stats .hr-ck-hint strong {
+	color: var(--hr-ck-primary);
+	font-weight: 500;
+}
+
+/* Arco Tag 风格出勤结果 */
+.hr-checkin-result-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 0;
+	height: 24px;
+	padding: 0 8px;
+	border-radius: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 22px;
+	border: 1px solid transparent;
+	white-space: nowrap;
+}
+
+.hr-checkin-result-tag.tag-present {
+	background: #e8ffea;
+	color: #00b42a;
+	border-color: transparent;
+}
+
+.hr-checkin-result-tag.tag-late {
+	background: #fff7e8;
+	color: #ff7d00;
+}
+
+.hr-checkin-result-tag.tag-missing {
+	background: #ffece8;
+	color: #f53f3f;
+}
+
+.hr-checkin-result-tag.tag-default {
+	background: #f2f3f5;
+	color: #4e5969;
+}
+
+/* 骨架屏 */
+.hr-checkin-list-stats.is-loading .hr-stat-num,
+.hr-checkin-list-stats.is-loading .hr-stat-label {
+	visibility: hidden;
+	position: relative;
+}
+
+.hr-checkin-list-stats.is-loading .hr-stat-body::before,
+.hr-checkin-list-stats.is-loading .hr-stat-body::after {
+	content: "";
+	display: block;
+	border-radius: 2px;
+	background: linear-gradient(90deg, #f2f3f5 25%, #e5e6eb 37%, #f2f3f5 63%);
+	background-size: 400% 100%;
+	animation: hr-ck-skeleton 1.4s ease infinite;
+}
+
+.hr-checkin-list-stats.is-loading .hr-stat-body::before {
+	width: 48px;
+	height: 12px;
+	margin-bottom: 8px;
+}
+
+.hr-checkin-list-stats.is-loading .hr-stat-body::after {
+	width: 64px;
+	height: 22px;
+}
+
+.hr-checkin-list-stats.is-loading .hr-stat-label,
+.hr-checkin-list-stats.is-loading .hr-stat-num {
+	display: none;
+}
+
+@keyframes hr-ck-skeleton {
+	0% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0 50%;
+	}
+}
+
+@media (max-width: 1100px) {
+	.hr-checkin-list-stats .hr-checkin-stat-board {
+		grid-template-columns: repeat(2, 1fr);
+		padding: 8px 4px 4px;
+	}
+
+	.hr-checkin-list-stats .hr-stat-card:nth-child(2) .hr-stat-cell {
+		border-right: none;
+	}
+
+	.hr-checkin-list-stats .hr-stat-card:nth-child(1) .hr-stat-cell,
+	.hr-checkin-list-stats .hr-stat-card:nth-child(2) .hr-stat-cell {
+		border-bottom: 1px solid var(--hr-ck-border);
+	}
+}
+
+@media (max-width: 640px) {
+	.hr-checkin-list-stats .hr-checkin-stat-board {
+		grid-template-columns: 1fr;
+	}
+
+	.hr-checkin-list-stats .hr-stat-card:not(:last-child) .hr-stat-cell {
+		border-right: none;
+		border-bottom: 1px solid var(--hr-ck-border);
+	}
+
+	.hr-checkin-list-stats .hr-ck-panel-meta {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}
+
+/* ========== Arco Pro search-table：筛选栏 + 列表 ========== */
+.layout-main-section.hr-checkin-list-page {
+	--hr-ck-bg: #ffffff;
+	--hr-ck-fill-2: #f2f3f5;
+	--hr-ck-border: #e5e6eb;
+	--hr-ck-text: #1d2129;
+	--hr-ck-text-2: #4e5969;
+	--hr-ck-text-3: #86909c;
+	--hr-ck-primary: #165dff;
+	--hr-ck-success: #00b42a;
+	--hr-ck-warning: #ff7d00;
+	--hr-ck-danger: #f53f3f;
+	--hr-ck-radius: 4px;
+	gap: 12px;
+	padding-bottom: 16px;
+	background: transparent;
+}
+
+.hr-checkin-list-page .page-form.hr-ck-filter-card,
+.hr-checkin-list-page .page-form.list-page-form {
+	margin: 0 15px;
+	padding: 16px 20px 8px;
+	background: var(--hr-ck-bg);
+	border: 1px solid var(--hr-ck-border);
+	border-radius: var(--hr-ck-radius);
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	align-items: flex-start;
+}
+
+.hr-checkin-list-page .page-form .form-group {
+	margin-bottom: 8px;
+}
+
+.hr-checkin-list-page .page-form .form-control,
+.hr-checkin-list-page .page-form .input-with-feedback {
+	height: 32px;
+	border-radius: 2px;
+	border-color: var(--hr-ck-border);
+	background: var(--hr-ck-fill-2);
+	box-shadow: none;
+	font-size: 13px;
+	color: var(--hr-ck-text);
+}
+
+.hr-checkin-list-page .page-form .form-control:focus,
+.hr-checkin-list-page .page-form .input-with-feedback:focus {
+	border-color: var(--hr-ck-primary);
+	background: #fff;
+	box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.12);
+}
+
+.hr-checkin-list-page .page-form .form-control::placeholder {
+	color: var(--hr-ck-text-3);
+}
+
+.hr-checkin-list-page .page-form .btn {
+	height: 32px;
+	border-radius: 2px;
+	font-size: 13px;
+	line-height: 1.2;
+}
+
+.hr-checkin-list-page .page-form .btn-primary,
+.hr-checkin-list-page .page-form .btn-default.btn-primary-light {
+	background: var(--hr-ck-primary);
+	border-color: var(--hr-ck-primary);
+	color: #fff;
+}
+
+/* 列表卡片 */
+.hr-checkin-list-page .hr-ck-table-card {
+	margin: 0 15px;
+	background: var(--hr-ck-bg);
+	border: 1px solid var(--hr-ck-border);
+	border-radius: var(--hr-ck-radius);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+}
+
+.hr-checkin-list-page .hr-ck-table-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 20px;
+	border-bottom: 1px solid var(--hr-ck-border);
+	background: var(--hr-ck-bg);
+}
+
+.hr-checkin-list-page .hr-ck-table-toolbar-left {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.hr-checkin-list-page .hr-ck-table-title {
+	font-size: 16px;
+	font-weight: 500;
+	color: var(--hr-ck-text);
+	line-height: 1.5;
+}
+
+.hr-checkin-list-page .hr-ck-table-count {
+	font-size: 12px;
+	color: var(--hr-ck-text-3);
+	padding: 0 8px;
+	height: 20px;
+	line-height: 20px;
+	background: var(--hr-ck-fill-2);
+	border-radius: 2px;
+}
+
+.hr-checkin-list-page .hr-ck-table-card .frappe-list {
+	margin: 0;
+	padding: 0;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+}
+
+.hr-checkin-list-page .hr-ck-table-card .result-list,
+.hr-checkin-list-page .hr-ck-table-card .result {
+	margin: 0;
+	padding: 0;
+}
+
+/* 表头 */
+.hr-checkin-list-page .list-row-head {
+	background: #f7f8fa !important;
+	border-bottom: 1px solid var(--hr-ck-border) !important;
+	min-height: 40px;
+	padding: 0 16px !important;
+	margin: 0 !important;
+	color: var(--hr-ck-text-2) !important;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.hr-checkin-list-page .list-row-head .list-row-col,
+.hr-checkin-list-page .list-row-head .level-item {
+	color: var(--hr-ck-text-2) !important;
+	font-weight: 500;
+}
+
+/* 数据行 */
+.hr-checkin-list-page .list-row-container {
+	border: none !important;
+	margin: 0 !important;
+}
+
+.hr-checkin-list-page .list-row-container + .list-row-container {
+	border-top: 1px solid var(--hr-ck-border) !important;
+}
+
+.hr-checkin-list-page .list-row {
+	min-height: 48px;
+	padding: 0 16px !important;
+	margin: 0 !important;
+	border: none !important;
+	background: var(--hr-ck-bg);
+	transition: background-color 0.15s ease;
+}
+
+.hr-checkin-list-page .list-row:hover {
+	background: #f7f8fa !important;
+}
+
+.hr-checkin-list-page .list-row .list-row-col,
+.hr-checkin-list-page .list-row .level-item {
+	font-size: 13px;
+	color: var(--hr-ck-text-2);
+}
+
+.hr-checkin-list-page .list-row a.ellipsis,
+.hr-checkin-list-page .list-row .level-item.bold a {
+	color: var(--hr-ck-text);
+	font-weight: 500;
+}
+
+.hr-checkin-list-page .list-row a.ellipsis:hover {
+	color: var(--hr-ck-primary);
+}
+
+.hr-checkin-list-page .list-row-checkbox,
+.hr-checkin-list-page .list-check-all {
+	accent-color: var(--hr-ck-primary);
+	width: 14px;
+	height: 14px;
+}
+
+/* 签到 / 签退 Tag */
+.hr-checkin-log-tag {
+	display: inline-flex;
+	align-items: center;
+	height: 22px;
+	padding: 0 8px;
+	border-radius: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 20px;
+	white-space: nowrap;
+}
+
+.hr-checkin-log-tag.tag-in {
+	background: #e8f3ff;
+	color: #165dff;
+}
+
+.hr-checkin-log-tag.tag-out {
+	background: #f2f3f5;
+	color: #4e5969;
+}
+
+.hr-checkin-log-tag.tag-default {
+	background: #f2f3f5;
+	color: #86909c;
+}
+
+.hr-checkin-list-page .hr-ck-hours,
+.hr-checkin-list-page .hr-ck-time {
+	font-variant-numeric: tabular-nums;
+	color: var(--hr-ck-text);
+}
+
+.hr-checkin-list-page .hr-ck-time {
+	font-family: "SF Mono", "Cascadia Mono", "Consolas", monospace;
+	font-size: 12px;
+	color: var(--hr-ck-text-2);
+}
+
+/* 分页 / 底部 */
+.hr-checkin-list-page .list-paging-area,
+.hr-checkin-list-page .frappe-list .list-paging-area {
+	padding: 12px 20px;
+	border-top: 1px solid var(--hr-ck-border);
+	background: var(--hr-ck-bg);
+	margin: 0;
+}
+
+.hr-checkin-list-page .list-paging-area .btn-group .btn {
+	border-radius: 2px;
+	font-size: 13px;
+}
+
+.hr-checkin-list-page .list-count {
+	color: var(--hr-ck-text-3);
+	font-size: 13px;
+}
+
+/* 空状态 */
+.hr-checkin-list-page .no-result,
+.hr-checkin-list-page .msg-box {
+	padding: 48px 20px;
+	color: var(--hr-ck-text-3);
+}

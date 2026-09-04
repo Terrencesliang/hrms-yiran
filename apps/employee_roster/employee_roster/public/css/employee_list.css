@@ -1,0 +1,482 @@
+/* Employee List — Arco Design Pro 风格 */
+
+.layout-main-section.hr-employee-list-page {
+	--hr-ck-bg: #ffffff;
+	--hr-ck-fill-2: #f2f3f5;
+	--hr-ck-border: #e5e6eb;
+	--hr-ck-text: #1d2129;
+	--hr-ck-text-2: #4e5969;
+	--hr-ck-text-3: #86909c;
+	--hr-ck-primary: #165dff;
+	--hr-ck-success: #00b42a;
+	--hr-ck-warning: #ff7d00;
+	--hr-ck-danger: #f53f3f;
+	--hr-ck-radius: 4px;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding-bottom: 16px;
+	background: transparent;
+}
+
+.page-container[data-page-route="List/Employee"] .layout-main-section-wrapper,
+body[data-route="List/Employee"] .layout-main-section-wrapper {
+	background: var(--hr-ck-fill-2, #f2f3f5);
+}
+
+/* ---------- 筛选栏 ---------- */
+.hr-employee-list-page .page-form.list-page-form,
+.hr-employee-list-page .page-form.hr-emp-filter-card {
+	margin: 0 15px;
+	padding: 16px 20px 8px;
+	background: var(--hr-ck-bg);
+	border: 1px solid var(--hr-ck-border);
+	border-radius: var(--hr-ck-radius);
+	flex-wrap: wrap;
+	gap: 8px 12px;
+	align-items: flex-start;
+}
+
+.hr-employee-list-page .page-form .form-group {
+	margin-bottom: 8px;
+}
+
+.hr-employee-list-page .page-form .form-control,
+.hr-employee-list-page .page-form .input-with-feedback {
+	height: 32px;
+	border-radius: 2px;
+	border-color: var(--hr-ck-border);
+	background: var(--hr-ck-fill-2);
+	box-shadow: none;
+	font-size: 13px;
+	color: var(--hr-ck-text);
+}
+
+.hr-employee-list-page .page-form .form-control:focus,
+.hr-employee-list-page .page-form .input-with-feedback:focus {
+	border-color: var(--hr-ck-primary);
+	background: #fff;
+	box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.12);
+}
+
+.hr-employee-list-page .page-form .form-control::placeholder {
+	color: var(--hr-ck-text-3);
+}
+
+.hr-employee-list-page .page-form .btn {
+	height: 32px;
+	border-radius: 2px;
+	font-size: 13px;
+	line-height: 1.2;
+}
+
+/* ---------- 人员概览面板 ---------- */
+.hr-roster-page.hr-employee-list-stats {
+	margin: 0 15px;
+	flex-shrink: 0;
+}
+
+.hr-employee-list-stats .hr-emp-panel {
+	background: var(--hr-ck-bg, #fff);
+	border: 1px solid var(--hr-ck-border, #e5e6eb);
+	border-radius: var(--hr-ck-radius, 4px);
+	overflow: hidden;
+}
+
+.hr-employee-list-stats .hr-emp-panel-meta {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 12px 20px 0;
+	min-height: 36px;
+}
+
+.hr-employee-list-stats .hr-emp-panel-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	margin: 0;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 1.5;
+	color: var(--hr-ck-text, #1d2129);
+}
+
+.hr-employee-list-stats .hr-emp-panel-title svg {
+	width: 16px;
+	height: 16px;
+	color: var(--hr-ck-primary, #165dff);
+	flex-shrink: 0;
+}
+
+.hr-employee-list-stats .hr-emp-panel-hint {
+	font-size: 12px;
+	color: var(--hr-ck-text-3, #86909c);
+}
+
+.hr-employee-list-stats .hr-stat-board {
+	display: grid !important;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0;
+	margin: 0;
+	padding: 12px 4px 8px;
+}
+
+.hr-employee-list-stats .hr-stat-card {
+	display: flex;
+	min-height: 80px;
+	background: transparent;
+	border: none;
+	border-radius: 0;
+	box-shadow: none;
+	overflow: visible;
+	padding: 0;
+	cursor: default;
+}
+
+.hr-employee-list-stats .hr-stat-card:not(:nth-child(4n)) .hr-stat-cell:last-child {
+	border-right: 1px solid var(--hr-ck-border, #e5e6eb);
+}
+
+.hr-employee-list-stats .hr-stat-card.hr-stat-card--split2 .hr-stat-cell,
+.hr-employee-list-stats .hr-stat-card.hr-stat-card--split3 .hr-stat-cell {
+	flex: 1;
+}
+
+.hr-employee-list-stats .hr-stat-card.hr-stat-card--split2 .hr-stat-cell:not(:last-child),
+.hr-employee-list-stats .hr-stat-card.hr-stat-card--split3 .hr-stat-cell:not(:last-child) {
+	border-right: 1px solid var(--hr-ck-border, #e5e6eb);
+}
+
+.hr-employee-list-stats .hr-stat-cell {
+	appearance: none;
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 12px;
+	padding: 12px 16px 16px 20px;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+	text-align: left;
+	color: var(--hr-ck-text, #1d2129);
+	transition: background-color 0.15s ease;
+}
+
+.hr-employee-list-stats .hr-stat-cell:disabled,
+.hr-employee-list-stats .hr-stat-cell.is-disabled {
+	cursor: default;
+	opacity: 0.55;
+}
+
+.hr-employee-list-stats .hr-stat-cell:not(:disabled):hover {
+	background: var(--hr-ck-fill-2, #f2f3f5);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-active {
+	background: #e8f3ff;
+	box-shadow: inset 0 -2px 0 0 var(--hr-ck-primary, #165dff);
+}
+
+.hr-employee-list-stats .hr-stat-avatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 50%;
+	flex-shrink: 0;
+	background: var(--hr-ck-fill-2, #f2f3f5);
+	color: var(--hr-ck-text-2, #4e5969);
+}
+
+.hr-employee-list-stats .hr-stat-avatar svg {
+	width: 18px;
+	height: 18px;
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-green .hr-stat-avatar {
+	background: #e8ffea;
+	color: var(--hr-ck-success, #00b42a);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-blue .hr-stat-avatar {
+	background: #e8f3ff;
+	color: var(--hr-ck-primary, #165dff);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-warn .hr-stat-avatar {
+	background: #fff7e8;
+	color: var(--hr-ck-warning, #ff7d00);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-danger .hr-stat-avatar {
+	background: #ffece8;
+	color: var(--hr-ck-danger, #f53f3f);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-muted .hr-stat-avatar {
+	background: #f2f3f5;
+	color: #86909c;
+}
+
+.hr-employee-list-stats .hr-stat-body {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 4px;
+	min-width: 0;
+}
+
+.hr-employee-list-stats .hr-stat-label {
+	font-size: 12px;
+	font-weight: 400;
+	color: var(--hr-ck-text-3, #86909c);
+	line-height: 1.5;
+	margin: 0;
+}
+
+.hr-employee-list-stats .hr-stat-num {
+	display: inline-flex;
+	align-items: baseline;
+	font-size: 22px;
+	font-weight: 600;
+	color: var(--hr-ck-text, #1d2129);
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+
+.hr-employee-list-stats .hr-stat-unit {
+	font-size: 12px;
+	font-weight: 400;
+	margin-left: 6px;
+	color: var(--hr-ck-text-2, #4e5969);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-green .hr-stat-num {
+	color: var(--hr-ck-success, #00b42a);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-warn .hr-stat-num {
+	color: var(--hr-ck-warning, #ff7d00);
+}
+
+.hr-employee-list-stats .hr-stat-cell.is-danger .hr-stat-num {
+	color: var(--hr-ck-danger, #f53f3f);
+}
+
+/* ---------- 列表卡片 ---------- */
+.hr-employee-list-page .hr-emp-table-card {
+	margin: 0 15px;
+	background: var(--hr-ck-bg);
+	border: 1px solid var(--hr-ck-border);
+	border-radius: var(--hr-ck-radius);
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	flex: 1;
+}
+
+.hr-employee-list-page .hr-emp-table-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 20px;
+	border-bottom: 1px solid var(--hr-ck-border);
+	background: var(--hr-ck-bg);
+}
+
+.hr-employee-list-page .hr-emp-table-toolbar-left {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.hr-employee-list-page .hr-emp-table-title {
+	font-size: 16px;
+	font-weight: 500;
+	color: var(--hr-ck-text);
+	line-height: 1.5;
+}
+
+.hr-employee-list-page .hr-emp-table-count {
+	font-size: 12px;
+	color: var(--hr-ck-text-3);
+	padding: 0 8px;
+	height: 20px;
+	line-height: 20px;
+	background: var(--hr-ck-fill-2);
+	border-radius: 2px;
+}
+
+.hr-employee-list-page .hr-emp-table-card .frappe-list {
+	margin: 0;
+	padding: 0;
+	background: transparent;
+	border: none;
+	box-shadow: none;
+}
+
+.hr-employee-list-page .list-row-head {
+	background: #f7f8fa !important;
+	border-bottom: 1px solid var(--hr-ck-border) !important;
+	min-height: 40px;
+	padding: 0 16px !important;
+	margin: 0 !important;
+	color: var(--hr-ck-text-2) !important;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.hr-employee-list-page .list-row-head .list-row-col,
+.hr-employee-list-page .list-row-head .level-item {
+	color: var(--hr-ck-text-2) !important;
+	font-weight: 500;
+}
+
+.hr-employee-list-page .list-row-container {
+	border: none !important;
+	margin: 0 !important;
+}
+
+.hr-employee-list-page .list-row-container + .list-row-container {
+	border-top: 1px solid var(--hr-ck-border) !important;
+}
+
+.hr-employee-list-page .list-row {
+	min-height: 48px;
+	padding: 0 16px !important;
+	margin: 0 !important;
+	border: none !important;
+	background: var(--hr-ck-bg);
+	transition: background-color 0.15s ease;
+}
+
+.hr-employee-list-page .list-row:hover {
+	background: #f7f8fa !important;
+}
+
+.hr-employee-list-page .list-row .list-row-col,
+.hr-employee-list-page .list-row .level-item {
+	font-size: 13px;
+	color: var(--hr-ck-text-2);
+}
+
+.hr-employee-list-page .list-row a.ellipsis,
+.hr-employee-list-page .list-row .level-item.bold a {
+	color: var(--hr-ck-text);
+	font-weight: 500;
+}
+
+.hr-employee-list-page .list-row a.ellipsis:hover {
+	color: var(--hr-ck-primary);
+}
+
+.hr-employee-list-page .list-row-checkbox,
+.hr-employee-list-page .list-check-all {
+	accent-color: var(--hr-ck-primary);
+	width: 14px;
+	height: 14px;
+}
+
+/* 状态 / 雇佣类型 Tag */
+.hr-emp-status-tag,
+.hr-emp-type-tag {
+	display: inline-flex;
+	align-items: center;
+	height: 22px;
+	padding: 0 8px;
+	border-radius: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 20px;
+	white-space: nowrap;
+}
+
+.hr-emp-status-tag.tag-active {
+	background: #e8ffea;
+	color: #00b42a;
+}
+
+.hr-emp-status-tag.tag-inactive {
+	background: #fff7e8;
+	color: #ff7d00;
+}
+
+.hr-emp-status-tag.tag-left {
+	background: #f2f3f5;
+	color: #4e5969;
+}
+
+.hr-emp-status-tag.tag-suspended {
+	background: #ffece8;
+	color: #f53f3f;
+}
+
+.hr-emp-status-tag.tag-default {
+	background: #f2f3f5;
+	color: #86909c;
+}
+
+.hr-emp-type-tag.tag-fulltime {
+	background: #e8f3ff;
+	color: #165dff;
+}
+
+.hr-emp-type-tag.tag-intern {
+	background: #f5e8ff;
+	color: #722ed1;
+}
+
+.hr-emp-type-tag.tag-probation {
+	background: #fff7e8;
+	color: #ff7d00;
+}
+
+.hr-emp-type-tag.tag-default {
+	background: #f2f3f5;
+	color: #4e5969;
+}
+
+.hr-employee-list-page .list-paging-area,
+.hr-employee-list-page .frappe-list .list-paging-area {
+	padding: 12px 20px;
+	border-top: 1px solid var(--hr-ck-border);
+	background: var(--hr-ck-bg);
+	margin: 0;
+}
+
+.hr-employee-list-page .list-paging-area .btn-group .btn {
+	border-radius: 2px;
+	font-size: 13px;
+}
+
+.hr-employee-list-page .list-count {
+	color: var(--hr-ck-text-3);
+	font-size: 13px;
+}
+
+@media (max-width: 1200px) {
+	.hr-employee-list-stats .hr-stat-board {
+		grid-template-columns: repeat(2, 1fr);
+	}
+
+	.hr-employee-list-stats .hr-stat-card:not(:nth-child(4n)) .hr-stat-cell:last-child {
+		border-right: none;
+	}
+
+	.hr-employee-list-stats .hr-stat-card:nth-child(1),
+	.hr-employee-list-stats .hr-stat-card:nth-child(2) {
+		border-bottom: 1px solid var(--hr-ck-border, #e5e6eb);
+	}
+}
+
+@media (max-width: 768px) {
+	.hr-employee-list-stats .hr-stat-board {
+		grid-template-columns: 1fr;
+	}
+}
