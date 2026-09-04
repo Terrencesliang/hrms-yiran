@@ -19,7 +19,7 @@
 						@input="search(keyword)"
 					/>
 					<a-spin :loading="loading" style="width: 100%; margin-top: 8px">
-						<a-list :data="options" size="small" :bordered="false" :max-height="220">
+						<a-list :data="rows" size="small" :bordered="false" :max-height="220">
 							<template #item="{ item }">
 								<a-list-item style="cursor: pointer" @click="save(item.name)">
 									{{ item.employee_name }}
@@ -43,7 +43,8 @@
 <script setup>
 import { computed, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
-import { searchEmployees, updateOrgPerson } from "../api";
+import { updateOrgPerson } from "../api";
+import { useEmployeeSearch } from "../composables/useEmployeeSearch";
 
 const props = defineProps({
 	record: { type: Object, required: true },
@@ -54,8 +55,7 @@ const emit = defineEmits(["saved"]);
 
 const visible = ref(false);
 const keyword = ref("");
-const options = ref([]);
-const loading = ref(false);
+const { rows, loading, search } = useEmployeeSearch(() => props.company);
 
 const label = computed(() =>
 	props.role === "head" ? props.record.head_name || "" : props.record.supervisor_name || ""
@@ -63,15 +63,6 @@ const label = computed(() =>
 
 function onVisible(open) {
 	if (open) search("");
-}
-
-async function search(txt) {
-	loading.value = true;
-	try {
-		options.value = (await searchEmployees(txt, props.company)) || [];
-	} finally {
-		loading.value = false;
-	}
 }
 
 async function save(employee) {
