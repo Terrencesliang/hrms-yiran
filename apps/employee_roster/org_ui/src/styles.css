@@ -290,3 +290,323 @@ html body {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
+
+/* ---------- Employee Form Chrome (产品稿风格) ---------- */
+.arco-emp-form-chrome {
+	margin: 0 0 12px;
+}
+
+.arco-emp-pro .arco-emp-hero {
+	border-radius: 8px;
+	background: #fff;
+	border: 1px solid #e5e6eb;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.arco-emp-pro .arco-emp-hero .arco-card-body {
+	padding: 14px 18px 12px;
+}
+
+.arco-emp-hero-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.arco-emp-hero-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+}
+
+.arco-emp-avatar {
+	background: #e8f8f3;
+	color: #00b386;
+	font-weight: 600;
+	font-size: 20px;
+	flex-shrink: 0;
+}
+
+.arco-emp-hero-meta {
+	min-width: 0;
+}
+
+.arco-emp-hero-title-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.arco-emp-name {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	line-height: 1.35;
+	color: #1d2129;
+}
+
+.arco-emp-status-tag {
+	border-radius: 2px;
+}
+
+.arco-emp-sub {
+	margin-top: 2px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 4px;
+	font-size: 12px;
+	color: #86909c;
+}
+
+.arco-emp-id {
+	font-variant-numeric: tabular-nums;
+	color: #4e5969;
+}
+
+.arco-emp-dot {
+	color: #c9cdd4;
+}
+
+.arco-emp-hero-right {
+	display: flex;
+	align-items: center;
+}
+
+.arco-emp-pill {
+	border-radius: 12px !important;
+	background: #f7f8fa !important;
+	border-color: #e5e6eb !important;
+	color: #4e5969 !important;
+}
+
+.arco-emp-kv-grid {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #f2f3f5;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px 16px;
+}
+
+.arco-emp-kv-label {
+	font-size: 12px;
+	color: #86909c;
+	line-height: 1.4;
+	margin-bottom: 2px;
+}
+
+.arco-emp-kv-value {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1d2129;
+	line-height: 1.4;
+	word-break: break-all;
+}
+
+.arco-emp-stat-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 10px;
+	margin-top: 10px;
+}
+
+.arco-emp-stat-card {
+	border-radius: 8px;
+	border: 1px solid #e5e6eb;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.arco-emp-stat-card .arco-card-body {
+	padding: 12px 14px;
+}
+
+.arco-emp-stat-inner {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.arco-emp-stat-icon {
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	font-size: 18px;
+	background: #e8f8f3;
+	color: #00b386;
+}
+
+.arco-emp-stat-title {
+	color: #86909c;
+	font-size: 12px;
+	margin-bottom: 2px;
+}
+
+.arco-emp-stat-value {
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: #1d2129;
+}
+
+.arco-emp-stat-suffix {
+	margin-left: 2px;
+	font-size: 12px;
+	font-weight: 400;
+	color: #86909c;
+}
+
+/* ---------- Employee Overview panels ---------- */
+.arco-emp-overview {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin: 0 0 12px;
+}
+
+.arco-emp-section-card {
+	border-radius: 8px;
+	border: 1px solid #e5e6eb;
+	background: #fff;
+	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+	overflow: hidden;
+}
+
+.arco-emp-section-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 16px 0;
+}
+
+.arco-emp-section-title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.4;
+	padding-left: 10px;
+	position: relative;
+}
+
+.arco-emp-section-title::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 2px;
+	bottom: 2px;
+	width: 3px;
+	border-radius: 2px;
+	background: #00b386;
+}
+
+.arco-emp-link-btn {
+	color: #00b386 !important;
+	padding: 0 4px !important;
+}
+
+.arco-emp-section-body {
+	padding: 10px 16px 14px;
+}
+
+.arco-emp-info-grid {
+	display: grid;
+	gap: 10px 20px;
+}
+
+.arco-emp-info-grid.cols-3 {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.arco-emp-info-grid.cols-4 {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.arco-emp-info-label {
+	font-size: 12px;
+	color: #86909c;
+	margin-bottom: 2px;
+}
+
+.arco-emp-info-value {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1d2129;
+	word-break: break-all;
+}
+
+.arco-emp-bio-text {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.75;
+	color: #4e5969;
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
+.arco-emp-mini-empty {
+	font-size: 12px;
+	color: #c9cdd4;
+	padding: 4px 0;
+}
+
+.arco-emp-work-block + .arco-emp-work-block {
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px dashed #f2f3f5;
+}
+
+.arco-emp-work-label {
+	font-size: 12px;
+	font-weight: 500;
+	color: #4e5969;
+	margin-bottom: 6px;
+}
+
+.arco-emp-compact-table .arco-table-th {
+	background: #f7f8fa !important;
+	color: #4e5969;
+	font-weight: 500;
+	font-size: 12px;
+}
+
+.arco-emp-compact-table .arco-table-td {
+	font-size: 13px;
+	color: #1d2129;
+}
+
+.arco-emp-compact-table .arco-table-cell {
+	padding: 8px 12px;
+}
+
+@media (max-width: 992px) {
+	.arco-emp-kv-grid,
+	.arco-emp-stat-grid,
+	.arco-emp-info-grid.cols-3,
+	.arco-emp-info-grid.cols-4 {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 768px) {
+	.arco-emp-hero-row {
+		align-items: flex-start;
+	}
+
+	.arco-emp-kv-grid,
+	.arco-emp-stat-grid,
+	.arco-emp-info-grid.cols-3,
+	.arco-emp-info-grid.cols-4 {
+		grid-template-columns: 1fr;
+	}
+}

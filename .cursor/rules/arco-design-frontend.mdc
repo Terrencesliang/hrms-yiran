@@ -1,0 +1,36 @@
+---
+description: 前端统一使用 Arco Design（Vue）改造与新增页面
+alwaysApply: true
+---
+
+# Arco Design 前端规范
+
+本项目后续前端改造与新增 UI **一律以 Arco Design 为准**（`@arco-design/web-vue`），参考 [Arco Design Vue](https://arco.design/vue/docs/start) 与 [Arco Pro](https://arco.design/vue/docs/pro/start)。
+
+## 技术选型
+
+- **优先**：Vue 3 + `@arco-design/web-vue` 组件（`a-table`、`a-form`、`a-card`、`a-statistic`、`a-tag`、`a-button` 等）
+- **现有基座**：`apps/employee_roster/org_ui/`（Vite 构建，产物挂到 `employee_roster/public/org_ui/`）
+- **禁止**：再引入 Element / Ant Design React / 自造另一套组件库作为主 UI
+- **Frappe Desk 壳**：可保留 Desk 路由与权限；页面内容区用 Arco 组件或 Arco 视觉语言覆盖
+
+## 改造策略
+
+1. **新页面 / 大改**：在 `org_ui`（或同类 Vue 包）里写组件，Desk 侧只做挂载（参考 `unified_sidebar.js` + `OrgUI.mount*`）
+2. **List View 轻改**：若暂不能整页 Vue 化，CSS/JS 须对齐 Arco 色板与 Pro 布局（白底卡片、`#f2f3f5` 底、`4px` 圆角、Statistic/Tag 风格），见 `employee_list.css` / `employee_checkin_list.css`
+3. **主题**：沿用 `org_ui/src/styles.css` 的主色（HR 绿 `#00b386` 映射到 Arco primary），不要另起一套紫/默认蓝主题 unless 用户明确要求
+
+## 交付检查
+
+- 交互组件优先用 Arco API，而不是手写近似样式冒充组件
+- 改 `org_ui/src` 后执行 `npm run build`，并更新 hooks 里静态资源 cache bust
+- 中文文案；布局参考 Arco Pro（筛选卡片 + 统计面板 + 表格卡片）
+
+```vue
+<!-- ✅ 用 Arco 组件 -->
+<a-card :bordered="false">
+  <a-statistic :title="标题" :value="count" />
+</a-card>
+
+<!-- ❌ 不要另起 UI 库或纯自定义“假组件体系”作为主方案 -->
+```
