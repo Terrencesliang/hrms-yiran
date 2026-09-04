@@ -84,7 +84,6 @@ def get_org_tree(company: str | None = None):
 			continue
 		if company and d.company and d.company != company:
 			continue
-		own_emps = emp_by_dept.get(d.name) or []
 		head_id = getattr(d, "department_head", None) if _has_dept_org_fields() else None
 		supervisor_id = getattr(d, "supervisor", None) if _has_dept_org_fields() else None
 		nodes[d.name] = {
@@ -101,8 +100,8 @@ def get_org_tree(company: str | None = None):
 			"supervisor": supervisor_id or "",
 			"enable_cost_center": cint(getattr(d, "enable_cost_center", 0) or 0),
 			"org_remark": getattr(d, "org_remark", "") or "",
-			"own_employee_count": len(own_emps),
-			"own_parttime_count": sum(1 for e in own_emps if e["employment_type"] in NON_FULLTIME_TYPES),
+			"own_employee_count": 0,
+			"own_parttime_count": 0,
 			"employee_count": 0,
 			"parttime_count": 0,
 			"head_name": emp_name_map.get(head_id, "") if head_id else "",
@@ -127,8 +126,16 @@ def get_org_tree(company: str | None = None):
 		if not node["head_name"]:
 			node["head_name"] = _infer_head_name(node["name"], nodes, emp_by_dept, emp_name_map)
 
+	emp_by_org, orphan_emps = _bucket_members(company_emps, nodes)
+	for name, node in nodes.items():
+		own_emps = emp_by_org.get(name) or []
+		node["own_employee_count"] = len(own_emps)
+		node["own_parttime_count"] = sum(1 for e in own_emps if e["employment_type"] in NON_FULLTIME_TYPES)
+
 	for root in roots:
 		_roll_up_counts(root)
+
+	_attach_members(nodes, emp_by_org)
 
 	company_title, company_abbr, company_meta = _company_meta(company, emp_name_map)
 	total_emp = len(company_emps)
@@ -152,7 +159,7 @@ def get_org_tree(company: str | None = None):
 		"parttime_count": total_parttime,
 		"head_name": company_meta.get("head_name") or "",
 		"supervisor_name": company_meta.get("supervisor_name") or "",
-		"children": roots,
+		"children": roots + [_member_node(e) for e in orphan_emps],
 	}
 
 	companies = frappe.get_all(
@@ -223,10 +230,21 @@ def _load_active_employees(company: str | None):
 	filters = {"status": "Active"}
 	if company:
 		filters["company"] = company
+	fields = [
+		"name",
+		"employee_name",
+		"employee_number",
+		"department",
+		"designation",
+		"employment_type",
+		"reports_to",
+	]
+	if frappe.db.has_column("Employee", "group_name"):
+		fields.append("group_name")
 	rows = frappe.get_all(
 		"Employee",
 		filters=filters,
-		fields=["name", "employee_name", "department", "employment_type", "reports_to"],
+		fields=fields,
 		limit_page_length=None,
 	)
 	by_dept = defaultdict(list)
@@ -236,15 +254,98 @@ def _load_active_employees(company: str | None):
 		item = {
 			"name": row.name,
 			"employee_name": row.employee_name,
+			"employee_number": row.employee_number or "",
+			"designation": row.designation or "",
 			"employment_type": row.employment_type or "",
 			"reports_to": row.reports_to,
 			"department": row.department,
+			"group_name": _clean_group_name(getattr(row, "group_name", None)),
 		}
 		items.append(item)
 		if row.department:
 			by_dept[row.department].append(item)
 		name_map[row.name] = row.employee_name
 	return by_dept, name_map, items
+
+
+def _clean_group_name(value: str | None) -> str:
+	name = (value or "").strip()
+	if name in ("", "-", "(空)"):
+		return ""
+	return name
+
+
+def _org_descendant_ids(node: dict) -> set[str]:
+	ids = {node["name"]}
+	for child in node.get("children") or []:
+		if child.get("is_employee"):
+			continue
+		ids |= _org_descendant_ids(child)
+	return ids
+
+
+def _resolve_member_parent(emp: dict, nodes: dict) -> str | None:
+	"""优先挂到花名册组别对应的下级组织，否则挂到部门。"""
+	dept_id = emp.get("department")
+	group = emp.get("group_name") or ""
+	dept_node = nodes.get(dept_id) if dept_id else None
+
+	if group:
+		candidates = [n for n in nodes.values() if n.get("title") == group]
+		if dept_node:
+			allowed = _org_descendant_ids(dept_node)
+			nested = [n for n in candidates if n["name"] in allowed]
+			if nested:
+				return nested[0]["name"]
+		elif len(candidates) == 1:
+			return candidates[0]["name"]
+
+	if dept_id in nodes:
+		return dept_id
+	return None
+
+
+def _bucket_members(company_emps: list, nodes: dict) -> tuple[dict, list]:
+	by_org = defaultdict(list)
+	orphans = []
+	for emp in company_emps:
+		parent = _resolve_member_parent(emp, nodes)
+		if parent:
+			by_org[parent].append(emp)
+		else:
+			orphans.append(emp)
+	orphans.sort(key=lambda e: ((e.get("employee_name") or ""), e["name"]))
+	return by_org, orphans
+
+
+def _member_node(emp: dict) -> dict:
+	return {
+		"name": f"__emp__{emp['name']}",
+		"employee": emp["name"],
+		"title": emp.get("employee_name") or emp["name"],
+		"is_employee": True,
+		"org_type": "员工",
+		"org_code": emp.get("employee_number") or "",
+		"designation": emp.get("designation") or "",
+		"employment_type": emp.get("employment_type") or "",
+		"employee_number": emp.get("employee_number") or "",
+		"employee_count": 0,
+		"parttime_count": 0,
+		"staff_quota": 0,
+		"head_name": emp.get("designation") or "",
+		"supervisor_name": "",
+	}
+
+
+def _attach_members(nodes: dict, emp_by_org: dict) -> None:
+	for name, node in nodes.items():
+		members = sorted(
+			emp_by_org.get(name) or [],
+			key=lambda e: ((e.get("employee_name") or ""), e["name"]),
+		)
+		if not members:
+			continue
+		node["children"] = (node.get("children") or []) + [_member_node(e) for e in members]
 
 
 def _roll_up_counts(node: dict) -> None:
