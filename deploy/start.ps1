@@ -64,7 +64,7 @@ Test-DockerReady
 Push-Location $DeployDir
 try {
     Write-Step "Starting containers"
-    & (Join-Path $DeployDir "compose.ps1") up -d
+    & (Join-Path $DeployDir "compose.ps1") up -d backend
     if ($LASTEXITCODE -ne 0) { throw "docker compose up failed" }
 
     if ($Logs) {

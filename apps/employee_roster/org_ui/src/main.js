@@ -96,11 +96,13 @@ const sidebarState = reactive({
 	groups: [],
 	workspaces: [],
 	searchShortcut: "Ctrl+K",
+	compact: false,
 });
 
 const sidebarHandlers = {
 	onWorkspace: null,
 	onCollapse: null,
+	onToggleCompact: null,
 	onSearch: null,
 	onTabChange: null,
 	onNavigate: null,

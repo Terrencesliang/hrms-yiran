@@ -1,0 +1,13 @@
+{
+  "db_name": "_95d93a9dcbe31bbe",
+  "db_type": "mariadb",
+  "db_user": "_95d93a9dcbe31bbe",
+  "developer_mode": 1,
+  "host_name": "localhost",
+  "installed_apps": [
+    "frappe",
+    "erpnext",
+    "hrms",
+    "employee_roster"
+  ]
+}

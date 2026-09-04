@@ -1,12 +1,14 @@
 import click
 
 from hrms.setup import after_install as setup
+from hrms.subscription_utils import configure_hrms_only_mode
 
 
 def after_install():
 	try:
 		print("Setting up Frappe HR...")
 		setup()
+		configure_hrms_only_mode()
 
 		click.secho("Thank you for installing Frappe HR!", fg="green")
 

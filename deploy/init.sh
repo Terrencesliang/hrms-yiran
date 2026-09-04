@@ -234,16 +234,13 @@ restore_local_backup() {
 trim_procfile() {
 	cd "${BENCH_DIR}"
 	sed -i '/^redis/d' ./Procfile || true
+	sed -i '/^watch:/d' ./Procfile || true
 	sed -i '/^dev_sync:/d' ./Procfile || true
 	sed -i '/^org_ui_watch:/d' ./Procfile || true
 	if developer_mode_enabled; then
-		if ! grep -q '^watch:' ./Procfile; then
-			printf '\nwatch: bench watch\n' >> ./Procfile
-		fi
+		printf '\nwatch: bench watch --apps hrms,employee_roster\n' >> ./Procfile
 		printf 'dev_sync: python /workspace/source/deploy/dev_sync.py\n' >> ./Procfile
 		printf 'org_ui_watch: cd apps/employee_roster/org_ui && npm run build -- --watch\n' >> ./Procfile
-	else
-		sed -i '/^watch/d' ./Procfile || true
 	fi
 }
 

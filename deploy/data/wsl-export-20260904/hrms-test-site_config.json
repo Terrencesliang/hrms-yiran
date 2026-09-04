@@ -1,0 +1,12 @@
+{
+ "db_host": "192.168.1.114",
+ "db_name": "yiran_customs_test",
+ "db_password": "lcai#123456",
+ "db_port": 15433,
+ "db_type": "postgres",
+ "db_user": "postgres",
+ "developer_mode": 1,
+ "installed_apps": [
+  "frappe"
+ ]
+}

@@ -1,0 +1,16 @@
+{
+ "db_host": "127.0.0.1",
+ "db_name": "_e886ad6669a90149",
+ "db_password": "0qyF1gTfiE12A7bM",
+ "db_port": 5432,
+ "db_type": "postgres",
+ "db_user": "_e886ad6669a90149",
+ "installed_apps": [
+  "frappe",
+  "erpnext",
+  "hrms",
+  "employee_roster"
+ ],
+ "developer_mode": 1,
+ "host_name": "localhost"
+}
