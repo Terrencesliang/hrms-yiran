@@ -16,11 +16,11 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "\u53d1\u8d77\u5ba1\u6279",
-   "link_to": "approval-workspace/start",
-   "link_type": "Page",
+   "link_type": "URL",
    "open_in_new_tab": 0,
    "show_arrow": 0,
-   "type": "Link"
+   "type": "Link",
+   "url": "/desk/approval-workspace/start"
   },
   {
    "added": 0,
@@ -32,11 +32,11 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "\u6211\u7684\u5f85\u529e",
-   "link_to": "approval-workspace/todo",
-   "link_type": "Page",
+   "link_type": "URL",
    "open_in_new_tab": 0,
    "show_arrow": 0,
-   "type": "Link"
+   "type": "Link",
+   "url": "/desk/approval-workspace/todo"
   },
   {
    "added": 0,
@@ -48,11 +48,11 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "\u6211\u7684\u5df2\u529e",
-   "link_to": "approval-workspace/done",
-   "link_type": "Page",
+   "link_type": "URL",
    "open_in_new_tab": 0,
    "show_arrow": 0,
-   "type": "Link"
+   "type": "Link",
+   "url": "/desk/approval-workspace/done"
   },
   {
    "added": 0,
@@ -64,11 +64,11 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "\u6211\u53d1\u8d77\u7684",
-   "link_to": "approval-workspace/mine",
-   "link_type": "Page",
+   "link_type": "URL",
    "open_in_new_tab": 0,
    "show_arrow": 0,
-   "type": "Link"
+   "type": "Link",
+   "url": "/desk/approval-workspace/mine"
   },
   {
    "added": 0,
@@ -80,11 +80,11 @@
    "is_default_module": 0,
    "keep_closed": 0,
    "label": "\u6284\u9001\u6211\u7684",
-   "link_to": "approval-workspace/cc",
-   "link_type": "Page",
+   "link_type": "URL",
    "open_in_new_tab": 0,
    "show_arrow": 0,
-   "type": "Link"
+   "type": "Link",
+   "url": "/desk/approval-workspace/cc"
   },
   {
    "added": 0,
@@ -119,7 +119,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-04 16:30:00.000000",
+ "modified": "2026-09-04 18:20:00.000000",
  "modified_by": "Administrator",
  "module": "hr_roster",
  "name": "hr_roster",

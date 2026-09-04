@@ -46,7 +46,7 @@ body.hr-unified-sidebar-active .arco-hr-navbar-host {
 	top: 0;
 	left: 0;
 	right: 0;
-	z-index: 1100;
+	z-index: 2000;
 	width: 100% !important;
 	height: var(--hr-arco-navbar-height);
 	background: var(--hr-unified-bg);
@@ -59,6 +59,52 @@ body.hr-unified-sidebar-active .arco-hr-navbar-host {
 body.hr-unified-sidebar-active .arco-hr-navbar-host .arco-hr-navbar {
 	pointer-events: auto;
 	height: 100%;
+}
+
+/* All overlays / dialogs sit under the fixed Arco navbar */
+body.hr-unified-sidebar-active .modal-backdrop,
+body.hr-unified-sidebar-active .modal-backdrop.show,
+body.hr-unified-sidebar-active .modal-backdrop.fade {
+	top: var(--hr-arco-navbar-height) !important;
+	height: calc(100% - var(--hr-arco-navbar-height)) !important;
+	z-index: 1900 !important;
+}
+
+body.hr-unified-sidebar-active .modal,
+body.hr-unified-sidebar-active .modal.show {
+	top: var(--hr-arco-navbar-height) !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	left: 0 !important;
+	height: calc(100% - var(--hr-arco-navbar-height)) !important;
+	padding-top: 0 !important;
+	z-index: 1910 !important;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+body.hr-unified-sidebar-active .modal .modal-dialog {
+	margin-top: 24px;
+}
+
+body.hr-unified-sidebar-active .arco-modal-wrapper,
+body.hr-unified-sidebar-active .arco-drawer-wrapper,
+body.hr-unified-sidebar-active .arco-image-preview,
+body.hr-unified-sidebar-active .arco-image-preview-wrapper,
+body.hr-unified-sidebar-active .arco-notification-wrapper {
+	top: var(--hr-arco-navbar-height) !important;
+	height: calc(100% - var(--hr-arco-navbar-height)) !important;
+	z-index: 1910 !important;
+}
+
+body.hr-unified-sidebar-active .arco-message-wrapper {
+	top: calc(var(--hr-arco-navbar-height) + 12px) !important;
+	z-index: 1910 !important;
+}
+
+/* Dropdowns / tooltips stay above the navbar so nav controls remain usable. */
+body.hr-unified-sidebar-active .arco-trigger-popup {
+	z-index: 2050;
 }
 
 body.hr-unified-sidebar-active.hr-sidebar-compact {
@@ -90,6 +136,11 @@ body.hr-unified-sidebar-active .body-sidebar-container {
 	max-height: calc(100dvh - var(--hr-arco-navbar-height)) !important;
 	overflow: visible;
 	position: relative;
+	transition:
+		width 0.2s cubic-bezier(0.34, 0.69, 0.1, 1),
+		min-width 0.2s cubic-bezier(0.34, 0.69, 0.1, 1),
+		max-width 0.2s cubic-bezier(0.34, 0.69, 0.1, 1),
+		flex-basis 0.2s cubic-bezier(0.34, 0.69, 0.1, 1);
 }
 
 body.hr-unified-sidebar-active.hr-sidebar-compact .body-sidebar-container {

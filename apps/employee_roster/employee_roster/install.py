@@ -46,23 +46,46 @@ ARCHIVE_SIDEBAR_ITEM = {
 
 
 def sync_sidebar():
-	"""Ensure HR Setup sidebar contains the employee archive page."""
+	"""Ensure HR Setup sidebar contains archive + Arco 主页/数据面板。"""
 	if not frappe.db.exists("Sidebar", "HR Setup"):
 		return
 	doc = frappe.get_doc("Sidebar", "HR Setup")
-	if any(row.link_to == "employee-archive" for row in doc.items):
-		return
-	roster_idx = next(
-		(idx for idx, row in enumerate(doc.items) if row.link_to == "roster"),
-		None,
-	)
-	items = [row.as_dict() for row in doc.items]
-	items.insert((roster_idx + 1) if roster_idx is not None else len(items), ARCHIVE_SIDEBAR_ITEM.copy())
-	doc.items = []
-	for row in items:
-		doc.append("items", row)
-	doc.save(ignore_permissions=True)
-	frappe.db.commit()
+	changed = False
+
+	for row in doc.items:
+		if row.label in ("Home", "主页") and (
+			row.link_type != "Page" or row.link_to != "hr-home"
+		):
+			row.link_type = "Page"
+			row.link_to = "hr-home"
+			row.type = "Link"
+			changed = True
+		elif row.label in ("Dashboard", "数据面板") and (
+			row.link_type != "Page" or row.link_to != "hr-dashboard"
+		):
+			row.link_type = "Page"
+			row.link_to = "hr-dashboard"
+			row.type = "Link"
+			changed = True
+
+	if not any(row.link_to == "employee-archive" for row in doc.items):
+		roster_idx = next(
+			(idx for idx, row in enumerate(doc.items) if row.link_to == "roster"),
+			None,
+		)
+		items = [row.as_dict() for row in doc.items]
+		items.insert(
+			(roster_idx + 1) if roster_idx is not None else len(items),
+			ARCHIVE_SIDEBAR_ITEM.copy(),
+		)
+		doc.items = []
+		for row in items:
+			doc.append("items", row)
+		changed = True
+
+	if changed:
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
 
 
 def sync_hr_roster_sidebar():
@@ -105,6 +128,7 @@ def sync_hr_roster_sidebar():
 		payload = {k: v for k, v in row.items() if k != "doctype"}
 		doc.append("items", payload)
 	doc.flags.ignore_version = True
+	doc.flags.ignore_links = True
 	prev_dev = frappe.conf.developer_mode
 	frappe.conf.developer_mode = 1
 	try:
