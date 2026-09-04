@@ -42,15 +42,7 @@
 				<a-select v-model="form.parent" allow-search :options="parentOptions" placeholder="请选择上级组织" />
 			</a-form-item>
 			<a-form-item field="department_head" label="组织负责人">
-				<a-select
-					v-model="form.department_head"
-					allow-search
-					allow-clear
-					:filter-option="false"
-					:options="headOptions"
-					placeholder="员工姓名/拼音"
-					@search="(txt) => searchHead(txt)"
-				/>
+				<EmployeeSearchSelect v-model="form.department_head" :company="company" placeholder="员工姓名/拼音" />
 			</a-form-item>
 			<a-form-item field="staff_quota" label="编制人数">
 				<a-input-number v-model="form.staff_quota" :min="0" :precision="0" placeholder="请输入..." hide-button />
@@ -66,15 +58,7 @@
 
 			<template v-if="showExtra">
 				<a-form-item field="supervisor" label="分管领导">
-					<a-select
-						v-model="form.supervisor"
-						allow-search
-						allow-clear
-						:filter-option="false"
-						:options="supervisorOptions"
-						placeholder="员工姓名/拼音"
-						@search="(txt) => searchSupervisor(txt)"
-					/>
+					<EmployeeSearchSelect v-model="form.supervisor" :company="company" placeholder="员工姓名/拼音" />
 				</a-form-item>
 				<a-form-item field="org_remark" label="备注">
 					<a-textarea v-model="form.org_remark" :auto-size="{ minRows: 3 }" placeholder="请输入" />
@@ -87,7 +71,8 @@
 <script setup>
 import { computed, reactive, ref, watch } from "vue";
 import { Message } from "@arco-design/web-vue";
-import { createOrgUnit, flattenTree, searchEmployees } from "../api";
+import EmployeeSearchSelect from "../../components/EmployeeSearchSelect.vue";
+import { createOrgUnit, flattenTree } from "../../api";
 
 const props = defineProps({
 	visible: Boolean,
@@ -102,8 +87,6 @@ const formRef = ref(null);
 const showExtra = ref(false);
 const saving = ref(false);
 const savingContinue = ref(false);
-const headOptions = ref([]);
-const supervisorOptions = ref([]);
 
 const form = reactive({
 	title: "",
@@ -158,21 +141,6 @@ watch(
 		if (open) resetForm();
 	}
 );
-
-async function loadEmployees(txt, target) {
-	const rows = await searchEmployees(txt, props.company);
-	target.value = (rows || []).map((row) => ({
-		value: row.name,
-		label: `${row.employee_name}${row.designation ? " · " + row.designation : ""}`,
-	}));
-}
-
-function searchHead(txt) {
-	loadEmployees(txt, headOptions);
-}
-function searchSupervisor(txt) {
-	loadEmployees(txt, supervisorOptions);
-}
 
 async function submit(continueAdd) {
 	const err = await formRef.value?.validate();

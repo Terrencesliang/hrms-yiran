@@ -5,8 +5,8 @@ import { ConfigProvider } from "@arco-design/web-vue";
 import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import "@arco-design/web-vue/dist/arco.css";
 import "./styles.css";
-import OrgChartPage from "./components/OrgChartPage.vue";
-import SidebarApp from "./components/SidebarApp.vue";
+import OrgChartPage from "./pages/orgchart/OrgChartPage.vue";
+import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 
 function boot(app) {
 	app.use(ArcoVue);
@@ -14,6 +14,7 @@ function boot(app) {
 	return app;
 }
 
+/** Register a new HR page here: mountXxx(el) → boot(createApp(Page)). */
 export function mountOrgChart(el) {
 	const app = boot(
 		createApp({
