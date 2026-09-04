@@ -181,27 +181,25 @@ html body {
 	justify-content: flex-end;
 }
 
-/* ---------- Arco Pro鈥搒tyle HR sidebar ---------- */
-.arco-hr-sidebar {
+/* ---------- Arco Pro-style HR navbar ---------- */
+.arco-hr-navbar {
 	display: flex;
-	flex-direction: column;
-	flex: 1 1 auto;
-	min-height: 0;
+	justify-content: space-between;
+	align-items: center;
 	height: 100%;
-	background: var(--color-bg-2, #fff);
-	border-right: 1px solid var(--color-border, #e5e6eb);
+	width: 100%;
+	background-color: var(--color-bg-2, #fff);
+	border-bottom: 1px solid var(--color-border, #e5e6eb);
 }
 
-.arco-hr-logo {
+.arco-hr-navbar-left {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	flex: 0 0 auto;
-	height: 48px;
-	padding: 0 16px;
+	padding-left: 20px;
+	min-width: 0;
 }
 
-.arco-hr-logo-mark {
+.arco-hr-navbar-logo {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
@@ -213,30 +211,87 @@ html body {
 	flex-shrink: 0;
 }
 
-.arco-hr-logo-mark .arco-icon {
+.arco-hr-navbar-logo .arco-icon {
 	font-size: 16px;
 }
 
-.arco-hr-logo-title {
+.arco-hr-navbar-title {
+	margin: 0 !important;
+	font-size: 18px !important;
+	line-height: 1.2 !important;
+	color: var(--color-text-1);
+	white-space: nowrap;
+}
+
+.arco-hr-navbar-center {
+	flex: 1;
+}
+
+.arco-hr-navbar-right {
+	display: flex;
+	align-items: center;
+	padding-right: 20px;
+	margin: 0;
+	list-style: none;
+}
+
+.arco-hr-navbar-right > li {
+	display: flex;
+	align-items: center;
+	padding: 0 10px;
+}
+
+.arco-hr-navbar-right .nav-btn {
+	border-color: rgb(var(--gray-2));
+	color: rgb(var(--gray-8));
+	font-size: 16px;
+}
+
+.arco-hr-navbar-avatar {
+	margin-right: 8px;
+	cursor: pointer;
+	background: rgb(var(--primary-6));
+	color: #fff;
+}
+
+/* ---------- Arco Pro-style HR sidebar ---------- */
+.arco-hr-sidebar {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	height: 100%;
+	background: var(--color-bg-2, #fff);
+	border-right: 1px solid var(--color-border, #e5e6eb);
+}
+
+.arco-hr-workspace-wrap {
+	flex: 0 0 auto;
+	padding: 8px 12px 0;
+}
+
+.arco-hr-workspace-btn {
 	display: inline-flex;
 	align-items: center;
+	justify-content: space-between;
 	gap: 4px;
-	min-width: 0;
-	padding: 0;
+	width: 100%;
+	padding: 4px 8px;
 	color: var(--color-text-1);
-	font-size: 16px;
+	font-size: 14px;
 	font-weight: 600;
 }
 
-.arco-hr-logo-title span {
+.arco-hr-workspace-label {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	min-width: 0;
 }
 
 .arco-hr-search-wrap {
 	flex: 0 0 auto;
-	padding: 0 12px 8px;
+	padding: 8px 12px;
 }
 
 .arco-hr-kbd {

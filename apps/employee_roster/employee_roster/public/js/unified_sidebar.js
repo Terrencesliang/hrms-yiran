@@ -20,6 +20,7 @@ frappe.provide("employee_roster.unified_sidebar");
 	}
 
 	const ROOT_ID = "hr-unified-sidebar-root";
+	const NAVBAR_ROOT_ID = "hr-arco-navbar-root";
 	const BODY_CLASS = "hr-unified-sidebar-active";
 
 	const MODULE_TAB_LABELS = {
@@ -79,6 +80,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		menuModule: null,
 		$root: null,
 		vueApp: null,
+		navbarApp: null,
 
 		init() {
 			if (this.initialized || !frappe.boot.setup_complete) return;
@@ -173,9 +175,11 @@ frappe.provide("employee_roster.unified_sidebar");
 				}
 
 				document.body.classList.add(BODY_CLASS);
+				this.ensureNavbar();
 				this.ensureRoot();
 				this.hideStandardChrome();
 				if (window.OrgUI?.mountSidebar) {
+					this.mountArcoNavbar();
 					this.mountArcoSidebar();
 					this.pushArcoState();
 				} else {
@@ -197,11 +201,28 @@ frappe.provide("employee_roster.unified_sidebar");
 			} catch (e) {
 				/* ignore */
 			}
+			try {
+				this.navbarApp?.unmount?.();
+			} catch (e) {
+				/* ignore */
+			}
 			this.vueApp = null;
+			this.navbarApp = null;
 			this.$root?.remove();
 			this.$root = null;
+			document.getElementById(NAVBAR_ROOT_ID)?.remove();
 			document.querySelector(".hr-unified-expand-btn")?.remove();
 			this.restoreStandardChrome();
+		},
+
+		ensureNavbar() {
+			let root = document.getElementById(NAVBAR_ROOT_ID);
+			if (!root) {
+				root = document.createElement("div");
+				root.id = NAVBAR_ROOT_ID;
+				root.className = "arco-hr-navbar-host";
+				document.body.insertBefore(root, document.body.firstChild);
+			}
 		},
 
 		ensureRoot() {
@@ -216,6 +237,67 @@ frappe.provide("employee_roster.unified_sidebar");
 				sidebar.insertBefore(root, sidebar.firstChild);
 			}
 			this.$root = $(root);
+		},
+
+		mountArcoNavbar() {
+			const root = document.getElementById(NAVBAR_ROOT_ID);
+			if (!root || this.navbarApp || !window.OrgUI?.mountNavbar) return;
+
+			this.navbarApp = window.OrgUI.mountNavbar(root, {
+				onSearch: () => {
+					$(".navbar-modal-search-mobile").first().trigger("click");
+				},
+				onNotifications: () => {
+					const trigger =
+						document.querySelector(".dropdown-notifications .nav-link") ||
+						document.querySelector(".notifications-icon") ||
+						document.querySelector(".dropdown-notifications > a") ||
+						document.querySelector('[data-toggle="dropdown"].notifications');
+					if (trigger) {
+						trigger.click();
+						return;
+					}
+					frappe.show_alert?.({ message: __("暂无通知入口"), indicator: "orange" });
+				},
+				onSettings: () => {
+					frappe.set_route("Form", "User", frappe.session.user);
+				},
+				onProfile: () => {
+					frappe.set_route("Form", "User", frappe.session.user);
+				},
+				onLogout: () => {
+					frappe.app?.logout?.();
+				},
+			});
+		},
+
+		pushNavbarState() {
+			if (!window.OrgUI?.updateNavbar) return;
+			const user = frappe.session?.user || "";
+			const fullName = frappe.boot?.user?.full_name || frappe.user?.full_name?.() || user;
+
+			let notificationCount = 0;
+			try {
+				const el = document.querySelector(
+					".notifications-icon .notifications-seen, .dropdown-notifications .badge, .notification-indicator"
+				);
+				const raw = el?.textContent?.trim?.() || "";
+				const n = parseInt(raw, 10);
+				if (!Number.isNaN(n)) notificationCount = n;
+				else if (document.querySelector(".notifications-icon .notifications-seen")?.classList?.contains?.("unseen")) {
+					notificationCount = 1;
+				}
+			} catch (e) {
+				/* ignore */
+			}
+
+			window.OrgUI.updateNavbar({
+				title: "HR Pro",
+				user,
+				fullName,
+				avatar: frappe.boot?.user?.user_image || "",
+				notificationCount,
+			});
 		},
 
 		mountArcoSidebar() {
@@ -266,6 +348,8 @@ frappe.provide("employee_roster.unified_sidebar");
 
 		pushArcoState() {
 			if (!window.OrgUI?.updateSidebar) return;
+
+			this.pushNavbarState();
 
 			const activeModule = this.getMenuModuleKey();
 			const modules = this.getTabModules();

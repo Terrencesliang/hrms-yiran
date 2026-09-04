@@ -22,18 +22,45 @@
 }
 
 /* -------------------------------------------------------------------------- */
-/* Desk shell layout: sidebar + main in one flex row (no absolute overlay)      */
+/* Desk shell layout: navbar + sidebar + main                                 */
 /* -------------------------------------------------------------------------- */
 body.hr-unified-sidebar-active {
 	--sidebar-width: 240px;
 	--hr-unified-sidebar-width: 240px;
 	--hr-unified-content-gutter: 16px;
+	--hr-arco-navbar-height: 60px;
 	display: flex;
 	flex-direction: row;
 	flex-wrap: nowrap;
 	align-items: stretch;
-	height: 100dvh;
+	height: 100dvh !important;
+	max-height: 100dvh !important;
 	overflow: hidden;
+	/* Frappe body often forces padding:0 !important — offset via children instead */
+	padding-top: 0 !important;
+	box-sizing: border-box;
+}
+
+/* Fixed top bar — content offsets below via margin-top on shell children */
+body.hr-unified-sidebar-active .arco-hr-navbar-host {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 1100;
+	width: 100% !important;
+	height: var(--hr-arco-navbar-height);
+	background: var(--hr-unified-bg);
+	border-bottom: 1px solid var(--hr-unified-border);
+	/* Avoid occupying a flex column in the body row */
+	flex: 0 0 auto;
+	align-self: flex-start;
+	pointer-events: none;
+}
+
+body.hr-unified-sidebar-active .arco-hr-navbar-host .arco-hr-navbar {
+	pointer-events: auto;
+	height: 100%;
 }
 
 body.hr-unified-sidebar-active .dock,
@@ -50,7 +77,9 @@ body.hr-unified-sidebar-active .body-sidebar-container {
 	width: var(--hr-unified-sidebar-width);
 	min-width: var(--hr-unified-sidebar-width);
 	max-width: var(--hr-unified-sidebar-width);
-	height: 100dvh;
+	margin-top: var(--hr-arco-navbar-height) !important;
+	height: calc(100dvh - var(--hr-arco-navbar-height)) !important;
+	max-height: calc(100dvh - var(--hr-arco-navbar-height)) !important;
 	overflow: hidden;
 	position: relative;
 }
@@ -75,7 +104,7 @@ body.hr-unified-sidebar-active .body-sidebar.hr-unified-host {
 	min-width: 0 !important;
 	max-width: none !important;
 	height: 100% !important;
-	max-height: 100dvh;
+	max-height: 100% !important;
 	flex: 1 1 auto;
 	z-index: 1;
 	transform: none !important;
@@ -99,9 +128,17 @@ body.hr-unified-sidebar-active .main-section {
 	min-width: 0;
 	width: auto !important;
 	max-width: none !important;
-	height: 100dvh;
+	margin-top: var(--hr-arco-navbar-height) !important;
+	height: calc(100dvh - var(--hr-arco-navbar-height)) !important;
+	max-height: calc(100dvh - var(--hr-arco-navbar-height)) !important;
 	overflow: auto;
 	overflow-x: hidden;
+}
+
+/* Sticky page toolbar must stick below the Arco navbar, not under it */
+body.hr-unified-sidebar-active .page-head {
+	top: 0 !important;
+	z-index: 8;
 }
 
 body.hr-unified-sidebar-active #body,
@@ -229,7 +266,7 @@ body.hr-unified-sidebar-active .body-sidebar-top {
 	display: none;
 	position: fixed;
 	left: 10px;
-	top: 50%;
+	top: calc(50% + var(--hr-arco-navbar-height, 60px) / 2);
 	transform: translateY(-50%);
 	z-index: 2000;
 	width: 28px;

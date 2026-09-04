@@ -8,6 +8,7 @@ import "./styles.css";
 import OrgChartPage from "./pages/orgchart/OrgChartPage.vue";
 import OrgDiagramPage from "./pages/orgdiagram/OrgDiagramPage.vue";
 import SidebarApp from "./pages/sidebar/SidebarApp.vue";
+import NavbarApp from "./pages/navbar/NavbarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
 import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
 import ApprovalDesignerApp from "./pages/approvals/designer/ApprovalDesignerApp.vue";
@@ -116,6 +117,36 @@ export function mountSidebar(el, handlers = {}) {
 
 export function updateSidebar(payload) {
 	Object.assign(sidebarState, payload || {});
+}
+
+const navbarState = reactive({
+	title: "HR Pro",
+	user: "",
+	fullName: "",
+	avatar: "",
+	notificationCount: 0,
+});
+
+const navbarHandlers = {
+	onSearch: null,
+	onNotifications: null,
+	onSettings: null,
+	onProfile: null,
+	onLogout: null,
+	onThemeChange: null,
+};
+
+export function mountNavbar(el, handlers = {}) {
+	Object.assign(navbarHandlers, handlers);
+	const app = boot(createApp(NavbarApp));
+	app.provide("navbarState", navbarState);
+	app.provide("navbarHandlers", navbarHandlers);
+	app.mount(el);
+	return app;
+}
+
+export function updateNavbar(payload) {
+	Object.assign(navbarState, payload || {});
 }
 
 const employeeFormState = reactive({

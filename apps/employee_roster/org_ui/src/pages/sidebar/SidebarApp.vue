@@ -1,13 +1,10 @@
 <template>
 	<a-config-provider :locale="zhCN">
 		<div class="arco-hr-sidebar">
-			<div class="arco-hr-logo">
-				<span class="arco-hr-logo-mark">
-					<icon-apps />
-				</span>
+			<div class="arco-hr-workspace-wrap">
 				<a-dropdown trigger="click" position="bl">
-					<a-button type="text" class="arco-hr-logo-title">
-						<span>{{ state.title || "HR" }}</span>
+					<a-button type="text" class="arco-hr-workspace-btn" long>
+						<span class="arco-hr-workspace-label">{{ state.title || "HR" }}</span>
 						<icon-down />
 					</a-button>
 					<template #content>
