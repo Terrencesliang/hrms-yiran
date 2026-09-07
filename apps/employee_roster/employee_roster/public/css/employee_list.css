@@ -11,12 +11,42 @@
 	--hr-ck-success: #00b42a;
 	--hr-ck-warning: #ff7d00;
 	--hr-ck-danger: #f53f3f;
-	--hr-ck-radius: 4px;
-	display: flex;
-	flex-direction: column;
-	gap: 12px;
-	padding-bottom: 16px;
+	--hr-ck-radius: 8px;
 	background: transparent;
+}
+
+.layout-main-section.hr-employee-list-page.hr-desk-content-stack {
+	padding: 16px !important;
+	gap: 16px;
+}
+
+.page-container[data-page-route="List/Employee"] .layout-side-section,
+body[data-route="List/Employee"] .layout-side-section,
+.arco-hr-employee-list-wrapper .layout-side-section {
+	display: none !important;
+}
+
+.page-container[data-page-route="List/Employee"] .layout-main-section-wrapper,
+body[data-route="List/Employee"] .layout-main-section-wrapper,
+.arco-hr-employee-list-wrapper .layout-main-section-wrapper {
+	flex: 1 1 100% !important;
+	max-width: 100% !important;
+	width: 100% !important;
+}
+
+.page-container[data-page-route="List/Employee"] .layout-main,
+body[data-route="List/Employee"] .layout-main,
+.arco-hr-employee-list-wrapper .layout-main {
+	display: flex;
+	flex-wrap: nowrap;
+	min-width: 0;
+	width: 100%;
+}
+
+.page-container[data-page-route="List/Employee"] .page-head,
+body[data-route="List/Employee"] .page-head,
+.arco-hr-employee-list-wrapper .page-head {
+	display: none !important;
 }
 
 .page-container[data-page-route="List/Employee"] .layout-main-section-wrapper,
@@ -24,14 +54,22 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 	background: var(--hr-ck-fill-2, #f2f3f5);
 }
 
+.page-container[data-page-route="List/Employee"] .layout-main-section,
+body[data-route="List/Employee"] .layout-main-section {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+}
+
 /* ---------- 筛选栏 ---------- */
 .hr-employee-list-page .page-form.list-page-form,
 .hr-employee-list-page .page-form.hr-emp-filter-card {
-	margin: 0 15px;
-	padding: 16px 20px 8px;
+	margin: 0;
+	padding: 10px 16px 4px;
 	background: var(--hr-ck-bg);
 	border: 1px solid var(--hr-ck-border);
 	border-radius: var(--hr-ck-radius);
+	box-shadow: 0 1px 3px rgba(29, 33, 41, 0.04);
 	flex-wrap: wrap;
 	gap: 8px 12px;
 	align-items: flex-start;
@@ -44,7 +82,7 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 .hr-employee-list-page .page-form .form-control,
 .hr-employee-list-page .page-form .input-with-feedback {
 	height: 32px;
-	border-radius: 2px;
+	border-radius: 8px;
 	border-color: var(--hr-ck-border);
 	background: var(--hr-ck-fill-2);
 	box-shadow: none;
@@ -65,14 +103,15 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 
 .hr-employee-list-page .page-form .btn {
 	height: 32px;
-	border-radius: 2px;
+	border-radius: 8px;
 	font-size: 13px;
 	line-height: 1.2;
 }
 
 /* ---------- 人员概览面板 ---------- */
 .hr-roster-page.hr-employee-list-stats {
-	margin: 0 15px;
+	margin: 0;
+	padding: 0;
 	flex-shrink: 0;
 }
 
@@ -270,10 +309,11 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 
 /* ---------- 列表卡片 ---------- */
 .hr-employee-list-page .hr-emp-table-card {
-	margin: 0 15px;
+	margin: 0;
 	background: var(--hr-ck-bg);
 	border: 1px solid var(--hr-ck-border);
 	border-radius: var(--hr-ck-radius);
+	box-shadow: 0 1px 3px rgba(29, 33, 41, 0.04);
 	overflow: hidden;
 	display: flex;
 	flex-direction: column;
@@ -285,7 +325,7 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 12px 20px;
+	padding: 10px 16px;
 	border-bottom: 1px solid var(--hr-ck-border);
 	background: var(--hr-ck-bg);
 }
@@ -390,7 +430,7 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 	align-items: center;
 	height: 22px;
 	padding: 0 8px;
-	border-radius: 2px;
+	border-radius: 6px;
 	font-size: 12px;
 	font-weight: 500;
 	line-height: 20px;
@@ -451,7 +491,7 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 }
 
 .hr-employee-list-page .list-paging-area .btn-group .btn {
-	border-radius: 2px;
+	border-radius: 8px;
 	font-size: 13px;
 }
 
@@ -476,6 +516,14 @@ body[data-route="List/Employee"] .layout-main-section-wrapper {
 }
 
 @media (max-width: 768px) {
+	.hr-employee-list-page .page-form.list-page-form,
+	.hr-employee-list-page .page-form.hr-emp-filter-card,
+	.hr-roster-page.hr-employee-list-stats,
+	.hr-employee-list-page .hr-emp-table-card {
+		margin-right: 12px;
+		margin-left: 12px;
+	}
+
 	.hr-employee-list-stats .hr-stat-board {
 		grid-template-columns: 1fr;
 	}

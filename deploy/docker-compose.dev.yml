@@ -3,6 +3,14 @@ services:
     environment:
       DEVELOPER_MODE: "true"
       DEV_SYNC_INTERVAL: "${DEV_SYNC_INTERVAL:-0.5}"
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
       # Bump when the development Procfile/runtime changes so Compose performs
       # a one-time recreate, while normal dev starts remain non-destructive.
-      DEV_RUNTIME_VERSION: "20260904c"
+      DEV_RUNTIME_VERSION: "20260907b"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/method/ping', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 25
+      start_period: 5s

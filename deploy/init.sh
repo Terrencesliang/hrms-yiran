@@ -257,8 +257,9 @@ ensure_development_dependencies() {
 		)
 	fi
 	if [ -f "apps/employee_roster/org_ui/package-lock.json" ] && ! (
-		cd apps/employee_roster/org_ui
-		node -e "require('rollup')" >/dev/null 2>&1
+		lock_hash="$(sha256sum apps/employee_roster/org_ui/package-lock.json | awk '{print $1}')"
+		installed_hash="$(cat .dev-sync-state/org-ui-package-lock.sha256 2>/dev/null || true)"
+		[ -d "apps/employee_roster/org_ui/node_modules/echarts" ] && [ "${lock_hash}" = "${installed_hash}" ]
 	); then
 		log "安装 Arco org_ui 热更新依赖..."
 		(
@@ -267,6 +268,9 @@ ensure_development_dependencies() {
 			# container variants on both Docker Desktop for Windows and macOS.
 			npm ci --include=optional
 		)
+		mkdir -p .dev-sync-state
+		sha256sum apps/employee_roster/org_ui/package-lock.json | awk '{print $1}' \
+			> .dev-sync-state/org-ui-package-lock.sha256
 	fi
 }
 
@@ -365,6 +369,9 @@ first_time_install() {
 
 start_bench() {
 	cd "${BENCH_DIR}"
+	if developer_mode_enabled; then
+		python /workspace/source/deploy/dev_sync.py --once
+	fi
 	repair_apps_txt
 	apply_site_config
 	trim_procfile

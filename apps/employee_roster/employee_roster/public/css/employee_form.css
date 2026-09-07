@@ -9,10 +9,10 @@
 	--hr-emp-text: #1d2129;
 	--hr-emp-text-2: #4e5969;
 	--hr-emp-text-3: #86909c;
-	--hr-emp-primary: #00b386;
-	--hr-emp-primary-soft: rgba(0, 179, 134, 0.12);
-	--hr-emp-radius: 4px;
-	--hr-emp-radius-sm: 2px;
+	--hr-emp-primary: #165dff;
+	--hr-emp-primary-soft: rgba(22, 93, 255, 0.12);
+	--hr-emp-radius: 12px;
+	--hr-emp-radius-sm: 8px;
 }
 
 /* ---------- Page shell ---------- */
@@ -93,10 +93,12 @@ body.arco-employee-form .arco-emp-tabs {
 	background: var(--hr-emp-card);
 	border: 1px solid var(--hr-emp-border);
 	border-bottom: none;
-	border-radius: var(--hr-emp-radius) var(--hr-emp-radius) 0 0;
-	padding: 0 8px;
-	margin: 0;
-	box-shadow: none;
+	border-radius: var(--hr-emp-radius);
+	padding: 5px 8px 0;
+	margin: 0 0 12px;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04);
+	overflow-x: auto;
+	scrollbar-width: thin;
 }
 
 body.arco-employee-form .form-tabs,
@@ -147,10 +149,9 @@ body.arco-employee-form .form-tabs-list + .form-tab-content,
 body.arco-employee-form .tab-content,
 .page-container[data-page-route^="Form/Employee"] .tab-content {
 	background: transparent;
-	border: 1px solid var(--hr-emp-border);
-	border-top: none;
-	border-radius: 0 0 var(--hr-emp-radius) var(--hr-emp-radius);
-	padding: 12px;
+	border: 0;
+	border-radius: var(--hr-emp-radius);
+	padding: 0;
 	margin-bottom: 12px;
 	background-color: var(--hr-emp-bg);
 }
@@ -607,9 +608,9 @@ body.arco-employee-form .new-timeline h4,
 }
 
 .arco-employee-form-page.arco-emp-overview-active .tab-content {
-	background: #f7f8fa !important;
+	background: transparent !important;
 	border-color: transparent;
-	padding: 10px 0 0;
+	padding: 0;
 }
 
 /* ---------- Hide empty sections ---------- */
@@ -620,7 +621,7 @@ body.arco-employee-form .form-section.empty-section.hide-control,
 
 /* ---------- Chrome / Overview mount ---------- */
 #employee-arco-chrome-root {
-	margin: 0 0 10px;
+	margin: 0 0 12px;
 }
 
 #employee-arco-overview-root {
@@ -645,4 +646,282 @@ body.arco-employee-form .arco-employee-form-page.arco-emp-overview-active .form-
 		padding: 10px 12px;
 		font-size: 13px;
 	}
+}
+
+/* ---------- Unified profile layout and tab motion ---------- */
+body.arco-employee-form .layout-main-section-wrapper,
+.page-container[data-page-route^="Form/Employee"] .layout-main-section-wrapper {
+	padding-top: 4px;
+}
+
+body.arco-employee-form .layout-main-section,
+.page-container[data-page-route^="Form/Employee"] .layout-main-section {
+	padding: 16px 18px 28px !important;
+}
+
+body.arco-employee-form .form-layout,
+.page-container[data-page-route^="Form/Employee"] .form-layout {
+	transition: min-height 200ms ease;
+}
+
+body.arco-employee-form .form-section.card-section,
+body.arco-employee-form .arco-emp-section,
+.page-container[data-page-route^="Form/Employee"] .form-section.card-section,
+body.arco-employee-form .form-dashboard,
+.page-container[data-page-route^="Form/Employee"] .form-dashboard,
+body.arco-employee-form .form-sidebar,
+.page-container[data-page-route^="Form/Employee"] .form-sidebar,
+body.arco-employee-form .comment-box,
+body.arco-employee-form .new-timeline {
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04) !important;
+}
+
+body.arco-employee-form .form-section.card-section:hover,
+.page-container[data-page-route^="Form/Employee"] .form-section.card-section:hover {
+	border-color: #c9cdd4 !important;
+}
+
+.arco-employee-form-page.arco-emp-tab-entering #employee-arco-overview-root,
+.arco-employee-form-page.arco-emp-tab-entering .tab-pane.active,
+.arco-employee-form-page.arco-emp-tab-entering .form-tab-content > .active {
+	animation: arco-emp-tab-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes arco-emp-tab-in {
+	from {
+		opacity: 0;
+		transform: translateY(5px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.arco-employee-form-page.arco-emp-tab-entering #employee-arco-overview-root,
+	.arco-employee-form-page.arco-emp-tab-entering .tab-pane.active,
+	.arco-employee-form-page.arco-emp-tab-entering .form-tab-content > .active {
+		animation: none;
+	}
+}
+
+/* ---------- Employee dossier workspace v2 shell ---------- */
+.arco-employee-form-page.arco-emp-overview-active .form-sidebar,
+body.arco-employee-form .arco-employee-form-page.arco-emp-overview-active .form-sidebar {
+	position: sticky;
+	top: 72px;
+	padding: 14px !important;
+	border: 1px solid var(--hr-emp-border) !important;
+	border-radius: 12px !important;
+	background: #fff !important;
+	box-shadow: 0 4px 16px rgba(29, 33, 41, 0.055) !important;
+}
+
+.arco-employee-form-page.arco-emp-overview-active .form-sidebar .sidebar-menu,
+.arco-employee-form-page.arco-emp-overview-active .form-sidebar .form-stats {
+	margin-bottom: 10px;
+	padding-bottom: 10px;
+	border-bottom: 1px solid var(--hr-emp-border);
+}
+
+.arco-employee-form-page.arco-emp-overview-active .form-sidebar .btn {
+	min-height: 34px;
+	padding: 7px 8px !important;
+	border-radius: 7px !important;
+	transition: color 160ms ease, background-color 160ms ease;
+}
+
+.arco-employee-form-page.arco-emp-overview-active .form-sidebar .btn:hover,
+.arco-employee-form-page.arco-emp-overview-active .form-sidebar .btn:focus-visible {
+	background: #f2f7ff !important;
+	color: var(--hr-emp-primary) !important;
+}
+
+.arco-employee-form-page.arco-emp-overview-active .form-tabs-list {
+	margin-bottom: 12px;
+	border: 1px solid var(--hr-emp-border);
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(29, 33, 41, 0.035);
+}
+
+@media (min-width: 1200px) {
+	.arco-employee-form-page.arco-emp-overview-active .layout-side-section {
+		flex: 0 0 248px;
+		max-width: 248px;
+	}
+}
+
+/* ---------- Employee detail cleanup v3 ---------- */
+/* 详情侧栏、评论和活动当前不参与员工档案工作流。 */
+body.arco-employee-form .layout-side-section,
+.page-container[data-page-route^="Form/Employee"] .layout-side-section,
+body.arco-employee-form .form-footer,
+.page-container[data-page-route^="Form/Employee"] .form-footer,
+body.arco-employee-form .comment-box,
+.page-container[data-page-route^="Form/Employee"] .comment-box,
+body.arco-employee-form .new-timeline,
+.page-container[data-page-route^="Form/Employee"] .new-timeline {
+	display: none !important;
+}
+
+body.arco-employee-form .layout-main-section-wrapper,
+.page-container[data-page-route^="Form/Employee"] .layout-main-section-wrapper {
+	flex: 0 0 100% !important;
+	width: 100% !important;
+	max-width: 100% !important;
+	padding-right: 0 !important;
+}
+
+/* 清掉原生表单容器的白底，只保留真正承载内容的卡片。 */
+body.arco-employee-form .form-layout,
+body.arco-employee-form .form-tab-content,
+body.arco-employee-form .tab-content,
+.arco-employee-form-page .std-form-layout > .form-layout > .form-page,
+.arco-employee-form-page .form-page,
+.page-container[data-page-route^="Form/Employee"] .form-layout,
+.page-container[data-page-route^="Form/Employee"] .form-tab-content,
+.page-container[data-page-route^="Form/Employee"] .tab-content,
+.page-container[data-page-route^="Form/Employee"] .form-page {
+	background: var(--hr-emp-bg) !important;
+	box-shadow: none !important;
+}
+
+#employee-arco-chrome-root,
+#employee-arco-overview-root,
+.arco-emp-overview,
+.arco-emp-workspace-grid {
+	background: transparent !important;
+}
+
+/* 所有员工详情页签都铺满浅灰画布，避免短内容页底部重新露出白底。 */
+body.arco-employee-form,
+body.arco-employee-form #body,
+body.arco-employee-form .main-section,
+body.arco-employee-form .page-container,
+body.arco-employee-form .page-body,
+body.arco-employee-form .page-content,
+body.arco-employee-form .layout-main,
+body.arco-employee-form .layout-main-section-wrapper,
+body.arco-employee-form .layout-main-section,
+body.arco-employee-form .std-form-layout,
+body.arco-employee-form .form-layout,
+body.arco-employee-form .form-page,
+.page-container[data-page-route^="Form/Employee"] .page-body,
+.page-container[data-page-route^="Form/Employee"] .page-content,
+.page-container[data-page-route^="Form/Employee"] .layout-main,
+.page-container[data-page-route^="Form/Employee"] .layout-main-section-wrapper,
+.page-container[data-page-route^="Form/Employee"] .layout-main-section,
+.page-container[data-page-route^="Form/Employee"] .std-form-layout,
+.page-container[data-page-route^="Form/Employee"] .form-layout,
+.page-container[data-page-route^="Form/Employee"] .form-page {
+	background-color: var(--hr-emp-bg) !important;
+}
+
+body.arco-employee-form .page-container,
+body.arco-employee-form .page-body,
+body.arco-employee-form .layout-main,
+body.arco-employee-form .layout-main-section-wrapper,
+.page-container[data-page-route^="Form/Employee"] .page-body,
+.page-container[data-page-route^="Form/Employee"] .layout-main,
+.page-container[data-page-route^="Form/Employee"] .layout-main-section-wrapper {
+	min-height: calc(100dvh - 96px);
+}
+
+body.arco-employee-form .page-container {
+	min-height: 100dvh;
+}
+
+.arco-employee-form-page.arco-emp-overview-active #employee-basic_details_tab {
+	display: none !important;
+}
+
+/* Frappe 开发模式字段名提示仅供开发调试，员工档案界面不展示。 */
+body.arco-employee-form .frappe-control > .tooltip-content,
+.page-container[data-page-route^="Form/Employee"] .frappe-control > .tooltip-content {
+	display: none !important;
+}
+
+/* ---------- Dark theme ---------- */
+html[data-theme="dark"],
+html[arco-theme="dark"] {
+	--hr-emp-bg: #17171a;
+	--hr-emp-card: #232324;
+	--hr-emp-border: rgba(255, 255, 255, 0.08);
+	--hr-emp-text: rgba(255, 255, 255, 0.9);
+	--hr-emp-text-2: rgba(255, 255, 255, 0.68);
+	--hr-emp-text-3: rgba(255, 255, 255, 0.45);
+	--hr-emp-primary-soft: rgba(22, 93, 255, 0.2);
+}
+
+html[data-theme="dark"] body.arco-employee-form .page-head .btn-default,
+html[data-theme="dark"] body.arco-employee-form .page-head .btn-secondary,
+html[arco-theme="dark"] body.arco-employee-form .page-head .btn-default,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .page-head .btn-default {
+	background: var(--hr-emp-card);
+	color: var(--hr-emp-text-2);
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-control,
+html[data-theme="dark"] body.arco-employee-form .input-with-feedback,
+html[data-theme="dark"] body.arco-employee-form .frappe-control .control-input input,
+html[data-theme="dark"] body.arco-employee-form .frappe-control .control-input select,
+html[data-theme="dark"] body.arco-employee-form .frappe-control .control-input textarea,
+html[arco-theme="dark"] body.arco-employee-form .form-control,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-control,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .input-with-feedback {
+	background: var(--hr-emp-card) !important;
+	color: var(--hr-emp-text);
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-grid,
+html[arco-theme="dark"] body.arco-employee-form .form-grid,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-grid {
+	background: var(--hr-emp-card);
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-grid .grid-heading-row,
+html[arco-theme="dark"] body.arco-employee-form .form-grid .grid-heading-row,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-grid .grid-heading-row {
+	background: rgba(255, 255, 255, 0.04) !important;
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-grid .grid-row:hover,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-grid .grid-row:hover {
+	background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] .arco-employee-form-page.arco-emp-overview-active .form-sidebar,
+html[arco-theme="dark"] .arco-employee-form-page.arco-emp-overview-active .form-sidebar {
+	background: var(--hr-emp-card) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] .arco-employee-form-page.arco-emp-overview-active .form-sidebar .btn:hover,
+html[arco-theme="dark"] .arco-employee-form-page.arco-emp-overview-active .form-sidebar .btn:focus-visible {
+	background: rgba(22, 93, 255, 0.15) !important;
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-section.card-section,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-section.card-section {
+	background: var(--hr-emp-card) !important;
+	border-color: var(--hr-emp-border) !important;
+}
+
+html[data-theme="dark"] body.arco-employee-form .nav-tabs,
+html[data-theme="dark"] body.arco-employee-form .form-tabs-list,
+html[arco-theme="dark"] body.arco-employee-form .form-tabs-list {
+	background: var(--hr-emp-card);
+	border-color: var(--hr-emp-border);
+}
+
+html[data-theme="dark"] body.arco-employee-form .nav-tabs .nav-link,
+html[arco-theme="dark"] body.arco-employee-form .form-tabs-list .btn {
+	color: var(--hr-emp-text-2);
+}
+
+html[data-theme="dark"] body.arco-employee-form .nav-tabs .nav-link.active,
+html[arco-theme="dark"] body.arco-employee-form .form-tabs-list .btn.active {
+	color: var(--hr-emp-primary);
+	background: rgba(22, 93, 255, 0.12);
 }

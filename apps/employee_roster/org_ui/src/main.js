@@ -5,16 +5,24 @@ import { ConfigProvider } from "@arco-design/web-vue";
 import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import "@arco-design/web-vue/dist/arco.css";
 import "./styles.css";
+import "./styles/hr-foundation.css";
 import OrgChartPage from "./pages/orgchart/OrgChartPage.vue";
 import OrgDiagramPage from "./pages/orgdiagram/OrgDiagramPage.vue";
 import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 import NavbarApp from "./pages/navbar/NavbarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
+import EmployeeListOverview from "./components/EmployeeListOverview.vue";
 import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
 import ApprovalDesignerApp from "./pages/approvals/designer/ApprovalDesignerApp.vue";
 import ApprovalsWorkspace from "./pages/approvals/workspace/ApprovalsWorkspace.vue";
 import HrHomePage from "./pages/home/HrHomePage.vue";
 import HrDashboardPage from "./pages/dashboard/HrDashboardPage.vue";
+import EmployeeListDeskHeader from "./pages/employee_list/EmployeeListDeskHeader.vue";
+import EmployeeArchiveDeskHeader from "./pages/employee_archive/EmployeeArchiveDeskHeader.vue";
+import EmployeeCheckinDeskHeader from "./pages/employee_checkin/EmployeeCheckinDeskHeader.vue";
+import EmployeeCheckinOverview from "./components/EmployeeCheckinOverview.vue";
+import AttendanceRulesPage from "./pages/attendance_rules/AttendanceRulesPage.vue";
+import AttendanceRulesDeskHeader from "./pages/attendance_rules/AttendanceRulesDeskHeader.vue";
 
 function boot(app) {
 	app.use(ArcoVue);
@@ -186,6 +194,7 @@ const employeeFormState = reactive({
 	company: "",
 	branch: "",
 	employment_type: "",
+	employment_type_label: "",
 	image: "",
 	date_of_joining: "",
 	cell_number: "",
@@ -211,6 +220,8 @@ const employeeFormState = reactive({
 	leave_balance: null,
 	attendance_month: null,
 	related_count: 0,
+	profile_completion: 0,
+	profile_missing: [],
 	show_overview: true,
 });
 
@@ -241,4 +252,129 @@ export function updateEmployeeForm(payload) {
 
 export function setEmployeeFormHandlers(handlers = {}) {
 	Object.assign(employeeFormHandlers, handlers || {});
+}
+
+const employeeListOverviewState = reactive({
+	total: 0,
+	active: 0,
+	inactive: 0,
+	left: 0,
+	employmentCounts: {},
+	filters: [],
+});
+
+const employeeListOverviewHandlers = {
+	onFilter: null,
+};
+
+export function mountEmployeeListOverview(el, payload = {}, handlers = {}) {
+	Object.assign(employeeListOverviewState, payload || {});
+	Object.assign(employeeListOverviewHandlers, handlers || {});
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(EmployeeListOverview, {
+						state: employeeListOverviewState,
+						handlers: employeeListOverviewHandlers,
+					})
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function updateEmployeeListOverview(payload = {}) {
+	Object.assign(employeeListOverviewState, payload || {});
+}
+
+function mountDeskHeader(el, component) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(component));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountEmployeeListDeskHeader(el) {
+	return mountDeskHeader(el, EmployeeListDeskHeader);
+}
+
+export function mountEmployeeArchiveDeskHeader(el) {
+	return mountDeskHeader(el, EmployeeArchiveDeskHeader);
+}
+
+export function mountEmployeeCheckinDeskHeader(el) {
+	return mountDeskHeader(el, EmployeeCheckinDeskHeader);
+}
+
+const employeeCheckinOverviewState = reactive({
+	stats: {},
+	rangeLabel: "",
+	activeResult: null,
+	loading: false,
+});
+
+const employeeCheckinOverviewHandlers = {
+	onFilter: null,
+};
+
+export function mountEmployeeCheckinOverview(el, payload = {}, handlers = {}) {
+	Object.assign(employeeCheckinOverviewState, payload || {});
+	Object.assign(employeeCheckinOverviewHandlers, handlers || {});
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(EmployeeCheckinOverview, {
+						state: employeeCheckinOverviewState,
+						handlers: employeeCheckinOverviewHandlers,
+					})
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function updateEmployeeCheckinOverview(payload = {}) {
+	Object.assign(employeeCheckinOverviewState, payload || {});
+}
+
+export function mountAttendanceRules(rootEl) {
+	rootEl.classList.add("hr-attendance-rules-page", "hr-desk-content-stack");
+
+	const headerHost = document.createElement("div");
+	headerHost.className = "hr-desk-header-host";
+	rootEl.appendChild(headerHost);
+	mountDeskHeader(headerHost, AttendanceRulesDeskHeader);
+
+	const bodyHost = document.createElement("div");
+	bodyHost.className = "hr-attendance-rules-body";
+	rootEl.appendChild(bodyHost);
+
+	let reloadFn = null;
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(AttendanceRulesPage, {
+						ref(instance) {
+							reloadFn = () => instance?.reload?.();
+						},
+					})
+				);
+			},
+		})
+	);
+	app.mount(bodyHost);
+	app.reloadRules = () => reloadFn?.();
+	return app;
 }

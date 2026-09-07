@@ -78,7 +78,7 @@ It takes care of installation, setup, upgrades, monitoring, maintenance and supp
 
 ### YiRan Docker hot reload
 
-This repository includes a Windows/macOS-compatible Docker development mode. It watches the host source tree through polling, synchronizes changes into Bench, runs `bench watch`, and enables Python reload.
+This repository includes a Windows/macOS-compatible Docker development mode. It watches the host source tree through polling, synchronizes changes into Bench, runs `bench watch`, and enables Python reload. After the one-time installation, normal starts use a 55-second readiness budget and skip migration work unless explicitly requested.
 
 - macOS: `bash deploy/dev.sh`
 - Windows PowerShell: `.\deploy\dev.ps1`

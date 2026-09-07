@@ -14,7 +14,9 @@ param(
     [switch]$Logs,
     [switch]$Migrate,
     [switch]$ForceMigrate,
-    [switch]$Recreate
+    [switch]$Recreate,
+    [ValidateRange(10, 300)]
+    [int]$TimeoutSeconds = 55
 )
 
 $ErrorActionPreference = "Stop"
@@ -50,6 +52,7 @@ foreach ($line in Get-Content $envFile) {
 
 Push-Location $DeployDir
 try {
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     Write-Host "Starting HRMS development mode..." -ForegroundColor Cyan
     $upOptions = @("up", "-d")
     if ($Recreate) { $upOptions += "--force-recreate" }
@@ -61,20 +64,30 @@ try {
     & docker compose @composeOptions exec -T backend python /workspace/source/deploy/dev_sync.py --once
     if ($LASTEXITCODE -ne 0) { throw "source synchronization failed" }
 
-    $prepareOptions = @("exec", "-T", "backend", "bash", "/workspace/source/deploy/scripts/prepare_dev.sh")
-    if ($useBundledPostgres) { $prepareOptions += "--local-database" }
-    if ($ForceMigrate) {
-        $prepareOptions += "--force-migrate"
-    } elseif ($Migrate) {
-        $prepareOptions += "--migrate"
-    }
-    & docker compose @composeOptions @prepareOptions
+    Write-Host "Waiting for the development server (max $($TimeoutSeconds)s)..."
+    & docker compose @composeOptions exec -T backend bash /workspace/source/deploy/scripts/wait_dev_ready.sh $TimeoutSeconds
     if ($LASTEXITCODE -ne 0) {
-        throw "development database preparation failed"
+        throw "development server did not become ready within $($TimeoutSeconds)s"
     }
 
+    if ($Migrate -or $ForceMigrate) {
+        Write-Host "Applying requested schema preparation (this may exceed the fast-start target)..."
+        $prepareOptions = @("exec", "-T", "backend", "bash", "/workspace/source/deploy/scripts/prepare_dev.sh")
+        if ($useBundledPostgres) { $prepareOptions += "--local-database" }
+        if ($ForceMigrate) {
+            $prepareOptions += "--force-migrate"
+        } else {
+            $prepareOptions += "--migrate"
+        }
+        & docker compose @composeOptions @prepareOptions
+        if ($LASTEXITCODE -ne 0) {
+            throw "development database preparation failed"
+        }
+    }
+
+    $stopwatch.Stop()
     Write-Host ""
-    Write-Host "Development mode is ready: http://localhost:$port" -ForegroundColor Green
+    Write-Host "Development mode is ready in $([Math]::Round($stopwatch.Elapsed.TotalSeconds, 1))s: http://localhost:$port" -ForegroundColor Green
     Write-Host "Source sync: enabled (Windows/macOS polling)"
     Write-Host "Frontend watch: enabled"
     Write-Host "Watched apps: hrms, employee_roster (ERPNext excluded)"

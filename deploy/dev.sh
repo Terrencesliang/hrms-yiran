@@ -9,6 +9,7 @@ show_logs=false
 allow_migrate=false
 force_migrate=false
 force_recreate=false
+start_timeout="${DEV_START_TIMEOUT:-55}"
 
 for arg in "$@"; do
 	case "${arg}" in
@@ -16,15 +17,22 @@ for arg in "$@"; do
 		--migrate) allow_migrate=true ;;
 		--force-migrate) allow_migrate=true; force_migrate=true ;;
 		--recreate) force_recreate=true ;;
+		--timeout=*) start_timeout="${arg#*=}" ;;
 		-h|--help)
-			echo "Usage: bash deploy/dev.sh [--logs] [--migrate] [--force-migrate] [--recreate]"
+			echo "Usage: bash deploy/dev.sh [--logs] [--migrate] [--force-migrate] [--recreate] [--timeout=SECONDS]"
 			echo "  --migrate        Run migration only when schema metadata changed."
 			echo "  --force-migrate  Run a full migration even when metadata is unchanged."
+			echo "  --timeout        Readiness timeout; defaults to 55 seconds."
 			exit 0
 			;;
 		*) echo "Unknown option: ${arg}" >&2; exit 2 ;;
 	esac
 done
+
+if ! [[ "${start_timeout}" =~ ^[0-9]+$ ]] || [ "${start_timeout}" -lt 10 ]; then
+	echo "--timeout must be an integer of at least 10 seconds." >&2
+	exit 2
+fi
 
 if ! command -v docker >/dev/null 2>&1; then
 	echo "Docker not found. Install Docker Desktop first." >&2
@@ -47,6 +55,7 @@ if grep -qE '^USE_BUNDLED_REDIS=true' "${ENV_FILE}"; then
 fi
 
 cd "${DEPLOY_DIR}"
+started_at=${SECONDS}
 echo "Starting HRMS development mode..."
 up_args=(up -d backend)
 if [ "${force_recreate}" = true ]; then
@@ -58,22 +67,29 @@ echo "Synchronizing mounted source code..."
 docker compose "${compose_args[@]}" exec -T backend \
 	python /workspace/source/deploy/dev_sync.py --once
 
-prepare_args=()
-if grep -qE '^USE_BUNDLED_POSTGRES=true' "${ENV_FILE}"; then
-	prepare_args+=(--local-database)
-fi
-if [ "${force_migrate}" = true ]; then
-	prepare_args+=(--force-migrate)
-elif [ "${allow_migrate}" = true ]; then
-	prepare_args+=(--migrate)
-fi
+echo "Waiting for the development server (max ${start_timeout}s)..."
 docker compose "${compose_args[@]}" exec -T backend \
-	bash /workspace/source/deploy/scripts/prepare_dev.sh "${prepare_args[@]}"
+	bash /workspace/source/deploy/scripts/wait_dev_ready.sh "${start_timeout}"
+
+if [ "${allow_migrate}" = true ]; then
+	prepare_args=()
+	if grep -qE '^USE_BUNDLED_POSTGRES=true' "${ENV_FILE}"; then
+		prepare_args+=(--local-database)
+	fi
+	if [ "${force_migrate}" = true ]; then
+		prepare_args+=(--force-migrate)
+	else
+		prepare_args+=(--migrate)
+	fi
+	echo "Applying requested schema preparation (this may exceed the fast-start target)..."
+	docker compose "${compose_args[@]}" exec -T backend \
+		bash /workspace/source/deploy/scripts/prepare_dev.sh "${prepare_args[@]}"
+fi
 
 port="$(sed -n 's/^HTTP_PORT=//p' "${ENV_FILE}" | tail -1 | tr -d '"\r')"
 port="${port:-8080}"
 echo
-echo "Development mode is ready: http://localhost:${port}"
+echo "Development mode is ready in $((SECONDS - started_at))s: http://localhost:${port}"
 echo "Source sync: enabled (Windows/macOS polling)"
 echo "Frontend watch: enabled"
 echo "Watched apps: hrms, employee_roster (ERPNext excluded)"

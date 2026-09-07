@@ -56,14 +56,40 @@ provide("odTree", {
 	openMember: (member) => emit("open-member", member),
 });
 
-/** 返回让整棵树横向放进视口的缩放百分比。 */
+/** 返回让整棵树放进视口的缩放百分比（宽高取较小比例，最大 100%）。 */
 function fit() {
-	const tree = canvas.value?.querySelector(".od-tree");
 	const host = viewport.value;
-	if (!tree || !host) return 100;
-	const naturalWidth = tree.getBoundingClientRect().width / (props.zoom / 100);
-	const available = host.clientWidth - 48;
-	return Math.max(50, Math.min(100, Math.floor((available / naturalWidth) * 100)));
+	const content = canvas.value;
+	if (!content || !host) return 100;
+
+	const scale = props.zoom / 100;
+	const naturalWidth = content.scrollWidth / scale;
+	const naturalHeight = content.scrollHeight / scale;
+	const padX = 48;
+	const padY = 40;
+	const availableW = Math.max(1, host.clientWidth - padX);
+	const availableH = Math.max(1, host.clientHeight - padY);
+	const scaleW = (availableW / naturalWidth) * 100;
+	const scaleH = (availableH / naturalHeight) * 100;
+
+	return Math.max(50, Math.min(100, Math.floor(Math.min(scaleW, scaleH))));
+}
+
+/** 将整棵树居中到视口内，便于一屏看到全部节点。 */
+function centerTree(behavior = "auto") {
+	const host = viewport.value;
+	const content = canvas.value;
+	if (!host || !content) return;
+
+	const hostRect = host.getBoundingClientRect();
+	const rect = content.getBoundingClientRect();
+	const offsetX = rect.left + rect.width / 2 - (hostRect.left + hostRect.width / 2);
+	const offsetY = rect.top + rect.height / 2 - (hostRect.top + hostRect.height / 2);
+	host.scrollTo({
+		left: host.scrollLeft + offsetX,
+		top: host.scrollTop + offsetY,
+		behavior,
+	});
 }
 
 /** 树比视口宽时根节点在正中，需要把视口滚到公司节点下方。 */
@@ -77,5 +103,5 @@ function centerRoot(behavior = "auto") {
 	host.scrollTo({ left: host.scrollLeft + offset, top: 0, behavior });
 }
 
-defineExpose({ fit, centerRoot });
+defineExpose({ fit, centerTree, centerRoot });
 </script>

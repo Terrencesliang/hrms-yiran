@@ -116,14 +116,19 @@ function readTheme() {
 		root.getAttribute("arco-theme") === "dark";
 }
 
+function applyThemeClass(theme) {
+	const next = theme === "dark" ? "dark" : "light";
+	document.body.setAttribute("data-theme", next);
+	document.body.setAttribute("arco-theme", next);
+	document.documentElement.setAttribute("data-theme", next);
+	document.documentElement.setAttribute("arco-theme", next);
+	isDark.value = next === "dark";
+}
+
 function toggleTheme() {
 	const next = !isDark.value;
-	isDark.value = next;
 	const theme = next ? "dark" : "light";
-	document.body.setAttribute("data-theme", theme);
-	document.body.setAttribute("arco-theme", theme);
-	document.documentElement.setAttribute("data-theme", theme);
-	document.documentElement.setAttribute("arco-theme", theme);
+	applyThemeClass(theme);
 	try {
 		localStorage.setItem("arco-theme", theme);
 	} catch (e) {
@@ -150,6 +155,14 @@ async function toggleFullscreen() {
 }
 
 onMounted(() => {
+	try {
+		const stored = localStorage.getItem("arco-theme");
+		if (stored === "dark" || stored === "light") {
+			applyThemeClass(stored);
+		}
+	} catch (e) {
+		/* ignore */
+	}
 	readTheme();
 	syncFullscreen();
 	document.addEventListener("fullscreenchange", syncFullscreen);

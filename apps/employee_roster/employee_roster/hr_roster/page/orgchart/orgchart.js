@@ -27,7 +27,6 @@ frappe.pages["orgchart"].on_page_load = function (wrapper) {
 
 	const $main = wrapper.page.main;
 	$main.empty();
-	$main.addClass("orgchart-page");
 
 	const mountEl = document.createElement("div");
 	mountEl.id = "orgchart-arco-root";

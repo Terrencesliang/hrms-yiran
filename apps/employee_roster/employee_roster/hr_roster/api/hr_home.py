@@ -210,24 +210,183 @@ def _companies() -> list[str]:
 	return frappe.get_all("Company", pluck="name", order_by="name asc") or []
 
 
+def _prev_month_bounds(today=None) -> tuple[date, date]:
+	today = today or getdate()
+	first_this = date(today.year, today.month, 1)
+	last_prev = date.fromordinal(first_this.toordinal() - 1)
+	first_prev = date(last_prev.year, last_prev.month, 1)
+	return first_prev, last_prev
+
+
+def _prev_year_ytd_bounds(today=None) -> tuple[date, date]:
+	today = today or getdate()
+	return date(today.year - 1, 1, 1), date(today.year - 1, today.month, today.day)
+
+
+def _workplace_metric_cards(rows, ha: dict) -> list[dict]:
+	"""人事主页 KPI：含环比绝对值 + 百分比 + sparkline。"""
+	stats = _stats(rows)
+	today = getdate()
+	pq_start, pq_end = _prev_quarter_bounds(today)
+	pm_start, pm_end = _prev_month_bounds(today)
+	py_start, py_end = _prev_year_ytd_bounds(today)
+
+	prev_join_q = 0
+	prev_leave_q = 0
+	join_lm = 0
+	leave_lm = 0
+	hire_ytd_prev = 0
+
+	for row in rows:
+		if row.date_of_joining:
+			d = getdate(row.date_of_joining)
+			if pq_start <= d <= pq_end:
+				prev_join_q += 1
+			if pm_start <= d <= pm_end:
+				join_lm += 1
+			if py_start <= d <= py_end:
+				hire_ytd_prev += 1
+		rel = getattr(row, "relieving_date", None)
+		if rel:
+			d = getdate(rel)
+			if pq_start <= d <= pq_end:
+				prev_leave_q += 1
+			if pm_start <= d <= pm_end:
+				leave_lm += 1
+
+	hiring = ha.get("hiring") or []
+	attrition = ha.get("attrition") or []
+	net = [
+		max(0, (hiring[i] if i < len(hiring) else 0) - (attrition[i] if i < len(attrition) else 0))
+		for i in range(len(hiring))
+	]
+	running = []
+	acc = max(stats["active"] - sum(net), 0)
+	for n in net:
+		acc += n
+		running.append(acc)
+
+	net_lm = join_lm - leave_lm
+	prev_active = max(stats["active"] - net_lm, 0)
+
+	return [
+		{
+			"key": "active",
+			"title": "在职员工",
+			"value": stats["active"],
+			"suffix": "人",
+			"delta_abs": net_lm,
+			"delta_label": "较上月",
+			"delta_pct": _pct_change(stats["active"], prev_active),
+			"icon": "user-group",
+			"color": "#165DFF",
+			"chart": "line",
+			"series": running or hiring,
+			"route": ["List", "Employee"],
+		},
+		{
+			"key": "join_q",
+			"title": "本季入职",
+			"value": stats["joining_quarter"],
+			"suffix": "人",
+			"delta_abs": stats["joining_quarter"] - prev_join_q,
+			"delta_label": "较上季",
+			"delta_pct": _pct_change(stats["joining_quarter"], prev_join_q),
+			"icon": "user-add",
+			"color": "#00B42A",
+			"chart": "bar",
+			"series": hiring,
+		},
+		{
+			"key": "leave_q",
+			"title": "本季离职",
+			"value": stats["relieving_quarter"],
+			"suffix": "人",
+			"delta_abs": stats["relieving_quarter"] - prev_leave_q,
+			"delta_label": "较上季",
+			"delta_pct": _pct_change(stats["relieving_quarter"], prev_leave_q),
+			"icon": "export",
+			"color": "#722ED1",
+			"chart": "line",
+			"series": attrition,
+		},
+		{
+			"key": "hire_y",
+			"title": "本年入职",
+			"value": stats["hires_year"],
+			"suffix": "人",
+			"delta_abs": stats["hires_year"] - hire_ytd_prev,
+			"delta_label": "较去年",
+			"delta_pct": _pct_change(stats["hires_year"], hire_ytd_prev),
+			"icon": "calendar",
+			"color": "#FF7D00",
+			"chart": "line",
+			"series": hiring,
+			"route": ["hr-dashboard"],
+		},
+	]
+
+
 @frappe.whitelist()
 def get_hr_workplace(company: str | None = None) -> dict:
 	"""人事主页（Arco Pro Workplace 风格）数据。"""
 	rows = _load_employees(company)
+	ha = _hiring_attrition(rows, months=12)
 	user = frappe.session.user
 	full_name = frappe.db.get_value("User", user, "full_name") or user
+	today = getdate()
+	weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
 	return {
 		"user": {"name": user, "full_name": full_name},
 		"company": company or "",
 		"companies": _companies(),
 		"stats": _stats(rows),
-		"by_department": _count_buckets(rows, "department", limit=8),
-		"recent_joiners": _recent_joiners(rows),
+		"metric_cards": _workplace_metric_cards(rows, ha),
+		"by_department": _count_buckets(rows, "department", limit=12),
+		"recent_joiners": _recent_joiners(rows, limit=6),
+		"dept_ranking": _dept_ranking(rows, limit=8),
+		"hero": {
+			"date_label": today.strftime("%Y年%m月%d日"),
+			"weekday": weekdays[today.weekday()],
+			"quote": "优秀的组织，源于每一个人的成长。",
+		},
 		"quick_links": [
-			{"label": "员工花名册", "route": ["List", "Employee"], "icon": "IconUserGroup"},
-			{"label": "组织架构", "route": ["orgchart"], "icon": "IconMindMapping"},
-			{"label": "数据面板", "route": ["hr-dashboard"], "icon": "IconDashboard"},
-			{"label": "员工档案库", "route": ["employee-archive"], "icon": "IconFolder"},
+			{
+				"label": "员工花名册",
+				"desc": "查看和管理全员信息",
+				"route": ["List", "Employee"],
+				"icon": "IconUserGroup",
+			},
+			{
+				"label": "组织架构",
+				"desc": "树形查看部门与岗位",
+				"route": ["orgchart"],
+				"icon": "IconMindMapping",
+			},
+			{
+				"label": "数据看板",
+				"desc": "查看 HR 指标与趋势",
+				"route": ["hr-dashboard"],
+				"icon": "IconDashboard",
+			},
+			{
+				"label": "员工档案库",
+				"desc": "查阅合同与档案材料",
+				"route": ["employee-archive"],
+				"icon": "IconFolder",
+			},
+			{
+				"label": "考勤管理",
+				"desc": "排班打卡与异常处理",
+				"route": ["List", "Employee Checkin"],
+				"icon": "IconCalendar",
+			},
+			{
+				"label": "招聘管理",
+				"desc": "候选人流程与岗位管理",
+				"route": ["List", "Job Applicant"],
+				"icon": "IconUserAdd",
+			},
 		],
 	}
 

@@ -1,0 +1,372 @@
+/**
+ * HR / 考勤 Desk 页面统一主题变量（亮色 + 暗黑）
+ * 依赖 Navbar 设置的 data-theme / arco-theme（html + body）
+ */
+
+:root {
+	--hr-desk-page-bg: #f2f3f5;
+	--hr-desk-surface: #ffffff;
+	--hr-desk-surface-2: #f7f8fa;
+	--hr-desk-border: #e5e6eb;
+	--hr-desk-border-2: #f2f3f5;
+	--hr-desk-text: #1d2129;
+	--hr-desk-text-2: #4e5969;
+	--hr-desk-text-3: #86909c;
+	--hr-desk-primary: #165dff;
+	--hr-desk-primary-soft: #e8f3ff;
+	--hr-desk-success: #00b42a;
+	--hr-desk-success-soft: #e8ffea;
+	--hr-desk-warning: #ff7d00;
+	--hr-desk-warning-soft: #fff7e8;
+	--hr-desk-danger: #f53f3f;
+	--hr-desk-danger-soft: #ffece8;
+	--hr-desk-purple-soft: #f5e8ff;
+	--hr-desk-radius: 8px;
+	--hr-desk-shadow: 0 1px 3px rgba(29, 33, 41, 0.04);
+}
+
+html[data-theme="dark"],
+html[arco-theme="dark"],
+body[data-theme="dark"],
+body[arco-theme="dark"] {
+	--hr-desk-page-bg: #17171a;
+	--hr-desk-surface: #232324;
+	--hr-desk-surface-2: #2a2a2b;
+	--hr-desk-border: rgba(255, 255, 255, 0.08);
+	--hr-desk-border-2: rgba(255, 255, 255, 0.06);
+	--hr-desk-text: rgba(255, 255, 255, 0.9);
+	--hr-desk-text-2: rgba(255, 255, 255, 0.68);
+	--hr-desk-text-3: rgba(255, 255, 255, 0.45);
+	--hr-desk-primary: #3c7eff;
+	--hr-desk-primary-soft: rgba(60, 126, 255, 0.14);
+	--hr-desk-success: #7be188;
+	--hr-desk-success-soft: rgba(0, 180, 42, 0.16);
+	--hr-desk-warning: #ff9a2e;
+	--hr-desk-warning-soft: rgba(255, 125, 0, 0.16);
+	--hr-desk-danger: #f76965;
+	--hr-desk-danger-soft: rgba(245, 63, 63, 0.16);
+	--hr-desk-purple-soft: rgba(114, 46, 209, 0.16);
+	--hr-desk-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+	color-scheme: dark;
+}
+
+/* 与人事/考勤 list 页局部变量对齐 */
+html[data-theme="dark"] .layout-main-section.hr-employee-list-page,
+html[data-theme="dark"] .layout-main-section.hr-checkin-list-page,
+html[arco-theme="dark"] .layout-main-section.hr-employee-list-page,
+html[arco-theme="dark"] .layout-main-section.hr-checkin-list-page {
+	--hr-ck-bg: var(--hr-desk-surface);
+	--hr-ck-fill-2: var(--hr-desk-surface-2);
+	--hr-ck-border: var(--hr-desk-border);
+	--hr-ck-text: var(--hr-desk-text);
+	--hr-ck-text-2: var(--hr-desk-text-2);
+	--hr-ck-text-3: var(--hr-desk-text-3);
+	--hr-ck-primary: var(--hr-desk-primary);
+}
+
+/* ---------- Desk 页面壳层背景 ---------- */
+body.hr-unified-sidebar-active .arco-hr-dashboard-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-hr-home-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-orgchart-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-orgdiagram-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-hr-roster-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-employee-archive-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-hr-employee-list-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-hr-checkin-list-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .layout-main-section-wrapper,
+body.hr-unified-sidebar-active .arco-hr-dashboard-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-hr-home-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-orgchart-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-orgdiagram-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-hr-roster-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-employee-archive-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-hr-employee-list-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-hr-checkin-list-wrapper .page-content,
+body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .page-content,
+.page-container[data-page-route="List/Employee"] .layout-main-section-wrapper,
+.page-container[data-page-route="List/Employee Checkin"] .layout-main-section-wrapper,
+.page-container[data-page-route="attendance-rules"] .layout-main-section-wrapper,
+.page-container[data-page-route="employee-archive"] .layout-main-section-wrapper {
+	background: var(--hr-desk-page-bg) !important;
+}
+
+body.hr-unified-sidebar-active .page-container,
+body.hr-unified-sidebar-active .main-section {
+	background: var(--hr-desk-page-bg);
+	color: var(--hr-desk-text);
+}
+
+/* ---------- Frappe List / Filter / Table ---------- */
+.hr-employee-list-page .page-form.hr-emp-filter-card,
+.hr-checkin-list-page .page-form.hr-emp-filter-card,
+.hr-employee-list-page .hr-emp-table-card,
+.hr-checkin-list-page .hr-emp-table-card {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+	box-shadow: var(--hr-desk-shadow);
+}
+
+.hr-employee-list-page .page-form .form-control,
+.hr-employee-list-page .page-form .input-with-feedback,
+.hr-checkin-list-page .page-form .form-control,
+.hr-checkin-list-page .page-form .input-with-feedback {
+	background: var(--hr-desk-surface-2);
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text);
+}
+
+.hr-employee-list-page .page-form .form-control:focus,
+.hr-checkin-list-page .page-form .form-control:focus {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-primary);
+	box-shadow: 0 0 0 2px var(--hr-desk-primary-soft);
+}
+
+.hr-employee-list-page .hr-emp-table-toolbar,
+.hr-checkin-list-page .hr-emp-table-toolbar {
+	background: var(--hr-desk-surface);
+	border-bottom-color: var(--hr-desk-border);
+}
+
+.hr-employee-list-page .hr-emp-table-title,
+.hr-checkin-list-page .hr-emp-table-title {
+	color: var(--hr-desk-text);
+}
+
+.hr-employee-list-page .hr-emp-table-count,
+.hr-checkin-list-page .hr-emp-table-count {
+	color: var(--hr-desk-text-3);
+}
+
+.hr-employee-list-page .frappe-list .list-row-head,
+.hr-checkin-list-page .frappe-list .list-row-head {
+	background: var(--hr-desk-surface-2) !important;
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text-2);
+}
+
+.hr-employee-list-page .frappe-list .list-row-container,
+.hr-checkin-list-page .frappe-list .list-row-container {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+}
+
+.hr-employee-list-page .frappe-list .list-row:hover,
+.hr-checkin-list-page .frappe-list .list-row:hover {
+	background: var(--hr-desk-surface-2) !important;
+}
+
+.hr-employee-list-page .list-paging-area,
+.hr-checkin-list-page .list-paging-area,
+.hr-employee-list-page .list-footer,
+.hr-checkin-list-page .list-footer {
+	background: var(--hr-desk-surface);
+	border-top-color: var(--hr-desk-border);
+	color: var(--hr-desk-text-2);
+}
+
+.hr-employee-list-page .frappe-list .msg-box.no-result,
+.hr-checkin-list-page .frappe-list .msg-box.no-result,
+.hr-employee-list-page .frappe-list .empty-state,
+.hr-checkin-list-page .frappe-list .empty-state {
+	color: var(--hr-desk-text-2);
+}
+
+.hr-employee-list-page .frappe-list .empty-state-title,
+.hr-checkin-list-page .frappe-list .empty-state-title {
+	color: var(--hr-desk-text);
+}
+
+.hr-employee-list-page .frappe-list .empty-state-description,
+.hr-checkin-list-page .frappe-list .empty-state-description {
+	color: var(--hr-desk-text-3);
+}
+
+/* Tags */
+.hr-emp-status-tag.tag-active,
+.hr-checkin-result-tag.tag-present,
+.hr-checkin-log-tag.tag-in {
+	background: var(--hr-desk-success-soft);
+	color: var(--hr-desk-success);
+}
+
+.hr-emp-status-tag.tag-inactive,
+.hr-emp-type-tag.tag-probation,
+.hr-checkin-result-tag.tag-late,
+.hr-checkin-log-tag.tag-out {
+	background: var(--hr-desk-warning-soft);
+	color: var(--hr-desk-warning);
+}
+
+.hr-emp-status-tag.tag-left,
+.hr-emp-status-tag.tag-default,
+.hr-emp-type-tag.tag-default,
+.hr-checkin-result-tag.tag-default,
+.hr-checkin-log-tag.tag-default {
+	background: var(--hr-desk-surface-2);
+	color: var(--hr-desk-text-2);
+}
+
+.hr-emp-status-tag.tag-suspended,
+.hr-checkin-result-tag.tag-missing {
+	background: var(--hr-desk-danger-soft);
+	color: var(--hr-desk-danger);
+}
+
+.hr-emp-type-tag.tag-fulltime {
+	background: var(--hr-desk-primary-soft);
+	color: var(--hr-desk-primary);
+}
+
+.hr-emp-type-tag.tag-intern {
+	background: var(--hr-desk-purple-soft);
+	color: #b37feb;
+}
+
+/* ---------- 员工档案库 ---------- */
+html[data-theme="dark"] .hr-archive-page,
+html[arco-theme="dark"] .hr-archive-page {
+	--hr-bg: var(--hr-desk-surface, #232324);
+	--hr-subtle: var(--hr-desk-page-bg, #17171a);
+	--hr-border: var(--hr-desk-border, rgba(255, 255, 255, 0.08));
+	--hr-text: var(--hr-desk-text, rgba(255, 255, 255, 0.9));
+	--hr-muted: var(--hr-desk-text-3, rgba(255, 255, 255, 0.45));
+}
+
+html[data-theme="dark"] body.hr-unified-sidebar-active .main-section:has(.arco-employee-archive-wrapper),
+html[arco-theme="dark"] body.hr-unified-sidebar-active .main-section:has(.arco-employee-archive-wrapper),
+html[data-theme="dark"] .page-container.arco-employee-archive-wrapper,
+html[arco-theme="dark"] .page-container.arco-employee-archive-wrapper,
+html[data-theme="dark"] body[data-page-route="employee-archive"] .page-container,
+html[data-theme="dark"] body[data-route="employee-archive"] .page-container,
+html[data-theme="dark"] .page-container.arco-employee-archive-wrapper .page-content,
+html[arco-theme="dark"] .page-container.arco-employee-archive-wrapper .page-content {
+	background: var(--hr-subtle) !important;
+}
+
+html[data-theme="dark"] .hr-archive-shell,
+html[arco-theme="dark"] .hr-archive-shell {
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] .hr-archive-tabs,
+html[arco-theme="dark"] .hr-archive-tabs,
+html[data-theme="dark"] .hr-archive-toolbar,
+html[arco-theme="dark"] .hr-archive-toolbar,
+html[data-theme="dark"] .hr-archive-table-card,
+html[arco-theme="dark"] .hr-archive-table-card,
+html[data-theme="dark"] .hr-archive-filter-card,
+html[arco-theme="dark"] .hr-archive-filter-card,
+html[data-theme="dark"] .hr-archive-panel,
+html[arco-theme="dark"] .hr-archive-panel,
+html[data-theme="dark"] .hr-archive-column,
+html[arco-theme="dark"] .hr-archive-column {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] .hr-archive-tabs,
+html[arco-theme="dark"] .hr-archive-tabs {
+	background: transparent;
+}
+
+html[data-theme="dark"] .hr-archive-table-scroll .list-row-head,
+html[arco-theme="dark"] .hr-archive-table-scroll .list-row-head {
+	background: var(--hr-desk-surface-2) !important;
+}
+
+/* ---------- 考勤规则 Desk 壳 ---------- */
+.hr-attendance-rules-page.hr-desk-content-stack {
+	background: transparent;
+}
+
+.hr-attendance-rules-shell .hr-desk-toolbar-card,
+.hr-attendance-rules-shell .hr-desk-guide-card,
+.hr-attendance-rules-shell .hr-desk-table-card,
+.hr-attendance-rules-shell .hr-employee-overview-card {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+	box-shadow: var(--hr-desk-shadow);
+}
+
+/* ---------- Arco org_ui 挂载在 Desk 内的卡片 ---------- */
+html[data-theme="dark"] .hr-employee-overview-card,
+html[arco-theme="dark"] .hr-employee-overview-card {
+	border-color: var(--hr-desk-border);
+	box-shadow: var(--hr-desk-shadow);
+}
+
+html[data-theme="dark"] .hr-employee-overview-head,
+html[arco-theme="dark"] .hr-employee-overview-head {
+	border-bottom-color: var(--hr-desk-border);
+}
+
+html[data-theme="dark"] .hr-employee-overview-title,
+html[arco-theme="dark"] .hr-employee-overview-copy strong,
+html[arco-theme="dark"] .hr-page-breadcrumb .arco-breadcrumb-item:last-child {
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] .hr-employee-overview-label,
+html[arco-theme="dark"] .hr-employee-overview-hint,
+html[arco-theme="dark"] .hr-page-breadcrumb .arco-breadcrumb-item,
+html[arco-theme="dark"] .hr-page-breadcrumb .arco-breadcrumb-item-separator {
+	color: var(--hr-desk-text-3);
+}
+
+html[data-theme="dark"] .hr-employee-overview-item:hover,
+html[arco-theme="dark"] .hr-employee-overview-item.is-active {
+	background: var(--hr-desk-primary-soft);
+}
+
+html[data-theme="dark"] .hr-employee-overview-icon,
+html[arco-theme="dark"] .hr-employee-overview-item.is-disabled .hr-employee-overview-icon {
+	background: var(--hr-desk-surface-2);
+	color: var(--hr-desk-text-2);
+}
+
+html[data-theme="dark"] .arco-org-ui.hr-desk-header-only,
+html[arco-theme="dark"] .arco-org-ui.hr-desk-header-only {
+	background: transparent !important;
+}
+
+/* Frappe 原生筛选条（非卡片内） */
+html[data-theme="dark"] body.hr-unified-sidebar-active .filter-section,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .filter-section,
+html[data-theme="dark"] body.hr-unified-sidebar-active .standard-filter-section,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .standard-filter-section {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] body.hr-unified-sidebar-active .btn.btn-default,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .btn.btn-default {
+	background: var(--hr-desk-surface-2);
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] body.hr-unified-sidebar-active .modal-content,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .modal-content {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] body.hr-unified-sidebar-active .dropdown-menu,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .dropdown-menu {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+}
+
+html[data-theme="dark"] body.hr-unified-sidebar-active .dropdown-menu > li > a,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .dropdown-menu > li > a {
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] body.hr-unified-sidebar-active .dropdown-menu > li > a:hover,
+html[arco-theme="dark"] body.hr-unified-sidebar-active .dropdown-menu > li > a:hover {
+	background: var(--hr-desk-surface-2);
+}

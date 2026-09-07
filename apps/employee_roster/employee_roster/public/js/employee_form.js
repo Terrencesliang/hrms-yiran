@@ -4,21 +4,191 @@
  * Employee Form — Arco Design：
  * 仅「概况」页签（#basic_details_tab）展示摘要仪表盘；
  * 其它页签保持原生表单（可有轻量 Arco CSS）。
- * cache: 20260904f
+ * cache: 20260907l
  */
 (function () {
 	let employeeFormApp = null;
 	let boundFrm = null;
+	let lastActiveTab = "";
+	let transitionTimer = null;
+	let translationFrame = null;
+
+	const EMPLOYEE_ZH_TEXT = {
+		"Create Assignments": "创建任务",
+		"Begin typing for results.": "输入内容以搜索",
+		"Default Shift": "默认班次",
+		Approvers: "审批人",
+		"Expense Approver": "费用审批人",
+		"Leave Approver": "休假审批人",
+		"Shift Request Approver": "排班申请审批人",
+		"Employee Advance Account": "员工预支账户",
+		"Payroll Cost Center": "薪资成本中心",
+		"Health Insurance": "健康保险",
+		"Job Applicant": "求职者",
+		Attendance: "出勤",
+		"Attendance Request": "出勤申请",
+		"Employee Checkin": "员工签到",
+		Leave: "休假",
+		"Leave Application": "休假申请",
+		"Leave Allocation": "休假额度",
+		"Leave Policy Assignment": "休假政策分配",
+		"Holiday List Assignment": "节假日列表分配",
+		Lifecycle: "员工生命周期",
+		"Employee Onboarding": "员工入职",
+		"Employee Transfer": "员工调动",
+		"Employee Promotion": "员工晋升",
+		"Employee Grievance": "员工申诉",
+		"Employee Exit": "员工离职",
+		"Employee Separation": "员工离职办理",
+		"Exit Interview": "离职面谈",
+		"Salary Withholding": "薪资暂扣",
+		"Shift Request": "排班申请",
+		"Shift Assignment": "排班分配",
+		"Travel Request": "出差申请",
+		Benefit: "员工福利",
+		"Employee Benefit Application": "员工福利申请",
+		"Employee Benefit Claim": "员工福利申领",
+		Payroll: "薪资核算",
+		"Salary Structure Assignment": "薪资结构分配",
+		"Salary Slip": "工资单",
+		"Additional Salary": "附加薪资",
+		"Employee Incentive": "员工激励",
+		"Retention Bonus": "留任奖金",
+		"Overtime Slip": "加班单",
+		Arrear: "薪资补发",
+		"Payroll Correction": "薪资更正",
+		Training: "培训",
+		"Training Event": "培训活动",
+		"Training Result": "培训结果",
+		"Training Feedback": "培训反馈",
+		"Employee Skill Map": "员工技能图谱",
+		Evaluation: "绩效评估",
+		Appraisal: "绩效考核",
+		"This is based on the attendance of this Employee": "以上数据基于该员工的出勤记录",
+		Mon: "周一",
+		Wed: "周三",
+		Fri: "周五",
+		Less: "少",
+		More: "多",
+		JAN: "一月",
+		FEB: "二月",
+		MAR: "三月",
+		APR: "四月",
+		MAY: "五月",
+		JUN: "六月",
+		JUL: "七月",
+		AUG: "八月",
+		SEP: "九月",
+		OCT: "十月",
+		NOV: "十一月",
+		DEC: "十二月",
+	};
+
+	function translate_employee_text(value) {
+		const text = String(value || "").trim();
+		if (!text) {
+			return null;
+		}
+		if (EMPLOYEE_ZH_TEXT[text]) {
+			return EMPLOYEE_ZH_TEXT[text];
+		}
+		const activityDate = text.match(/^ON\s+([A-Z]{3})\s+(\d{4}),\s*(\d{1,2})$/);
+		if (activityDate && EMPLOYEE_ZH_TEXT[activityDate[1]]) {
+			return `${activityDate[2]}年${EMPLOYEE_ZH_TEXT[activityDate[1]]}${activityDate[3]}日`;
+		}
+		return null;
+	}
+
+	function localize_employee_page($page) {
+		const root = $page?.get?.(0);
+		if (!root) {
+			return;
+		}
+		const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+		const nodes = [];
+		let node = walker.nextNode();
+		while (node) {
+			nodes.push(node);
+			node = walker.nextNode();
+		}
+		nodes.forEach((textNode) => {
+			const raw = textNode.nodeValue || "";
+			const translated = translate_employee_text(raw);
+			if (translated) {
+				textNode.nodeValue = raw.replace(raw.trim(), translated);
+				return;
+			}
+			// 开发者模式会把字段名作为帮助文本显示；这不是面向用户的信息。
+			if (/^[a-z][a-z0-9_]*$/.test(raw.trim()) && textNode.parentElement?.closest?.(".help-box")) {
+				textNode.nodeValue = "";
+			}
+		});
+		root.querySelectorAll("[title], [aria-label], [placeholder]").forEach((el) => {
+			["title", "aria-label", "placeholder"].forEach((attr) => {
+				const translated = translate_employee_text(el.getAttribute(attr));
+				if (translated) {
+					el.setAttribute(attr, translated);
+				}
+			});
+		});
+	}
+
+	function schedule_localization($page) {
+		cancelAnimationFrame(translationFrame);
+		translationFrame = requestAnimationFrame(() => localize_employee_page($page));
+	}
+
+	function bind_localization_observer($page) {
+		if (!$page?.length || $page.data("arco-emp-zh-mo")) {
+			return;
+		}
+		const observer = new MutationObserver(() => schedule_localization($page));
+		observer.observe($page.get(0), { childList: true, subtree: true });
+		$page.data("arco-emp-zh-mo", observer);
+	}
 
 	function fmt_date(v) {
 		if (!v) {
 			return "";
 		}
-		try {
-			return frappe.datetime.str_to_user(v);
-		} catch (e) {
-			return String(v);
+		const raw = String(v).trim();
+		const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+		if (iso) {
+			return `${iso[1]}年${String(iso[2]).padStart(2, "0")}月${String(iso[3]).padStart(2, "0")}日`;
 		}
+		const userDate = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+		if (userDate) {
+			return `${userDate[3]}年${String(userDate[2]).padStart(2, "0")}月${String(userDate[1]).padStart(2, "0")}日`;
+		}
+		try {
+			const date = frappe.datetime.str_to_obj(v);
+			if (date && !Number.isNaN(date.getTime())) {
+				return `${date.getFullYear()}年${String(date.getMonth() + 1).padStart(2, "0")}月${String(date.getDate()).padStart(2, "0")}日`;
+			}
+			return raw;
+		} catch (e) {
+			return raw;
+		}
+	}
+
+	function profile_summary(doc) {
+		const checks = [
+			{ value: doc.employee_name || doc.first_name, label: "补充员工姓名", target: "employee_name" },
+			{ value: doc.date_of_joining, label: "补充入职日期", target: "employment_details" },
+			{ value: doc.company, label: "补充所属公司", target: "company" },
+			{ value: doc.department, label: "补充所属部门", target: "department" },
+			{ value: doc.designation, label: "补充员工职位", target: "designation" },
+			{ value: doc.branch, label: "补充分支机构", target: "branch" },
+			{ value: doc.cell_number, label: "补充手机号", target: "contact" },
+			{ value: doc.company_email || doc.personal_email, label: "补充邮箱", target: "contact" },
+			{ value: doc.person_to_be_contacted && doc.emergency_phone_number, label: "完善紧急联系人", target: "contact" },
+			{ value: doc.bio || (doc.education || []).length || (doc.external_work_history || []).length, label: "完善个人履历", target: "bio" },
+		];
+		const complete = checks.filter((item) => !!item.value).length;
+		return {
+			profile_completion: Math.round((complete / checks.length) * 100),
+			profile_missing: checks.filter((item) => !item.value).map(({ label, target }) => ({ label, target })),
+		};
 	}
 
 	function strip_html(html) {
@@ -59,6 +229,7 @@
 
 	function payload_from_frm(frm, extras = {}) {
 		const doc = (frm && frm.doc) || {};
+		const profile = profile_summary(doc);
 		const education = map_child_rows(doc.education, [
 			"school_univ",
 			"qualification",
@@ -89,6 +260,7 @@
 			(Number(extras.dashboard_links) || 0);
 
 		return {
+			...profile,
 			name: doc.name || "",
 			employee_name: doc.employee_name || doc.first_name || "",
 			status: doc.status || "",
@@ -97,6 +269,10 @@
 			company: doc.company || "",
 			branch: doc.branch || "",
 			employment_type: doc.employment_type || "",
+			employment_type_label:
+				({ "Full-time": "全职", Intern: "实习", Probation: "试用期", Contract: "合同工", "Part-time": "兼职" }[
+					doc.employment_type
+				] || doc.employment_type || ""),
 			image: doc.image || "",
 			date_of_joining: fmt_date(doc.date_of_joining),
 			cell_number: doc.cell_number || "",
@@ -203,34 +379,6 @@
 		return $root.get(0);
 	}
 
-	function ensure_footer_toggles($page) {
-		const pairs = [
-			{ sel: ".comment-box", label: "评论" },
-			{ sel: ".new-timeline", label: "活动" },
-		];
-		pairs.forEach(({ sel, label }) => {
-			const $box = $page.find(sel).first();
-			if (!$box.length || $box.data("arco-emp-toggle-bound")) {
-				return;
-			}
-			$box.data("arco-emp-toggle-bound", 1);
-			if (!$box.find("> .arco-emp-footer-toggle").length) {
-				$box.prepend(
-					$(
-						`<button type="button" class="arco-emp-footer-toggle" aria-expanded="false">${label}</button>`
-					)
-				);
-			}
-			$box.on("click.arcoEmpFooter", ".arco-emp-footer-toggle", function (e) {
-				e.preventDefault();
-				e.stopPropagation();
-				const open = !$box.hasClass("arco-emp-footer-open");
-				$box.toggleClass("arco-emp-footer-open", open);
-				$(this).attr("aria-expanded", open ? "true" : "false");
-			});
-		});
-	}
-
 	function polish_dom(frm) {
 		const $page = frm.$wrapper || frm.page?.wrapper;
 		if (!$page || !$page.length) {
@@ -243,7 +391,8 @@
 		$page.find(".form-grid-container, .form-grid").each(function () {
 			$(this).closest(".frappe-control, .form-group").addClass("arco-emp-grid-wrap");
 		});
-		ensure_footer_toggles($page);
+		bind_localization_observer($page);
+		schedule_localization($page);
 	}
 
 	function sync_overview_visibility(frm) {
@@ -255,12 +404,20 @@
 		// 摘要仪表盘仅挂在「概况」页签，其它 hash 页签保持原生表单
 		const isOverview = active === "basic_details_tab";
 		$page.toggleClass("arco-emp-overview-active", isOverview);
-		$page.find("#employee-arco-chrome-root").toggle(isOverview);
+		// 身份头始终保留，避免切换页签时页面基准突然上移；Vue 内部会平滑收起详情。
+		$page.find("#employee-arco-chrome-root").show();
 		$page.find("#employee-arco-overview-root").toggle(isOverview);
 		$page.find(".form-layout .form-section").toggleClass("arco-emp-native-hidden", isOverview);
-		if (isOverview) {
-			ensure_footer_toggles($page);
+
+		if (lastActiveTab && lastActiveTab !== active) {
+			$page.removeClass("arco-emp-tab-entering");
+			void $page.get(0)?.offsetWidth;
+			$page.addClass("arco-emp-tab-entering");
+			clearTimeout(transitionTimer);
+			transitionTimer = setTimeout(() => $page.removeClass("arco-emp-tab-entering"), 260);
 		}
+		lastActiveTab = active;
+		schedule_localization($page);
 		return isOverview;
 	}
 
@@ -450,9 +607,19 @@
 		} catch (e) {
 			/* ignore */
 		}
-		$page.removeData("arco-emp-tab-bound arco-emp-tab-capture arco-emp-tab-mo");
+		try {
+			$page.data("arco-emp-zh-mo")?.disconnect?.();
+		} catch (e) {
+			/* ignore */
+		}
+		$page.removeData("arco-emp-tab-bound arco-emp-tab-capture arco-emp-tab-mo arco-emp-zh-mo");
 		employeeFormApp = null;
 		boundFrm = null;
+		lastActiveTab = "";
+		clearTimeout(transitionTimer);
+		transitionTimer = null;
+		cancelAnimationFrame(translationFrame);
+		translationFrame = null;
 		$(window).off("hashchange.arcoEmpTab popstate.arcoEmpTab");
 		document.body.classList.remove("arco-employee-form");
 		document.querySelector("#employee-arco-chrome-root")?.remove();
