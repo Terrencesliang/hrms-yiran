@@ -7,11 +7,13 @@
   .\dev.ps1
   .\dev.ps1 -Logs
   .\dev.ps1 -Migrate
+  .\dev.ps1 -ForceMigrate
 #>
 [CmdletBinding()]
 param(
     [switch]$Logs,
     [switch]$Migrate,
+    [switch]$ForceMigrate,
     [switch]$Recreate
 )
 
@@ -61,7 +63,11 @@ try {
 
     $prepareOptions = @("exec", "-T", "backend", "bash", "/workspace/source/deploy/scripts/prepare_dev.sh")
     if ($useBundledPostgres) { $prepareOptions += "--local-database" }
-    if ($Migrate) { $prepareOptions += "--migrate" }
+    if ($ForceMigrate) {
+        $prepareOptions += "--force-migrate"
+    } elseif ($Migrate) {
+        $prepareOptions += "--migrate"
+    }
     & docker compose @composeOptions @prepareOptions
     if ($LASTEXITCODE -ne 0) {
         throw "development database preparation failed"

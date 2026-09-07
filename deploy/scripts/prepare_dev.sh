@@ -5,12 +5,62 @@ set -euo pipefail
 BENCH_DIR="/home/frappe/frappe-bench"
 SOURCE_DIR="/workspace/source"
 SITE_NAME="${SITE_NAME:-hrms.localhost}"
+ALLOW_MIGRATE=false
 FORCE_MIGRATE=false
 LOCAL_DATABASE=false
+PROGRESS_INTERVAL_SECONDS="${PROGRESS_INTERVAL_SECONDS:-15}"
+progress_pid=""
+
+stop_progress() {
+	if [ -n "${progress_pid}" ]; then
+		kill "${progress_pid}" 2>/dev/null || true
+		wait "${progress_pid}" 2>/dev/null || true
+		progress_pid=""
+	fi
+}
+
+run_with_progress() {
+	local label="$1"
+	local started_at status elapsed
+	shift
+
+	started_at="${SECONDS}"
+	printf '%s\n' "${label} This can take several minutes; progress will be reported every ${PROGRESS_INTERVAL_SECONDS}s."
+	printf '%s\n' "If a DocType progress bar stays at 100%, hooks and cleanup may still be running."
+	(
+		while sleep "${PROGRESS_INTERVAL_SECONDS}"; do
+			elapsed=$((SECONDS - started_at))
+			printf '\n[migration] Still working... %ss elapsed.\n' "${elapsed}"
+		done
+	) &
+	progress_pid="$!"
+
+	if "$@"; then
+		status=0
+	else
+		status="$?"
+	fi
+	stop_progress
+	elapsed=$((SECONDS - started_at))
+	if [ "${status}" -eq 0 ]; then
+		printf '%s\n' "[migration] Completed after ${elapsed}s."
+	else
+		printf '%s\n' "[migration] Failed after ${elapsed}s (exit code ${status})." >&2
+	fi
+	return "${status}"
+}
+
+trap stop_progress EXIT
+
+if ! [[ "${PROGRESS_INTERVAL_SECONDS}" =~ ^[1-9][0-9]*$ ]]; then
+	echo "PROGRESS_INTERVAL_SECONDS must be a positive integer." >&2
+	exit 2
+fi
 
 for arg in "$@"; do
 	case "${arg}" in
-		--migrate) FORCE_MIGRATE=true ;;
+		--migrate) ALLOW_MIGRATE=true ;;
+		--force-migrate) ALLOW_MIGRATE=true; FORCE_MIGRATE=true ;;
 		--local-database) LOCAL_DATABASE=true ;;
 		*) echo "Unknown prepare_dev option: ${arg}" >&2; exit 2 ;;
 	esac
@@ -76,7 +126,7 @@ marker="sites/${SITE_NAME}/.dev-schema-signature"
 schema_changed=false
 if [ -f "${marker}" ]; then
 	[ "$(cat "${marker}")" = "${signature}" ] || schema_changed=true
-elif [ "${LOCAL_DATABASE}" = true ]; then
+elif [ "${LOCAL_DATABASE}" = true ] || [ "${ALLOW_MIGRATE}" = true ]; then
 	schema_changed=true
 elif [ "${#missing_apps[@]}" -eq 0 ]; then
 	# Adopt an existing remote development database without migrating it on the
@@ -89,7 +139,7 @@ if [ "${FORCE_MIGRATE}" = true ] || [ "${schema_changed}" = true ] || [ "${#miss
 	needs_migrate=true
 fi
 
-if [ "${needs_migrate}" = true ] && [ "${LOCAL_DATABASE}" != true ] && [ "${FORCE_MIGRATE}" != true ]; then
+if [ "${needs_migrate}" = true ] && [ "${LOCAL_DATABASE}" != true ] && [ "${ALLOW_MIGRATE}" != true ]; then
 	echo "The remote development database needs an HR schema update." >&2
 	if [ "${#missing_apps[@]}" -gt 0 ]; then
 		echo "Missing apps: ${missing_apps[*]}" >&2
@@ -101,15 +151,17 @@ fi
 if [ "${needs_migrate}" = true ]; then
 	if [ "${#missing_apps[@]}" -gt 0 ]; then
 		echo "Synchronizing the existing Frappe/ERPNext schema first..."
-		bench --site "${SITE_NAME}" migrate --skip-search-index
+		run_with_progress "Preparing the base database schema." \
+			bench --site "${SITE_NAME}" migrate --skip-search-index
 	fi
 	for app in "${missing_apps[@]}"; do
 		echo "Installing ${app} on ${SITE_NAME}..."
 		bench --site "${SITE_NAME}" install-app "${app}"
 	done
 	echo "Synchronizing database metadata for ${SITE_NAME}..."
-	bench --site "${SITE_NAME}" migrate --skip-search-index
-	if [ "${FORCE_MIGRATE}" = true ] && [ ! -f "${marker}" ]; then
+	run_with_progress "Applying database metadata updates for ${SITE_NAME}." \
+		bench --site "${SITE_NAME}" migrate --skip-search-index
+	if [ "${ALLOW_MIGRATE}" = true ] && [ ! -f "${marker}" ]; then
 		# Recover idempotent setup work when Frappe marked an app installed but
 		# a previous after_install hook stopped part-way through.
 		installed_apps="$(bench --site "${SITE_NAME}" execute frappe.get_installed_apps)"

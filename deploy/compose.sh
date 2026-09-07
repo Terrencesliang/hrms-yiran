@@ -15,4 +15,5 @@ if [ -f "${ENV_FILE}" ]; then
 	fi
 fi
 
+cd "${DEPLOY_DIR}"
 exec docker compose "${args[@]}" "$@"
