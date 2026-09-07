@@ -353,7 +353,11 @@ function go(route) {
 }
 
 function onStartSign() {
-	go(["contract-templates"]);
+	try {
+		window.frappe?.set_route?.("contract-templates");
+	} catch (e) {
+		console.warn("[contract-signing] navigate failed", e);
+	}
 }
 
 function openDetail(record) {

@@ -220,7 +220,7 @@ function onSearch() {
 }
 
 function onQuickSign() {
-	go(["contract-signing-pending"]);
+	go(["contract-templates"]);
 }
 
 function goSigning() {
@@ -236,8 +236,18 @@ function goTemplates() {
 }
 
 function useTemplate(tpl) {
-	Message.success(`已选择模板：${tpl.name}`);
-	go(["contract-signing-pending"]);
+	try {
+		if (window.frappe) {
+			window.frappe.route_options = {
+				templateId: tpl.id,
+				templateName: tpl.name,
+				openPicker: true,
+			};
+		}
+	} catch (e) {
+		/* ignore */
+	}
+	go(["contract-initiate"]);
 }
 
 function addTemplate() {

@@ -233,9 +233,16 @@ function onSave() {
 }
 
 function onStart(record) {
-	Message.success(`发起打包签署：${record.name}`);
 	try {
-		window.frappe?.set_route?.(["contract-signing-pending"]);
+		if (window.frappe) {
+			window.frappe.route_options = {
+				templateId: record.id,
+				templateName: record.name,
+				mode: "batch",
+				openPicker: true,
+			};
+		}
+		window.frappe?.set_route?.(["contract-initiate"]);
 	} catch (e) {
 		/* ignore */
 	}

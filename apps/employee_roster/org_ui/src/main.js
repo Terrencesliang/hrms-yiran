@@ -18,6 +18,7 @@ import HrDashboardPage from "./pages/dashboard/HrDashboardPage.vue";
 import ContractOverviewPage from "./pages/contract/ContractOverviewPage.vue";
 import ContractTemplatesPage from "./pages/contract/ContractTemplatesPage.vue";
 import ContractSigningListPage from "./pages/contract/ContractSigningListPage.vue";
+import ContractInitiatePage from "./pages/contract/ContractInitiatePage.vue";
 import ContractSealsPage from "./pages/contract/ContractSealsPage.vue";
 import ContractPackagesPage from "./pages/contract/ContractPackagesPage.vue";
 import ContractArchivePage from "./pages/contract/ContractArchivePage.vue";
@@ -171,6 +172,24 @@ export function mountContractSigning(el, options = {}) {
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () =>
 					h(ContractSigningListPage, { status })
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractInitiate(el, options = {}) {
+	const templateId = options.templateId || "";
+	const templateName = options.templateName || "";
+	const mode = options.mode === "batch" ? "batch" : "single";
+	const openPicker = options.openPicker !== false;
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(ContractInitiatePage, { templateId, templateName, mode, openPicker })
 				);
 			},
 		})
