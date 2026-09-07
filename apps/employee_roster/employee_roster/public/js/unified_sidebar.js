@@ -52,14 +52,66 @@ frappe.provide("employee_roster.unified_sidebar");
 		Contract: {
 			items: [
 				{
-					label: __("合同概览"),
+					label: __("概览"),
+					icon: "desktop",
 					path: "/app/contract-overview",
+					link_type: "Page",
 					link_to: "contract-overview",
 				},
 				{
-					label: __("合同模板"),
-					path: "/app/contract-templates",
-					link_to: "contract-templates",
+					label: __("合同签署"),
+					icon: "file",
+					children: [
+						{
+							label: __("签署中"),
+							path: "/app/contract-signing-pending",
+							link_type: "Page",
+							link_to: "contract-signing-pending",
+						},
+						{
+							label: __("已签署"),
+							path: "/app/contract-signing-signed",
+							link_type: "Page",
+							link_to: "contract-signing-signed",
+						},
+						{
+							label: __("已作废"),
+							path: "/app/contract-signing-void",
+							link_type: "Page",
+							link_to: "contract-signing-void",
+						},
+					],
+				},
+				{
+					label: __("合同档案库"),
+					icon: "archive",
+					path: "/app/contract-archive",
+					link_type: "Page",
+					link_to: "contract-archive",
+				},
+				{
+					label: __("设置"),
+					icon: "setting",
+					children: [
+						{
+							label: __("企业印章"),
+							path: "/app/contract-seals",
+							link_type: "Page",
+							link_to: "contract-seals",
+						},
+						{
+							label: __("合同模板"),
+							path: "/app/contract-templates",
+							link_type: "Page",
+							link_to: "contract-templates",
+						},
+						{
+							label: __("合同包"),
+							path: "/app/contract-packages",
+							link_type: "Page",
+							link_to: "contract-packages",
+						},
+					],
 				},
 			],
 		},
@@ -85,6 +137,17 @@ frappe.provide("employee_roster.unified_sidebar");
 	]);
 
 	const HR_SETUP_PAGES = new Set(["hr-home", "hr-dashboard"]);
+
+	const CONTRACT_PAGES = new Set([
+		"contract-overview",
+		"contract-signing-pending",
+		"contract-signing-signed",
+		"contract-signing-void",
+		"contract-archive",
+		"contract-seals",
+		"contract-templates",
+		"contract-packages",
+	]);
 
 	const SKIP_LINK_LABELS = new Set([]);
 
@@ -310,7 +373,14 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		getHrmsApp() {
-			return (frappe.boot.apps_data?.apps || []).find((app) => app.name === "hrms");
+			const apps = frappe.boot.apps_data?.apps || [];
+			return (
+				apps.find((app) => app.name === "hrms") ||
+				apps.find((app) => app.name === "employee_roster") ||
+				apps.find((app) => app.name === "erpnext") ||
+				apps[0] ||
+				null
+			);
 		},
 
 		getRouteStrSafe() {
@@ -323,12 +393,40 @@ frappe.provide("employee_roster.unified_sidebar");
 				/* ignore */
 			}
 			try {
+				const path = (window.location.pathname || "").replace(/\/$/, "");
+				const cleaned = path.replace(/^\/(desk|app)(?=\/|$)/, "").replace(/^\//, "");
+				if (cleaned) return cleaned.split("?")[0];
+			} catch (e) {
+				/* ignore */
+			}
+			try {
 				const hash = (window.location.hash || "").replace(/^#\/?/, "");
 				if (hash) return hash.split("?")[0];
 			} catch (e) {
 				/* ignore */
 			}
 			return "";
+		},
+
+		getPathPageName() {
+			try {
+				const path = (window.location.pathname || "").replace(/\/$/, "");
+				const cleaned = path.replace(/^\/(desk|app)(?=\/|$)/, "").replace(/^\//, "");
+				return cleaned.split("/")[0] || "";
+			} catch (e) {
+				return "";
+			}
+		},
+
+		isContractRoute() {
+			const routePage = String(this.getRouteStrSafe() || "").split("/")[0];
+			const pathPage = this.getPathPageName();
+			return (
+				this.isContractPageLink(routePage) ||
+				this.isContractPageLink(pathPage) ||
+				CONTRACT_PAGES.has(routePage) ||
+				CONTRACT_PAGES.has(pathPage)
+			);
 		},
 
 		isHrContext() {
@@ -338,9 +436,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				// Keep sidebar mounted while navigating between items under the last HR module.
 				if (this.menuModule && HR_CONTEXT_MODULES.has(this.menuModule)) return true;
 
-				// Never call frappe.get_route_str() — it does current_route.join
-				// and throws when current_route is still null during boot.
-				const route = this.getRouteStrSafe();
+				const route = this.getRouteStrSafe() || this.getPathPageName();
 				if (!route) return false;
 
 				const hrPrefixes = [
@@ -352,6 +448,12 @@ frappe.provide("employee_roster.unified_sidebar");
 					"orgchart",
 					"roster",
 					"employee-archive",
+					"contract-overview",
+					"contract-signing",
+					"contract-archive",
+					"contract-seals",
+					"contract-templates",
+					"contract-packages",
 					"attendance-rules",
 					"approvals",
 					"approval-templates",
@@ -382,15 +484,42 @@ frappe.provide("employee_roster.unified_sidebar");
 
 		shouldActivate() {
 			try {
-				return !!this.getHrmsApp() && this.isHrContext();
+				// Activate on HR routes/modules even if dock "hrms" app lookup fails.
+				return this.isHrContext();
 			} catch (e) {
 				return false;
 			}
 		},
 
 		onSidebarSetup(sidebar) {
-			if (!sidebar) return;
+			// Frappe rebuilds native module sidebar (e.g. hr_roster) — always reassert Arco host.
 			this.refresh();
+			this.scheduleSidebarWatch();
+		},
+
+		scheduleSidebarWatch() {
+			if (this._sidebarObserver || typeof MutationObserver === "undefined") return;
+			const attach = () => {
+				const sidebar = document.querySelector(".body-sidebar");
+				if (!sidebar) return false;
+				this._sidebarObserver = new MutationObserver(() => {
+					clearTimeout(this._sidebarMutateTimer);
+					this._sidebarMutateTimer = setTimeout(() => {
+						if (!this.shouldActivate()) return;
+						this.ensureRoot();
+						this.hideStandardChrome();
+						this.remountArcoIfDetached();
+						if (window.OrgUI?.mountSidebar) {
+							this.mountArcoNavbar();
+							this.mountArcoSidebar();
+							this.pushArcoState();
+						}
+					}, 50);
+				});
+				this._sidebarObserver.observe(sidebar, { childList: true, subtree: false });
+				return true;
+			};
+			if (!attach()) setTimeout(attach, 200);
 		},
 
 		refresh() {
@@ -407,13 +536,22 @@ frappe.provide("employee_roster.unified_sidebar");
 				clearTimeout(this._deactivateTimer);
 				this._deactivateTimer = null;
 
+				// Re-pin synthetic Contract after Frappe Page.module (hr_roster) overwrites current_module.
+				if (this.isContractRoute()) {
+					this.pinContractModule();
+				} else if (this.isApprovalRoute()) {
+					this.pinModule("hr_roster");
+				}
+
 				document.body.classList.add(BODY_CLASS);
 				if (!frappe.is_mobile()) document.body.classList.remove("sidebar-collapsed");
 				document.body.classList.toggle("hr-sidebar-compact", this.compact);
 				this.ensureNavbar();
 				this.ensureRoot();
 				this.hideStandardChrome();
+				this.scheduleSidebarWatch();
 				if (window.OrgUI?.mountSidebar) {
+					this.remountArcoIfDetached();
 					this.mountArcoNavbar();
 					this.mountArcoSidebar();
 					this.pushArcoState();
@@ -426,6 +564,35 @@ frappe.provide("employee_roster.unified_sidebar");
 				this.ensureCollapseControls();
 			} catch (e) {
 				console.warn("[hr-unified-sidebar] refresh skipped:", e);
+			}
+		},
+
+		remountArcoIfDetached() {
+			const root = document.getElementById(ROOT_ID);
+			const live =
+				this.vueApp &&
+				root &&
+				(this.vueApp._container === root || root.querySelector?.(".arco-hr-sidebar"));
+			if (this.vueApp && !live) {
+				try {
+					this.vueApp.unmount?.();
+				} catch (e) {
+					/* ignore */
+				}
+				this.vueApp = null;
+			}
+			const nav = document.getElementById(NAVBAR_ROOT_ID);
+			const navLive =
+				this.navbarApp &&
+				nav &&
+				(this.navbarApp._container === nav || nav.childNodes?.length);
+			if (this.navbarApp && !navLive) {
+				try {
+					this.navbarApp.unmount?.();
+				} catch (e) {
+					/* ignore */
+				}
+				this.navbarApp = null;
 			}
 		},
 
@@ -544,9 +711,11 @@ frappe.provide("employee_roster.unified_sidebar");
 			this.vueApp = window.OrgUI.mountSidebar(root, {
 				onWorkspace: (ws) => {
 					if (ws?.module) {
-						this.menuModule = HR_CONTEXT_MODULES.has(ws.module) ? ws.module : null;
-						frappe.app.sidebar.open_module(ws.module);
-					} else if (ws?.route) {
+						this.pinModule(ws.module);
+						this.pushArcoState();
+						return;
+					}
+					if (ws?.route) {
 						this.menuModule = null;
 						frappe.set_route(ws.route);
 					}
@@ -557,19 +726,17 @@ frappe.provide("employee_roster.unified_sidebar");
 					$(".navbar-modal-search-mobile").first().trigger("click");
 				},
 				onTabChange: (moduleKey) => {
-					if (!moduleKey) return;
-					this.menuModule = moduleKey;
-					if (frappe.app?.sidebar?.current_module !== moduleKey) {
-						frappe.app.sidebar.open_module(moduleKey);
-					}
-					this.pushArcoState();
+					this.selectModuleTab(moduleKey);
 				},
 				onNavigate: (item) => {
-					if (item?.module) {
-						this.menuModule = item.module;
+					if (item?.module === "Contract" || this.isContractPageLink(item?.link_to)) {
+						this.pinContractModule();
+					} else if (this.isApprovalPageLink(item?.link_to)) {
+						this.pinModule("hr_roster");
+					} else if (item?.module) {
+						this.pinModule(item.module);
 					}
 					if (HR_SETUP_PAGES.has(String(item?.link_to || "").split("/")[0])) {
-						this.menuModule = "HR Setup";
 						this.pinHrSetupModule();
 					}
 					if (frappe.is_mobile()) {
@@ -584,15 +751,55 @@ frappe.provide("employee_roster.unified_sidebar");
 			// Only pin sidebar context — NEVER call open_module() here.
 			// open_module() navigates to the module's first sidebar item (人事主页),
 			// which cancels navigation to 数据面板 / other HR pages.
-			this.menuModule = "HR Setup";
+			this.pinModule("HR Setup");
+		},
+
+		pinContractModule() {
+			this.pinModule("Contract");
+		},
+
+		pinModule(moduleKey) {
+			// Never open_module / select_module while Arco unified sidebar is active —
+			// those rebuild Frappe's native module sidebar (e.g. bare hr_roster) and detach our Vue root.
+			if (!moduleKey) return;
+			this.menuModule = moduleKey;
 			try {
 				if (frappe.app?.sidebar) {
-					frappe.app.sidebar.current_module = "HR Setup";
-					frappe.app.sidebar.select_module?.("HR Setup");
+					frappe.app.sidebar.current_module = moduleKey;
 				}
 			} catch (e) {
 				/* ignore */
 			}
+		},
+
+		isSyntheticModule(moduleKey) {
+			return !!SYNTHETIC_MODULES[moduleKey];
+		},
+
+		isContractPageLink(linkTo) {
+			const page = String(linkTo || "").split("/")[0];
+			return CONTRACT_PAGES.has(page) || page.startsWith("contract-");
+		},
+
+		isApprovalPageLink(linkTo) {
+			const page = String(linkTo || "").split("/")[0];
+			return (
+				page === "approvals" ||
+				page === "approval-templates" ||
+				page === "approval-workspace" ||
+				page === "approval-form-designer" ||
+				page.startsWith("approval-")
+			);
+		},
+
+		isApprovalRoute() {
+			return this.isApprovalPageLink(this.getRouteStrSafe()) || this.isApprovalPageLink(this.getPathPageName());
+		},
+
+		selectModuleTab(moduleKey) {
+			if (!moduleKey) return;
+			this.pinModule(moduleKey);
+			this.pushArcoState();
 		},
 
 		navigateSidebarItem(item) {
@@ -614,6 +821,12 @@ frappe.provide("employee_roster.unified_sidebar");
 					const parts = String(linkTo).split("/").filter(Boolean);
 					if (HR_SETUP_PAGES.has(parts[0])) {
 						this.pinHrSetupModule();
+					} else if (this.isContractPageLink(parts[0])) {
+						this.pinContractModule();
+					} else if (this.isApprovalPageLink(parts[0])) {
+						this.pinModule("hr_roster");
+					} else if (item.module) {
+						this.pinModule(item.module);
 					}
 					frappe.set_route(...parts);
 					return;
@@ -685,6 +898,18 @@ frappe.provide("employee_roster.unified_sidebar");
 			const scrollTop = menuEl?.scrollTop || 0;
 
 			const activeModule = this.getMenuModuleKey();
+			const onContractPage = this.isContractRoute();
+			const onApprovalPage = this.isApprovalRoute();
+			if (onContractPage) {
+				this.pinContractModule();
+			} else if (onApprovalPage) {
+				this.pinModule("hr_roster");
+			}
+			const preferredModule = onContractPage
+				? "Contract"
+				: onApprovalPage
+					? "hr_roster"
+					: activeModule;
 			const modules = this.getTabModules();
 			const pathname = decodeURIComponent((window.location.pathname || "").replace(/\/$/, ""));
 			const routeStr = this.getRouteStrSafe();
@@ -698,22 +923,21 @@ frappe.provide("employee_roster.unified_sidebar");
 				const candidates = [href, href.replace(/^\/(desk|app)/, "")].filter(Boolean);
 				for (const candidate of candidates) {
 					const clean = candidate.replace(/\/$/, "");
-					if (!clean || clean === "#") continue;
+					if (!clean || clean === "#" || clean === "/app" || clean === "app") continue;
+					const pageOnly = clean.replace(/^\/(desk|app)\//, "").replace(/^\//, "");
 					const pathMatch =
 						pathname === clean ||
-						pathname.endsWith(clean) ||
-						pathname.startsWith(clean + "/") ||
-						pathname.endsWith("/" + clean.replace(/^\//, ""));
+						pathname === `/app/${pageOnly}` ||
+						pathname.endsWith("/" + pageOnly);
 					const routeMatch =
 						routeStr &&
-						(routeStr === clean.replace(/^\//, "") ||
-							routeStr.startsWith(clean.replace(/^\//, "") + "/") ||
-							("List/" + clean.replace(/^\//, "") === routeStr) ||
-							routeStr.endsWith("/" + clean.replace(/^\//, "")));
+						(routeStr === pageOnly ||
+							routeStr === clean.replace(/^\//, "") ||
+							routeStr.startsWith(pageOnly + "/"));
 					if (!(pathMatch || routeMatch)) continue;
 					let score = clean.length;
 					// Prefer the currently inferred module so 人事/薪资同名项不会抢高亮.
-					if (moduleKey && moduleKey === activeModule) score += 1000;
+					if (moduleKey && moduleKey === preferredModule) score += 1000;
 					if (score >= matchedLength) {
 						activeKey = key;
 						matchedLength = score;
@@ -721,6 +945,90 @@ frappe.provide("employee_roster.unified_sidebar");
 				}
 			};
 
+			const buildSyntheticItems = (modKey, asRoot = false) => {
+				const source = SYNTHETIC_MODULES[modKey];
+				if (!source?.items?.length) return [];
+				const built = [];
+				source.items.forEach((item) => {
+					const path = item.path || "#";
+					const key = `${modKey}::${path || item.label}::${item.label}`;
+					if (item.children?.length) {
+						const childItems = item.children.map((child) => {
+							const childPath = child.path || "#";
+							const childKey = `${key}::${childPath}::${child.label}`;
+							markActive(childKey, childPath, modKey);
+							if (child.link_type === "Page" && child.link_to) {
+								markActive(childKey, `/app/${child.link_to}`, modKey);
+								markActive(childKey, child.link_to, modKey);
+							}
+							return {
+								key: childKey,
+								label: child.label,
+								path: childPath,
+								module: modKey,
+								link_type: child.link_type || "Page",
+								link_to: child.link_to,
+								openInNewTab: false,
+							};
+						});
+						if (asRoot) {
+							built.push({
+								key,
+								label: item.label,
+								icon: item.icon || "",
+								module: modKey,
+								collapsible: true,
+								open: true,
+								items: childItems,
+							});
+						} else {
+							built.push({
+								key,
+								label: item.label,
+								icon: item.icon || "",
+								module: modKey,
+								children: childItems,
+								open: true,
+							});
+						}
+						return;
+					}
+					if (asRoot) {
+						built.push({
+							key,
+							label: item.label,
+							icon: item.icon || "",
+							module: modKey,
+							type: "item",
+							path,
+							link_type: item.link_type || "Page",
+							link_to: item.link_to,
+							openInNewTab: false,
+							items: [],
+						});
+					} else {
+						built.push({
+							key,
+							label: item.label,
+							icon: item.icon || "",
+							path,
+							module: modKey,
+							link_type: item.link_type || "Page",
+							link_to: item.link_to,
+							openInNewTab: false,
+						});
+					}
+					markActive(key, path, modKey);
+					if (item.link_type === "Page" && item.link_to) {
+						markActive(key, `/app/${item.link_to}`, modKey);
+						markActive(key, item.link_to, modKey);
+					}
+				});
+				return built;
+			};
+
+			// Always show full module accordion (人事 / 考勤 / 审批 / 合同 / …).
+			// Contract pages keep 合同 expanded + correct leaf highlight — never swap to a Contract-only menu.
 			modules.forEach((mod) => {
 				const sidebarData = frappe.boot.module_sidebars?.[mod.key];
 				const items = [];
@@ -754,20 +1062,7 @@ frappe.provide("employee_roster.unified_sidebar");
 						});
 					});
 				} else if (SYNTHETIC_MODULES[mod.key]) {
-					SYNTHETIC_MODULES[mod.key].items.forEach((item) => {
-						const path = item.path || "#";
-						const key = `${mod.key}::${path}::${item.label}`;
-						items.push({
-							key,
-							label: item.label,
-							path,
-							module: mod.key,
-							link_type: item.link_type || "Page",
-							link_to: item.link_to,
-							openInNewTab: false,
-						});
-						markActive(key, path, mod.key);
-					});
+					items.push(...buildSyntheticItems(mod.key, false));
 				}
 
 				if (!items.length) return;
@@ -777,7 +1072,9 @@ frappe.provide("employee_roster.unified_sidebar");
 					label: mod.label,
 					collapsible: true,
 					// Hint only — Vue keeps user-expanded keys to avoid collapse jump.
-					open: mod.key === activeModule || (!activeModule && mod.key === modules[0]?.key),
+					open:
+						mod.key === preferredModule ||
+						(!preferredModule && mod.key === modules[0]?.key),
 					items,
 				});
 			});
@@ -820,11 +1117,26 @@ frappe.provide("employee_roster.unified_sidebar");
 			if (!sidebar) return;
 
 			sidebar.classList.add("hr-unified-host");
+			const keep = new Set([
+				ROOT_ID,
+				"dropdown-notifications",
+				"dropdown-background-tasks",
+			]);
+			Array.from(sidebar.children || []).forEach((el) => {
+				if (!el) return;
+				if (el.id && keep.has(el.id)) return;
+				if (keep.has(el.className) || el.classList?.contains?.("dropdown-notifications")) return;
+				if (el.id === ROOT_ID || el.classList?.contains?.("arco-hr-sidebar-host")) return;
+				el.classList.add("hr-unified-hidden");
+			});
 			sidebar.querySelector(".sidebar-header")?.classList.add("hr-unified-hidden");
 			sidebar.querySelector(".standard-items-band")?.classList.add("hr-unified-hidden");
 			sidebar.querySelector(".sidebar-items")?.classList.add("hr-unified-hidden");
 			sidebar.querySelector(".body-sidebar-cards")?.classList.add("hr-unified-hidden");
 			sidebar.querySelector(".promotional-banners")?.classList.add("hr-unified-hidden");
+			sidebar.querySelector(".body-sidebar-top")?.classList.add("hr-unified-hidden");
+			sidebar.querySelector(".desk-sidebar")?.classList.add("hr-unified-hidden");
+			sidebar.querySelector(".workspace-sidebar")?.classList.add("hr-unified-hidden");
 		},
 
 		restoreStandardChrome() {
@@ -838,6 +1150,10 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		getWorkspaceTitle() {
+			const active = this.getMenuModuleKey();
+			if (active && MODULE_TAB_LABELS[active]) {
+				return MODULE_TAB_LABELS[active];
+			}
 			const sidebar = frappe.app?.sidebar;
 			const current = sidebar?.current_module;
 			if (current && MODULE_TAB_LABELS[current]) {
@@ -966,8 +1282,11 @@ frappe.provide("employee_roster.unified_sidebar");
 				label: MODULE_TAB_LABELS[entry.module] || translateSidebarLabel(entry.title || entry.module),
 				onClick: () => {
 					if (entry.module) {
-						frappe.app.sidebar.open_module(entry.module);
-					} else if (entry.route) {
+						this.pinModule(entry.module);
+						this.pushArcoState();
+						return;
+					}
+					if (entry.route) {
 						frappe.set_route(entry.route);
 					}
 				},
@@ -987,6 +1306,13 @@ frappe.provide("employee_roster.unified_sidebar");
 			const inferred = this.inferModuleFromRoute();
 			if (inferred && tabKeys.includes(inferred)) {
 				this.menuModule = inferred;
+				if (inferred === "Contract") {
+					try {
+						if (frappe.app?.sidebar) frappe.app.sidebar.current_module = "Contract";
+					} catch (e) {
+						/* ignore */
+					}
+				}
 				return inferred;
 			}
 
@@ -1007,10 +1333,31 @@ frappe.provide("employee_roster.unified_sidebar");
 			const route = this.getRouteStrSafe();
 			const pathname = (window.location.pathname || "").replace(/\/$/, "");
 			const pageName = String(route || "").split("/")[0];
+			const pathPage = this.getPathPageName();
 
 			// 人事主页 / 数据面板 must stay under HR Setup (never Payroll / hr_roster).
-			if (HR_SETUP_PAGES.has(pageName) || currentHrSetupRoute(route, pathname)) {
+			if (
+				HR_SETUP_PAGES.has(pageName) ||
+				HR_SETUP_PAGES.has(pathPage) ||
+				currentHrSetupRoute(route, pathname)
+			) {
 				return "HR Setup";
+			}
+
+			if (
+				CONTRACT_PAGES.has(pageName) ||
+				CONTRACT_PAGES.has(pathPage) ||
+				String(pageName || "").startsWith("contract-") ||
+				String(pathPage || "").startsWith("contract-")
+			) {
+				return "Contract";
+			}
+
+			if (
+				this.isApprovalPageLink(pageName) ||
+				this.isApprovalPageLink(pathPage)
+			) {
+				return "hr_roster";
 			}
 
 			for (const tab of this.getTabModules()) {
@@ -1049,13 +1396,9 @@ frappe.provide("employee_roster.unified_sidebar");
 				tabs.on("click", ".hr-unified-tab", (event) => {
 					const moduleKey = event.currentTarget.dataset.module;
 					if (!moduleKey) return;
-					this.menuModule = moduleKey;
+					this.selectModuleTab(moduleKey);
 					this.renderTabs();
 					this.renderMenu();
-
-					if (frappe.app?.sidebar?.current_module !== moduleKey) {
-						frappe.app.sidebar.open_module(moduleKey);
-					}
 				});
 			}
 
@@ -1309,7 +1652,6 @@ frappe.provide("employee_roster.unified_sidebar");
 			"roster",
 			"orgchart",
 			"org-diagram",
-			"employee-archive",
 			"hr-home",
 			"hr-dashboard",
 		];

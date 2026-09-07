@@ -29,22 +29,46 @@
 			<div class="arco-hr-menu-wrap">
 				<a-menu
 					v-if="state.groups?.length"
-					accordion
+					:accordion="useAccordion"
 					:collapsed="!!state.compact"
 					:selected-keys="state.activeKey ? [state.activeKey] : []"
 					:open-keys="state.compact ? [] : openKeys"
 					@update:open-keys="onOpenKeysChange"
 					@menu-item-click="onMenuClick"
 				>
-					<a-sub-menu v-for="group in state.groups" :key="group.key || group.label">
-						<template #icon>
-							<component :is="groupIcon(group)" />
-						</template>
-						<template #title>{{ group.label }}</template>
-						<a-menu-item v-for="item in group.items" :key="item.key">
-							{{ item.label }}
+					<template v-for="group in state.groups" :key="group.key || group.label">
+						<!-- Dedicated leaf entries (e.g. Contract 概览 / 合同档案库) -->
+						<a-menu-item v-if="group.type === 'item'" :key="group.key || group.label">
+							<template #icon>
+								<component :is="itemIcon(group)" />
+							</template>
+							{{ group.label }}
 						</a-menu-item>
-					</a-sub-menu>
+
+						<a-sub-menu v-else :key="group.key || group.label">
+							<template #icon>
+								<component :is="groupIcon(group)" />
+							</template>
+							<template #title>{{ group.label }}</template>
+							<template v-for="item in group.items" :key="item.key">
+								<a-sub-menu v-if="item.children?.length" :key="item.key">
+									<template #icon>
+										<component :is="itemIcon(item)" />
+									</template>
+									<template #title>{{ item.label }}</template>
+									<a-menu-item v-for="child in item.children" :key="child.key">
+										{{ child.label }}
+									</a-menu-item>
+								</a-sub-menu>
+								<a-menu-item v-else :key="item.key">
+									<template v-if="item.icon" #icon>
+										<component :is="itemIcon(item)" />
+									</template>
+									{{ item.label }}
+								</a-menu-item>
+							</template>
+						</a-sub-menu>
+					</template>
 				</a-menu>
 				<a-empty v-else-if="!state.compact" description="暂无菜单项" />
 			</div>
@@ -68,7 +92,7 @@
 </template>
 
 <script setup>
-import { inject, ref, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import {
 	IconBook,
@@ -78,10 +102,14 @@ import {
 	IconCheckCircle,
 	IconCommon,
 	IconDashboard,
+	IconDesktop,
 	IconFile,
+	IconFolder,
 	IconMenuFold,
 	IconMenuUnfold,
 	IconSearch,
+	IconSettings,
+	IconStorage,
 	IconTrophy,
 	IconUser,
 	IconUserAdd,
@@ -92,6 +120,10 @@ const state = inject("sidebarState");
 const handlers = inject("sidebarHandlers");
 const openKeys = ref([]);
 
+/** Module accordion only; Contract dedicated menu keeps 合同签署 + 设置 both open. */
+const useAccordion = computed(() =>
+	(state.groups || []).every((group) => String(group?.key || "").startsWith("mod:"))
+);
 const MODULE_ICONS = {
 	"HR Setup": IconUserGroup,
 	Tenure: IconUser,
@@ -106,28 +138,68 @@ const MODULE_ICONS = {
 	Contract: IconBookmark,
 };
 
+const ITEM_ICONS = {
+	desktop: IconDesktop,
+	file: IconFile,
+	archive: IconStorage,
+	folder: IconFolder,
+	setting: IconSettings,
+	settings: IconSettings,
+};
+
 watch(
 	() => [state.groups, state.activeKey, state.compact],
 	() => {
 		if (state.compact) return;
 		const groups = state.groups || [];
-		const activeParent = groups.find((group) =>
-			(group.items || []).some((item) => item.key === state.activeKey)
-		);
-		if (activeParent) {
-			openKeys.value = [activeParent.key || activeParent.label];
-			return;
+		const keys = [];
+
+		for (const group of groups) {
+			if (group.type === "item") continue;
+			const groupKey = group.key || group.label;
+			let groupHasActive = false;
+
+			// Root group whose items are direct leaves (Contract 合同签署 / 设置)
+			const directActive = (group.items || []).some((item) => item.key === state.activeKey);
+			if (directActive) {
+				keys.push(groupKey);
+				groupHasActive = true;
+			}
+
+			for (const item of group.items || []) {
+				if (item.children?.length) {
+					const childActive = item.children.some((child) => child.key === state.activeKey);
+					if (childActive) {
+						keys.push(groupKey, item.key);
+						groupHasActive = true;
+					} else if (item.open) {
+						keys.push(item.key);
+					}
+				} else if (item.key === state.activeKey) {
+					keys.push(groupKey);
+					groupHasActive = true;
+				}
+			}
+			if (!groupHasActive && group.open === true) {
+				keys.push(groupKey);
+			}
 		}
-		openKeys.value = groups
-			.filter((group) => group.open === true)
-			.map((group) => group.key || group.label);
+
+		openKeys.value = [
+			...new Set(keys.length ? keys : groups.filter((g) => g.open && g.type !== "item").map((g) => g.key || g.label)),
+		];
 	},
 	{ immediate: true }
 );
 
 function groupIcon(group) {
+	if (group?.icon) return itemIcon(group);
 	const mod = String(group?.key || "").replace(/^mod:/, "");
 	return MODULE_ICONS[mod] || IconDashboard;
+}
+
+function itemIcon(item) {
+	return ITEM_ICONS[item?.icon] || IconFile;
 }
 
 function onOpenKeysChange(keys) {
@@ -135,8 +207,26 @@ function onOpenKeysChange(keys) {
 	openKeys.value = keys;
 }
 
+function flattenMenuItems(groups) {
+	const out = [];
+	for (const group of groups || []) {
+		if (group.type === "item") {
+			out.push(group);
+			continue;
+		}
+		for (const item of group.items || []) {
+			if (item.children?.length) {
+				out.push(...item.children);
+			} else {
+				out.push(item);
+			}
+		}
+	}
+	return out;
+}
+
 function onMenuClick(key) {
-	const item = (state.groups || []).flatMap((group) => group.items || []).find((entry) => entry.key === key);
+	const item = flattenMenuItems(state.groups).find((entry) => entry.key === key);
 	if (!item) return;
 	if (item.openInNewTab) {
 		window.open(item.path, "_blank", "noopener");

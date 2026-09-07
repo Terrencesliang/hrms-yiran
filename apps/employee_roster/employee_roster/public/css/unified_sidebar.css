@@ -258,6 +258,11 @@ body.hr-unified-sidebar-active .body-sidebar.hr-unified-host .hr-unified-hidden 
 	display: none !important;
 }
 
+/* Hide every native Frappe sidebar chrome except our Arco host */
+body.hr-unified-sidebar-active .body-sidebar.hr-unified-host > *:not(#hr-unified-sidebar-root):not(.dropdown-notifications):not(.dropdown-background-tasks) {
+	display: none !important;
+}
+
 body.hr-unified-sidebar-active .body-sidebar-top {
 	display: none !important;
 }

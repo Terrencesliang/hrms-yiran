@@ -17,8 +17,32 @@ import HrHomePage from "./pages/home/HrHomePage.vue";
 import HrDashboardPage from "./pages/dashboard/HrDashboardPage.vue";
 import ContractOverviewPage from "./pages/contract/ContractOverviewPage.vue";
 import ContractTemplatesPage from "./pages/contract/ContractTemplatesPage.vue";
+import ContractSigningListPage from "./pages/contract/ContractSigningListPage.vue";
+import ContractSealsPage from "./pages/contract/ContractSealsPage.vue";
+import ContractPackagesPage from "./pages/contract/ContractPackagesPage.vue";
+import ContractArchivePage from "./pages/contract/ContractArchivePage.vue";
+
+/** Keep Arco / Desk dark mode in sync when OrgUI mounts after a Desk route change. */
+function syncArcoTheme() {
+	try {
+		const stored = localStorage.getItem("arco-theme");
+		const current =
+			stored ||
+			document.body.getAttribute("arco-theme") ||
+			document.body.getAttribute("data-theme") ||
+			"light";
+		const theme = current === "dark" ? "dark" : "light";
+		document.body.setAttribute("data-theme", theme);
+		document.body.setAttribute("arco-theme", theme);
+		document.documentElement.setAttribute("data-theme", theme);
+		document.documentElement.setAttribute("arco-theme", theme);
+	} catch (e) {
+		/* ignore */
+	}
+}
 
 function boot(app) {
+	syncArcoTheme();
 	app.use(ArcoVue);
 	app.use(ArcoVueIcon);
 	return app;
@@ -133,6 +157,57 @@ export function mountContractTemplates(el) {
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () => h(ContractTemplatesPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractSigning(el, options = {}) {
+	const status = options.status || "pending";
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(ContractSigningListPage, { status })
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractSeals(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(ContractSealsPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractPackages(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(ContractPackagesPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractArchive(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(ContractArchivePage));
 			},
 		})
 	);

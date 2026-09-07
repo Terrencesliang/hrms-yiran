@@ -228,7 +228,7 @@ function goSigning() {
 }
 
 function goArchive() {
-	go(["employee-archive"]);
+	go(["contract-archive"]);
 }
 
 function goTemplates() {
