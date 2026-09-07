@@ -1,0 +1,289 @@
+{% from "templates/includes/login/macros.html" import alert_banner %}
+{% extends "templates/web.html" %}
+
+{% block navbar %}{% endblock %}
+
+{% block head_include %}
+{{ include_style('login.bundle.css') }}
+<link rel="stylesheet" href="/assets/employee_roster/css/arco_login.css?v=20260904b">
+{% endblock %}
+
+{% macro email_login_body() -%}
+{% if not disable_user_pass_login or (ldap_settings and ldap_settings.enabled) %}
+<div class="page-card-body arco-login-fields flex flex-col gap-4">
+	{{ alert_banner("error") }}
+	<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+		<label class="arco-login-label" for="login_email">{{ _("用户名") }}</label>
+		<div class="email-field arco-login-input-wrap">
+			<span class="arco-login-prefix" aria-hidden="true">
+				<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="4" stroke-linecap="butt" stroke-linejoin="miter"><path d="M7 37c0-4.97 4.03-8 9-8h16c4.97 0 9 3.03 9 8v3a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-3Z"></path><circle cx="24" cy="15" r="8"></circle></svg>
+			</span>
+			<input type="text" id="login_email" class="form-control"
+				placeholder="{{ _('用户名：admin') }}"
+				value="admin"
+				required autofocus autocomplete="username">
+		</div>
+		<p class="field-error text-base text-ink-red-8 mb-0"></p>
+	</div>
+
+	<div class="form-group flex flex-col items-start gap-2 mb-0">
+		<div class="flex flex-col items-start gap-1.5 w-full">
+			<label class="arco-login-label" for="login_password">{{ _("密码") }}</label>
+			<div class="password-field arco-login-input-wrap">
+				<span class="arco-login-prefix" aria-hidden="true">
+					<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="4" stroke-linecap="butt" stroke-linejoin="miter"><rect x="7" y="21" width="34" height="20" rx="1"></rect><path d="M15 21v-6a9 9 0 1 1 18 0v6M24 35v-8"></path></svg>
+				</span>
+				<input type="password" id="login_password" class="form-control" placeholder="{{ _('密码：admin') }}"
+					value="admin"
+					autocomplete="current-password" required>
+				<svg toggle="#login_password" class="icon icon-sm toggle-password" xmlns="http://www.w3.org/2000/svg">
+					<use href="#icon-eye"></use>
+				</svg>
+			</div>
+			<p class="field-error text-base text-ink-red-8 mb-0"></p>
+		</div>
+		{% if not disable_user_pass_login %}
+		<div class="arco-login-actions">
+			<label class="arco-login-remember">
+				<input type="checkbox" checked disabled aria-hidden="true">
+				<span>{{ _("记住密码") }}</span>
+			</label>
+			<a href="#forgot" class="arco-login-link">{{ _("忘记密码") }}</a>
+		</div>
+		{% endif %}
+	</div>
+</div>
+{% endif %}
+<div class="page-card-actions arco-login-submit flex flex-col gap-3">
+	{% if not disable_user_pass_login %}
+	<button class="es-button w-full arco-login-btn" data-variant="solid" type="submit">
+		{{ _("登录") }}</button>
+	{% endif %}
+	{% if ldap_settings and ldap_settings.enabled %}
+	<button class="es-button w-full btn-ldap-login" data-variant="solid">
+		{{ _("Login with LDAP") }}</button>
+	{% endif %}
+	{% if login_with_email_link %}
+	<a href="#login-with-email-link"
+		class="es-button w-full btn-login-option btn-login-with-email-link">
+		{{ _("Login with Email Link") }}</a>
+	{% endif %}
+	{% if social_login %}
+	<div class="social-logins text-center text-base">
+		<div class="social-login-buttons">
+			{% for provider in provider_logins %}
+			<div class="login-button-wrapper">
+				<a href="{{ provider.auth_url }}"
+					class="es-button w-full btn-login-option btn-{{ provider.name }}">
+					{% if provider.icon %}
+						{{ provider.icon }}
+					{% endif %}
+					{{ _("Login with {0}").format(provider.provider_name) }}</a>
+			</div>
+			{% endfor %}
+		</div>
+	</div>
+	{% endif %}
+</div>
+{% endmacro %}
+
+{% macro logo_section(title=null, subtitle=null) %}
+<div class="page-card-head arco-login-head flex flex-col items-start gap-2 text-left">
+	<div class="page-card-head-text flex flex-col gap-1 w-full">
+		{% if title %}
+		<h4 class="arco-login-title">{{ _(title) }}</h4>
+		{% else %}
+		<h4 class="arco-login-title">{{ _("登录 HR Pro") }}</h4>
+		{% endif %}
+		{% if subtitle %}
+		<p class="arco-login-subtitle">{{ _(subtitle) }}</p>
+		{% else %}
+		<p class="arco-login-subtitle">{{ _("欢迎回来，请登录继续") }}</p>
+		{% endif %}
+	</div>
+</div>
+{% endmacro %}
+
+{% block page_content %}
+<div class="arco-login-container">
+	<div class="arco-login-brand">
+		<span class="arco-login-brand-mark" aria-hidden="true">
+			<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="7" y="7" width="13" height="13" rx="2" fill="currentColor"/><rect x="28" y="7" width="13" height="13" rx="2" fill="currentColor" opacity=".85"/><rect x="7" y="28" width="13" height="13" rx="2" fill="currentColor" opacity=".85"/><rect x="28" y="28" width="13" height="13" rx="2" fill="currentColor" opacity=".7"/></svg>
+		</span>
+		<span class="arco-login-brand-text">HR Pro</span>
+	</div>
+
+	<aside class="arco-login-banner" aria-label="产品介绍">
+		<div class="arco-login-banner-inner" data-arco-login-carousel>
+			<div class="arco-login-slide is-active">
+				<div class="arco-login-slide-title">高效协同的人力资源平台</div>
+				<div class="arco-login-slide-sub">花名册、考勤、组织与审批，覆盖日常人事场景</div>
+				<div class="arco-login-illustration" aria-hidden="true">
+					<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+						<rect x="24" y="36" width="120" height="72" rx="10" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.35)"/>
+						<rect x="176" y="36" width="120" height="72" rx="10" fill="rgba(22,93,255,.35)" stroke="rgba(148,191,255,.7)"/>
+						<rect x="24" y="128" width="272" height="64" rx="10" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.28)"/>
+						<circle cx="56" cy="72" r="14" fill="rgba(255,255,255,.55)"/>
+						<rect x="84" y="62" width="40" height="8" rx="4" fill="rgba(255,255,255,.45)"/>
+						<rect x="84" y="78" width="28" height="6" rx="3" fill="rgba(255,255,255,.28)"/>
+						<circle cx="208" cy="72" r="14" fill="rgba(255,255,255,.65)"/>
+						<rect x="236" y="62" width="40" height="8" rx="4" fill="rgba(255,255,255,.5)"/>
+						<rect x="236" y="78" width="28" height="6" rx="3" fill="rgba(255,255,255,.3)"/>
+						<rect x="48" y="150" width="96" height="10" rx="5" fill="rgba(255,255,255,.35)"/>
+						<rect x="48" y="168" width="160" height="8" rx="4" fill="rgba(255,255,255,.2)"/>
+					</svg>
+				</div>
+			</div>
+			<div class="arco-login-slide">
+				<div class="arco-login-slide-title">组织与花名册一目了然</div>
+				<div class="arco-login-slide-sub">部门架构、在职状态与档案资料集中管理</div>
+				<div class="arco-login-illustration" aria-hidden="true">
+					<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+						<rect x="120" y="28" width="80" height="40" rx="8" fill="rgba(22,93,255,.45)" stroke="rgba(148,191,255,.8)"/>
+						<path d="M160 68v28M100 96h120" stroke="rgba(255,255,255,.45)" stroke-width="2"/>
+						<rect x="40" y="124" width="72" height="40" rx="8" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.35)"/>
+						<rect x="124" y="124" width="72" height="40" rx="8" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.35)"/>
+						<rect x="208" y="124" width="72" height="40" rx="8" fill="rgba(255,255,255,.12)" stroke="rgba(255,255,255,.35)"/>
+						<path d="M76 124V96h168v28" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/>
+					</svg>
+				</div>
+			</div>
+			<div class="arco-login-slide">
+				<div class="arco-login-slide-title">审批与考勤顺畅流转</div>
+				<div class="arco-login-slide-sub">请假、补卡、加班等流程统一发起与处理</div>
+				<div class="arco-login-illustration" aria-hidden="true">
+					<svg viewBox="0 0 320 220" xmlns="http://www.w3.org/2000/svg">
+						<rect x="48" y="40" width="224" height="140" rx="12" fill="rgba(255,255,255,.08)" stroke="rgba(255,255,255,.3)"/>
+						<rect x="72" y="68" width="120" height="12" rx="6" fill="rgba(255,255,255,.4)"/>
+						<rect x="72" y="96" width="176" height="10" rx="5" fill="rgba(255,255,255,.22)"/>
+						<rect x="72" y="118" width="148" height="10" rx="5" fill="rgba(255,255,255,.18)"/>
+						<rect x="72" y="148" width="72" height="18" rx="6" fill="rgba(22,93,255,.55)"/>
+						<rect x="156" y="148" width="72" height="18" rx="6" fill="rgba(255,255,255,.16)"/>
+					</svg>
+				</div>
+			</div>
+			<div class="arco-login-dots" role="tablist" aria-label="轮播指示">
+				<button type="button" class="is-active" data-slide="0" aria-label="1"></button>
+				<button type="button" data-slide="1" aria-label="2"></button>
+				<button type="button" data-slide="2" aria-label="3"></button>
+			</div>
+		</div>
+	</aside>
+
+	<div class="arco-login-content">
+		<div class="arco-login-content-inner">
+			<noscript>
+				<div class="text-center my-5">
+					<h4>{{ _("Javascript is disabled on your browser") }}</h4>
+					<p class="text-muted">
+						{{ _("You need to enable JavaScript for your app to work.") }}
+					</p>
+				</div>
+			</noscript>
+
+			<section class="for-login">
+				<div class="login-content page-card arco-login-card flex flex-col gap-5">
+					{{ logo_section(_("登录 HR Pro"), _("欢迎回来，请登录继续")) }}
+					<form class="form-signin form-login flex flex-col gap-6" role="form" novalidate>
+						{{ email_login_body() }}
+					</form>
+					{%- if not disable_signup and not disable_user_pass_login -%}
+					<div class="text-center sign-up-message arco-login-footer-link">
+						{{ _("还没有账号？") }}
+						<a href="#signup">{{ _("注册账号") }}</a>
+					</div>
+					{%- endif -%}
+				</div>
+			</section>
+
+			{%- if social_login -%}
+			<section class="for-email-login">
+				<div class="login-content page-card arco-login-card flex flex-col gap-5">
+					{{ logo_section(_("登录 HR Pro"), _("欢迎回来，请登录继续")) }}
+					<form class="form-signin form-login flex flex-col gap-6" role="form" novalidate>
+						{{ email_login_body() }}
+					</form>
+				</div>
+			</section>
+			{%- endif -%}
+
+			<section class="for-signup {{ 'signup-disabled' if disable_signup else '' }}">
+				<div class="login-content page-card arco-login-card flex flex-col gap-5">
+					{{ logo_section(_("注册账号"), _("创建你的人事系统账号")) }}
+					{%- if not disable_signup -%}
+					{{ signup_form_template }}
+					{%- else -%}
+					<div class="signup-disabled-message">
+						<span class="indicator gray">{{_("Signup Disabled")}}</span>
+						<p class="text-muted text-normal sign-up-message mt-1 mb-8">{{_("Signups have been disabled for this website.")}}</p>
+						<div><a href="#login" class="es-button" data-variant="solid">{{ _("返回登录") }}</a></div>
+					</div>
+					{%- endif -%}
+				</div>
+			</section>
+
+			<section class="for-forgot">
+				<div class="login-content page-card arco-login-card flex flex-col gap-5">
+					{{ logo_section(_("忘记密码"), _("输入邮箱，我们将发送重置链接")) }}
+					<form class="form-signin form-forgot hide flex flex-col gap-6" role="form" novalidate>
+						<div class="page-card-body arco-login-fields flex flex-col gap-4">
+							{{ alert_banner("success") }}
+							{{ alert_banner("error") }}
+							<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+								<label class="arco-login-label" for="forgot_email">{{ _("邮箱") }}</label>
+								<div class="email-field arco-login-input-wrap">
+									<span class="arco-login-prefix" aria-hidden="true">
+										<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="4"><path d="M7 37c0-4.97 4.03-8 9-8h16c4.97 0 9 3.03 9 8v3a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-3Z"></path><circle cx="24" cy="15" r="8"></circle></svg>
+									</span>
+									<input type="email" id="forgot_email" class="form-control"
+										placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+								</div>
+								<p class="field-error text-base text-ink-red-8 mb-0"></p>
+							</div>
+						</div>
+						<div class="page-card-actions arco-login-submit flex flex-col gap-3">
+							<button class="es-button w-full arco-login-btn btn-forgot" data-variant="solid"
+								type="submit" disabled>{{ _("发送重置链接") }}</button>
+						</div>
+					</form>
+					<div class="text-center sign-up-message arco-login-footer-link">
+						<a href="#login">{{ _("返回登录") }}</a>
+					</div>
+				</div>
+			</section>
+
+			<section class="for-login-with-email-link">
+				<div class="login-content page-card arco-login-card flex flex-col gap-5">
+					{{ logo_section(_("邮箱链接登录"), _("欢迎回来，请登录继续")) }}
+					<form class="form-signin form-login-with-email-link hide flex flex-col gap-6" role="form" novalidate>
+						<div class="page-card-body arco-login-fields flex flex-col gap-4">
+							{{ alert_banner("success", _("Please check your email.")) }}
+							{{ alert_banner("error") }}
+							<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+								<label class="arco-login-label" for="login_with_email_link_email">{{ _("邮箱") }}</label>
+								<div class="email-field arco-login-input-wrap">
+									<input type="email" id="login_with_email_link_email" class="form-control"
+										placeholder="{{ _('jane@example.com') }}" required autofocus autocomplete="username">
+								</div>
+								<p class="field-error text-base text-ink-red-8 mb-0"></p>
+							</div>
+						</div>
+						<div class="page-card-actions arco-login-submit flex flex-col gap-3">
+							<button class="es-button w-full arco-login-btn btn-login-with-email-link" data-variant="solid"
+								type="submit">{{ _("发送登录链接") }}</button>
+							<a href="#login" class="es-button w-full btn-login-option">
+								{{ _("使用密码登录") }}</a>
+						</div>
+					</form>
+				</div>
+			</section>
+		</div>
+		<div class="arco-login-page-footer">HR Pro</div>
+	</div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>{% include "templates/includes/login/login.js" %}</script>
+<script src="/assets/employee_roster/js/arco_login.js?v=20260904a"></script>
+{% endblock %}

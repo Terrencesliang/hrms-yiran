@@ -9,6 +9,7 @@ employee_roster.patches.v1_0.setup_orgchart_department_fields
 employee_roster.patches.v1_0.ensure_employee_checkin_day_fields
 employee_roster.patches.v1_0.seed_approval_admin
 employee_roster.patches.v1_0.seed_approval_runtime
+employee_roster.patches.v1_0.seed_admin_login
 
 [post_fixture_sync]
 # Patches added in this section will be executed after fixtures and customizations

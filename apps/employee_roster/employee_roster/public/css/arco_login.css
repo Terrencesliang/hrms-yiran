@@ -1,0 +1,394 @@
+/* Arco Pro–style login shell for Frappe /login */
+
+body.arco-login-page,
+.arco-login-page {
+	margin: 0;
+	min-height: 100vh;
+	background: #fff !important;
+}
+
+body:has(.arco-login-container) {
+	background: #fff !important;
+}
+
+body:has(.arco-login-container) .web-footer,
+body:has(.arco-login-container) .navbar,
+body:has(.arco-login-container) header.web-header,
+body:has(.arco-login-container) .page-header,
+body:has(.arco-login-container) .hero-and-content > .container {
+	display: none !important;
+}
+
+body:has(.arco-login-container) .page-content-wrapper,
+body:has(.arco-login-container) .page-content,
+body:has(.arco-login-container) main,
+body:has(.arco-login-container) .hero-and-content {
+	padding: 0 !important;
+	margin: 0 !important;
+	max-width: none !important;
+	width: 100% !important;
+	min-height: 100vh !important;
+	background: transparent !important;
+}
+
+body:has(.arco-login-container) .hero-and-content > .container {
+	max-width: none !important;
+	width: 100% !important;
+	padding: 0 !important;
+	margin: 0 !important;
+}
+
+.arco-login-container {
+	display: flex;
+	position: relative;
+	min-height: 100vh;
+	width: 100%;
+	background: #fff;
+	overflow: hidden;
+}
+
+.arco-login-brand {
+	position: fixed;
+	top: 24px;
+	left: 22px;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	color: #fff;
+	pointer-events: none;
+}
+
+.arco-login-brand-mark {
+	display: inline-flex;
+	width: 28px;
+	height: 28px;
+	color: #fff;
+}
+
+.arco-login-brand-mark svg {
+	width: 100%;
+	height: 100%;
+}
+
+.arco-login-brand-text {
+	font-size: 20px;
+	font-weight: 600;
+	letter-spacing: 0.2px;
+}
+
+.arco-login-banner {
+	flex: 0 0 550px;
+	width: 550px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(163.85deg, #1d2129 0%, #00308f 100%);
+	color: #fff;
+}
+
+.arco-login-banner-inner {
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 80px 32px 64px;
+	box-sizing: border-box;
+}
+
+.arco-login-slide {
+	display: none;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	max-width: 420px;
+	animation: arco-login-fade 0.45s ease;
+}
+
+.arco-login-slide.is-active {
+	display: flex;
+}
+
+@keyframes arco-login-fade {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.arco-login-slide-title {
+	color: rgba(255, 255, 255, 0.95);
+	font-weight: 500;
+	font-size: 20px;
+	line-height: 28px;
+}
+
+.arco-login-slide-sub {
+	margin-top: 8px;
+	color: rgba(255, 255, 255, 0.55);
+	font-size: 14px;
+	line-height: 22px;
+}
+
+.arco-login-illustration {
+	width: 320px;
+	max-width: 100%;
+	margin-top: 30px;
+}
+
+.arco-login-illustration svg {
+	width: 100%;
+	height: auto;
+	display: block;
+}
+
+.arco-login-dots {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 36px;
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+}
+
+.arco-login-dots button {
+	width: 8px;
+	height: 8px;
+	padding: 0;
+	border: 0;
+	border-radius: 50%;
+	background: rgba(255, 255, 255, 0.28);
+	cursor: pointer;
+}
+
+.arco-login-dots button.is-active {
+	background: #fff;
+}
+
+.arco-login-content {
+	position: relative;
+	flex: 1 1 auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 48px 24px 56px;
+	background: #fff;
+	min-width: 0;
+}
+
+.arco-login-content-inner {
+	width: 100%;
+	max-width: 360px;
+}
+
+.arco-login-card.page-card {
+	max-width: none !important;
+	width: 100% !important;
+	margin: 0 !important;
+	padding: 0 !important;
+	border: none !important;
+	box-shadow: none !important;
+	background: transparent !important;
+	border-radius: 0 !important;
+}
+
+.arco-login-title {
+	margin: 0 !important;
+	color: #1d2129;
+	font-weight: 500;
+	font-size: 24px;
+	line-height: 32px;
+}
+
+.arco-login-subtitle {
+	margin: 0 !important;
+	color: #86909c;
+	font-size: 16px;
+	line-height: 24px;
+}
+
+.arco-login-label {
+	margin: 0 0 0 !important;
+	color: #4e5969;
+	font-size: 14px;
+	line-height: 22px;
+	font-weight: 400;
+}
+
+.arco-login-input-wrap {
+	position: relative;
+	width: 100%;
+}
+
+.arco-login-prefix {
+	position: absolute;
+	left: 12px;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 2;
+	display: inline-flex;
+	color: #86909c;
+	pointer-events: none;
+}
+
+.arco-login-prefix svg {
+	width: 16px;
+	height: 16px;
+}
+
+.arco-login-fields input.form-control,
+.arco-login-card input[type="text"],
+.arco-login-card input[type="email"],
+.arco-login-card input[type="password"] {
+	height: 40px !important;
+	padding: 8px 12px 8px 36px !important;
+	border: 1px solid #e5e6eb !important;
+	border-radius: 2px !important;
+	background: #fff !important;
+	color: #1d2129 !important;
+	font-size: 14px !important;
+	line-height: 22px !important;
+	box-shadow: none !important;
+}
+
+.arco-login-fields .password-field input.form-control {
+	padding-right: 38px !important;
+}
+
+.arco-login-fields input.form-control:focus {
+	border-color: #165dff !important;
+	box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.15) !important;
+	outline: none !important;
+}
+
+.arco-login-fields .toggle-password {
+	right: 12px !important;
+	color: #86909c;
+}
+
+.arco-login-actions {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	margin-top: 4px;
+}
+
+.arco-login-remember {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	margin: 0;
+	color: #4e5969;
+	font-size: 14px;
+	cursor: default;
+	user-select: none;
+}
+
+.arco-login-remember input {
+	width: 14px;
+	height: 14px;
+	accent-color: #165dff;
+}
+
+.arco-login-link {
+	color: #165dff !important;
+	font-size: 14px;
+	text-decoration: none !important;
+}
+
+.arco-login-link:hover {
+	color: #0e42d2 !important;
+}
+
+.arco-login-btn.es-button,
+.arco-login-submit .es-button[data-variant="solid"] {
+	height: 40px !important;
+	border: none !important;
+	border-radius: 2px !important;
+	background: #165dff !important;
+	color: #fff !important;
+	font-size: 14px !important;
+	font-weight: 500 !important;
+	box-shadow: none !important;
+}
+
+.arco-login-btn.es-button:hover,
+.arco-login-submit .es-button[data-variant="solid"]:hover {
+	background: #0e42d2 !important;
+}
+
+.arco-login-footer-link {
+	margin-top: 8px !important;
+	color: #86909c;
+	font-size: 14px;
+}
+
+.arco-login-footer-link a {
+	color: #165dff !important;
+	font-weight: 500;
+	text-decoration: none !important;
+}
+
+.arco-login-page-footer {
+	position: absolute;
+	right: 0;
+	bottom: 20px;
+	left: 0;
+	text-align: center;
+	color: #c9cdd4;
+	font-size: 12px;
+	pointer-events: none;
+}
+
+/* Hide default Frappe section switching leftovers */
+.for-forgot,
+.for-login-with-email-link,
+.for-signup,
+.for-email-login {
+	display: none;
+}
+
+@media (max-width: 1100px) {
+	.arco-login-banner {
+		flex-basis: 32%;
+		width: 32%;
+	}
+}
+
+@media (max-width: 860px) {
+	.arco-login-container {
+		flex-direction: column;
+	}
+
+	.arco-login-brand {
+		color: #1d2129;
+	}
+
+	.arco-login-brand-mark {
+		color: #165dff;
+	}
+
+	.arco-login-banner {
+		display: none;
+	}
+
+	.arco-login-content {
+		padding: 72px 20px 48px;
+		align-items: flex-start;
+	}
+
+	.arco-login-content-inner {
+		max-width: 400px;
+		margin: 0 auto;
+	}
+}
