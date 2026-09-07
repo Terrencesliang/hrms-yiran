@@ -7,47 +7,183 @@ html body {
 	background-color: var(--bg-color, #fff);
 }
 
-.arco-orgchart-wrapper .page-head {
+.arco-hr-dashboard-wrapper,
+.arco-hr-home-wrapper,
+.arco-orgchart-wrapper,
+.arco-orgdiagram-wrapper,
+.arco-hr-roster-wrapper,
+.arco-employee-archive-wrapper,
+.arco-hr-employee-list-wrapper,
+.arco-hr-checkin-list-wrapper,
+.arco-hr-attendance-rules-wrapper {
+	--hr-desk-gap: 16px;
+}
+
+.arco-hr-dashboard-wrapper .page-head,
+.arco-hr-home-wrapper .page-head,
+.arco-orgchart-wrapper .page-head,
+.arco-orgdiagram-wrapper .page-head,
+.arco-hr-roster-wrapper .page-head,
+.arco-employee-archive-wrapper .page-head,
+.arco-hr-employee-list-wrapper .page-head,
+.arco-hr-checkin-list-wrapper .page-head,
+.arco-hr-attendance-rules-wrapper .page-head {
 	display: none !important;
 }
 
-.arco-orgchart-wrapper .layout-main-section {
+.arco-hr-dashboard-wrapper .layout-main-section,
+.arco-hr-home-wrapper .layout-main-section,
+.arco-orgchart-wrapper .layout-main-section,
+.arco-orgdiagram-wrapper .layout-main-section,
+.arco-hr-roster-wrapper .layout-main-section,
+.arco-employee-archive-wrapper .layout-main-section,
+.arco-hr-employee-list-wrapper .layout-main-section,
+.arco-hr-checkin-list-wrapper .layout-main-section,
+.arco-hr-attendance-rules-wrapper .layout-main-section {
 	border: none !important;
 	box-shadow: none !important;
 	background: transparent !important;
+}
+
+/* HR 壳层清零 Frappe/unified_sidebar 默认内边距；实际间距由 hr-analysis / hr-desk-content-stack 承担 */
+body.hr-unified-sidebar-active .arco-hr-dashboard-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-hr-home-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-orgchart-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-orgdiagram-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-hr-roster-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-employee-archive-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-hr-employee-list-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-hr-checkin-list-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .layout-main-section {
 	padding: 0 !important;
 }
 
+.arco-hr-dashboard-wrapper .page-content,
+.arco-hr-dashboard-wrapper .layout-main,
+.arco-hr-dashboard-wrapper .layout-main-section-wrapper,
+.arco-hr-home-wrapper .page-content,
+.arco-hr-home-wrapper .layout-main,
+.arco-hr-home-wrapper .layout-main-section-wrapper,
 .arco-orgchart-wrapper .page-content,
 .arco-orgchart-wrapper .layout-main,
-.arco-orgchart-wrapper .layout-main-section-wrapper {
-	background: #f2f3f5 !important;
+.arco-orgchart-wrapper .layout-main-section-wrapper,
+.arco-orgdiagram-wrapper .page-content,
+.arco-orgdiagram-wrapper .layout-main,
+.arco-orgdiagram-wrapper .layout-main-section-wrapper,
+.arco-hr-roster-wrapper .page-content,
+.arco-hr-roster-wrapper .layout-main,
+.arco-hr-roster-wrapper .layout-main-section-wrapper,
+.arco-employee-archive-wrapper .page-content,
+.arco-employee-archive-wrapper .layout-main,
+.arco-employee-archive-wrapper .layout-main-section-wrapper,
+.arco-hr-employee-list-wrapper .page-content,
+.arco-hr-employee-list-wrapper .layout-main,
+.arco-hr-employee-list-wrapper .layout-main-section-wrapper,
+.arco-hr-checkin-list-wrapper .page-content,
+.arco-hr-checkin-list-wrapper .layout-main,
+.arco-hr-checkin-list-wrapper .layout-main-section-wrapper,
+.arco-hr-attendance-rules-wrapper .page-content,
+.arco-hr-attendance-rules-wrapper .layout-main,
+.arco-hr-attendance-rules-wrapper .layout-main-section-wrapper {
+	background: var(--hr-desk-page-bg, #f2f3f5) !important;
 }
 
-.arco-org-ui {
-	min-height: calc(100dvh - 52px);
-	padding: 16px 4px 28px;
-	color: var(--color-text-1);
-	font-size: 14px;
+.page-container.arco-employee-archive-wrapper {
+	box-sizing: border-box;
+	min-height: calc(100dvh - var(--hr-arco-navbar-height, 60px)) !important;
+	height: auto !important;
+	background: var(--hr-desk-page-bg, #f2f3f5) !important;
 }
 
-.arco-org-ui .oc-page-title {
-	margin: 0 0 16px;
-	font-size: 20px;
-	font-weight: 600;
-	line-height: 1.4;
-	color: var(--color-text-1);
+body.hr-unified-sidebar-active .main-section:has(.arco-employee-archive-wrapper) {
+	background: var(--hr-desk-page-bg, #f2f3f5) !important;
+}
+
+.page-container.arco-employee-archive-wrapper .page-content,
+.page-container.arco-employee-archive-wrapper .layout-main,
+.page-container.arco-employee-archive-wrapper .layout-main-section-wrapper,
+.page-container.arco-employee-archive-wrapper .layout-main-section {
+	min-height: 0 !important;
+	height: auto !important;
+}
+
+.arco-org-ui.hr-analysis {
+	display: flex;
+	flex-direction: column;
+	padding: var(--hr-desk-gap, 16px);
+	box-sizing: border-box;
+	min-height: 0;
+}
+
+.hr-page-body-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--hr-desk-gap, 16px);
+	width: 100%;
+	min-width: 0;
+}
+
+.hr-analysis-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--hr-desk-gap, 16px);
+	width: 100%;
+}
+
+/* 嵌入 Frappe List / Archive 的页头（与数据面板 HrPage 一致） */
+.arco-org-ui.hr-desk-header-only {
+	min-height: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+.arco-org-ui.hr-desk-header-only .hr-page-body-stack {
+	gap: 0;
+}
+
+.arco-org-ui.hr-desk-header-only .hr-page-header {
+	margin-bottom: 0;
+}
+
+.arco-org-ui.hr-analysis > .hr-page-header,
+.arco-org-ui.hr-page > .hr-page-header {
+	margin-bottom: 0;
+}
+
+.hr-desk-content-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--hr-desk-gap, 16px);
+	padding: var(--hr-desk-gap, 16px);
+	box-sizing: border-box;
+}
+
+body.hr-unified-sidebar-active .arco-employee-archive-wrapper .layout-main-section.hr-desk-content-stack,
+body.hr-unified-sidebar-active .arco-hr-employee-list-wrapper .layout-main-section.hr-desk-content-stack,
+body.hr-unified-sidebar-active .arco-hr-checkin-list-wrapper .layout-main-section.hr-desk-content-stack,
+body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .hr-attendance-rules-page.hr-desk-content-stack,
+body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
+	padding: var(--hr-desk-gap, 16px) !important;
+}
+
+.hr-desk-header-host {
+	flex: 0 0 auto;
+}
+
+.hr-panel-card.oc-toolbar-card .arco-card-body,
+.hr-panel-card.od-toolbar .arco-card-body {
+	padding: 12px 16px;
 }
 
 .arco-org-ui .oc-stat-grid {
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 12px;
-	margin-bottom: 16px;
+	gap: var(--hr-desk-gap, 16px);
+	margin-bottom: 0;
 }
 
 .arco-org-ui .oc-stat-card {
-	border-radius: 8px;
+	border-radius: var(--hr-radius-lg);
 }
 
 .arco-org-ui .oc-stat-card.is-alert .arco-statistic-value {
@@ -56,8 +192,8 @@ html body {
 
 .arco-org-ui .oc-toolbar-card,
 .arco-org-ui .oc-table-card {
-	margin-bottom: 12px;
-	border-radius: 8px;
+	margin-bottom: 0;
+	border-radius: var(--hr-radius-lg);
 }
 
 .arco-org-ui .oc-toolbar-card .arco-card-body {
@@ -398,22 +534,26 @@ html body {
 	min-height: calc(100dvh - 52px);
 }
 
-.arco-org-ui.od-page {
+.arco-org-ui.hr-orgdiagram {
 	display: flex;
 	min-width: 0;
-	min-height: calc(100dvh - 52px);
+	flex: 1 1 auto;
 	flex-direction: column;
-	padding-bottom: 16px;
 }
 
-.arco-org-ui.od-page .oc-page-title {
-	margin-bottom: 14px;
+.arco-org-ui.hr-orgdiagram .hr-page-body-stack {
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.arco-org-ui.hr-orgdiagram .hr-analysis-stack {
+	flex: 1 1 auto;
+	min-height: 0;
 }
 
 .arco-org-ui .od-toolbar {
 	position: relative;
 	z-index: 5;
-	margin-bottom: 12px;
 	border-radius: 8px;
 }
 
@@ -1309,6 +1449,1175 @@ html body {
 
 }
 
+/* ---------- Employee profile / Arco refactor ---------- */
+.arco-emp-form-chrome {
+	--emp-primary: rgb(var(--arcoblue-6));
+	--emp-border: var(--color-border-2, #e5e6eb);
+	--emp-surface: var(--color-bg-2, #fff);
+	--emp-muted: var(--color-text-3, #86909c);
+	margin-bottom: 14px;
+}
+
+.arco-emp-pro .arco-emp-hero {
+	border: 1px solid var(--emp-border);
+	border-radius: 12px;
+	background: var(--emp-surface);
+	box-shadow: 0 2px 10px rgba(29, 33, 41, 0.05);
+	overflow: hidden;
+	transition: box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.arco-emp-pro .arco-emp-hero .arco-card-body {
+	padding: 20px 22px 16px;
+}
+
+.arco-emp-form-chrome.is-compact .arco-emp-hero .arco-card-body {
+	padding-block: 14px;
+}
+
+.arco-emp-hero-row {
+	gap: 20px;
+}
+
+.arco-emp-hero-left {
+	gap: 14px;
+}
+
+.arco-emp-avatar {
+	background: rgb(var(--arcoblue-1));
+	color: var(--emp-primary);
+	font-size: 22px;
+	box-shadow: inset 0 0 0 1px rgb(var(--arcoblue-2));
+	transition: width 180ms ease, height 180ms ease, font-size 180ms ease;
+}
+
+.arco-emp-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.arco-emp-name {
+	font-size: 20px;
+	line-height: 1.35;
+}
+
+.arco-emp-status-tag {
+	border-radius: 999px;
+	padding-inline: 9px;
+}
+
+.arco-emp-status-dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin-right: 5px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 1px;
+}
+
+.arco-emp-sub {
+	gap: 8px;
+	margin-top: 5px;
+}
+
+.arco-emp-sub > span:not(:last-child)::after {
+	content: "";
+	display: inline-block;
+	width: 3px;
+	height: 3px;
+	margin-left: 8px;
+	border-radius: 50%;
+	background: var(--color-fill-4, #c9cdd4);
+	vertical-align: middle;
+}
+
+.arco-emp-id {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+}
+
+.arco-emp-id .arco-icon {
+	color: var(--emp-primary);
+}
+
+.arco-emp-hero-right {
+	justify-content: flex-end;
+}
+
+.arco-emp-pill {
+	height: 28px;
+	border-radius: 999px !important;
+	background: var(--color-fill-1, #f7f8fa) !important;
+	border-color: var(--emp-border) !important;
+	color: var(--color-text-2, #4e5969) !important;
+}
+
+.arco-emp-pill .arco-icon {
+	margin-right: 5px;
+	color: var(--emp-primary);
+}
+
+.arco-emp-kv-wrap .arco-divider-horizontal {
+	margin: 18px 0 14px;
+}
+
+.arco-emp-hero-descriptions .arco-descriptions-item-label,
+.arco-emp-descriptions .arco-descriptions-item-label {
+	padding-bottom: 3px;
+	color: var(--emp-muted);
+	font-size: 12px;
+}
+
+.arco-emp-hero-descriptions .arco-descriptions-item-value,
+.arco-emp-descriptions .arco-descriptions-item-value {
+	padding-bottom: 13px;
+	color: var(--color-text-1, #1d2129);
+	font-size: 13px;
+	font-weight: 500;
+	line-height: 1.5;
+	word-break: break-word;
+}
+
+.arco-emp-stat-grid {
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.arco-emp-stat-card {
+	border: 1px solid var(--emp-border);
+	border-radius: 12px;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04);
+	cursor: default;
+}
+
+.arco-emp-stat-card .arco-card-body {
+	padding: 15px 16px;
+}
+
+.arco-emp-stat-card:hover {
+	border-color: rgb(var(--arcoblue-3));
+	box-shadow: 0 8px 22px rgba(29, 33, 41, 0.08);
+	transform: translateY(-1px);
+}
+
+.arco-emp-stat-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+	background: rgb(var(--arcoblue-1));
+	color: var(--emp-primary);
+}
+
+.arco-emp-stat-icon.is-leave {
+	background: rgb(var(--green-1));
+	color: rgb(var(--green-6));
+}
+
+.arco-emp-stat-icon.is-attendance {
+	background: rgb(var(--cyan-1));
+	color: rgb(var(--cyan-6));
+}
+
+.arco-emp-stat-icon.is-related {
+	background: rgb(var(--purple-1));
+	color: rgb(var(--purple-6));
+}
+
+.arco-emp-stat-value {
+	font-size: 22px;
+	font-variant-numeric: tabular-nums;
+}
+
+.arco-emp-overview {
+	margin: 0 0 14px;
+}
+
+.arco-emp-overview-grid {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.arco-emp-section-card {
+	min-width: 0;
+	border: 1px solid var(--color-border-2, #e5e6eb);
+	border-radius: 12px;
+	background: var(--color-bg-2, #fff);
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04);
+}
+
+.arco-emp-section-card.span-4 { grid-column: span 4; }
+.arco-emp-section-card.span-5 { grid-column: span 5; }
+.arco-emp-section-card.span-7 { grid-column: span 7; }
+.arco-emp-section-card.span-8 { grid-column: span 8; }
+.arco-emp-section-card.span-12 { grid-column: span 12; }
+
+.arco-emp-section-card .arco-card-header {
+	min-height: 64px;
+	padding: 14px 18px;
+	border-bottom-color: var(--color-border-1, #f2f3f5);
+}
+
+.arco-emp-section-card .arco-card-body {
+	padding: 16px 18px 17px;
+}
+
+.arco-emp-section-heading {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.arco-emp-section-icon {
+	display: inline-flex;
+	width: 34px;
+	height: 34px;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	border-radius: 9px;
+	background: rgb(var(--arcoblue-1));
+	color: var(--emp-primary, rgb(var(--arcoblue-6)));
+	font-size: 17px;
+}
+
+.arco-emp-section-heading strong,
+.arco-emp-section-heading small {
+	display: block;
+}
+
+.arco-emp-section-heading strong {
+	color: var(--color-text-1, #1d2129);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.arco-emp-section-heading small {
+	margin-top: 2px;
+	color: var(--color-text-3, #86909c);
+	font-size: 11px;
+	font-weight: 400;
+}
+
+.arco-emp-link-btn {
+	border-radius: 7px !important;
+	color: var(--emp-primary, rgb(var(--arcoblue-6))) !important;
+}
+
+.arco-emp-empty {
+	padding: 10px 0 6px;
+}
+
+.arco-emp-empty .arco-empty-image {
+	height: 36px;
+}
+
+.arco-emp-empty .arco-empty-description {
+	font-size: 12px;
+}
+
+.arco-emp-empty.is-inline {
+	padding-block: 18px;
+}
+
+.arco-emp-bio-text {
+	min-height: 52px;
+	font-size: 13px;
+	line-height: 1.8;
+}
+
+.arco-emp-history-tabs .arco-tabs-nav::before {
+	display: none;
+}
+
+.arco-emp-history-tabs .arco-tabs-content {
+	padding-top: 12px;
+}
+
+.arco-emp-compact-table {
+	border: 1px solid var(--color-border-1, #f2f3f5);
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+.arco-emp-compact-table .arco-table-th {
+	background: var(--color-fill-1, #f7f8fa) !important;
+}
+
+.emp-expand-enter-active,
+.emp-expand-leave-active,
+.emp-overview-enter-active,
+.emp-overview-leave-active {
+	transform-origin: top center;
+	transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.emp-expand-enter-from,
+.emp-expand-leave-to,
+.emp-overview-enter-from,
+.emp-overview-leave-to {
+	opacity: 0;
+	transform: translateY(-6px);
+}
+
+@media (max-width: 1180px) {
+	.arco-emp-section-card.span-4,
+	.arco-emp-section-card.span-5,
+	.arco-emp-section-card.span-7,
+	.arco-emp-section-card.span-8 {
+		grid-column: span 6;
+	}
+}
+
+@media (max-width: 768px) {
+	.arco-emp-pro .arco-emp-hero .arco-card-body {
+		padding: 16px;
+	}
+
+	.arco-emp-hero-row {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.arco-emp-hero-right {
+		justify-content: flex-start;
+	}
+
+	.arco-emp-stat-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.arco-emp-section-card.span-4,
+	.arco-emp-section-card.span-5,
+	.arco-emp-section-card.span-7,
+	.arco-emp-section-card.span-8,
+	.arco-emp-section-card.span-12 {
+		grid-column: span 12;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.arco-emp-form-chrome *,
+	.arco-emp-overview * {
+		transition: none !important;
+		animation: none !important;
+	}
+}
+
+/* ---------- Employee dossier workspace v2 ---------- */
+.arco-emp-form-chrome {
+	--emp-primary: #165dff;
+	--emp-primary-soft: #e8f3ff;
+	--emp-surface: #fff;
+	--emp-bg-soft: #f7faff;
+	--emp-border: #e5e6eb;
+	--emp-text: #1d2129;
+	--emp-text-2: #4e5969;
+	--emp-text-3: #86909c;
+	margin-bottom: 12px;
+}
+
+.arco-emp-dossier-cover {
+	position: relative;
+	overflow: hidden;
+	border: 1px solid #dbe7ff;
+	border-radius: 14px;
+	background: var(--emp-bg-soft);
+	box-shadow: 0 4px 18px rgba(22, 93, 255, 0.06);
+}
+
+.arco-emp-dossier-cover .arco-card-body {
+	padding: 26px 28px 18px;
+}
+
+.arco-emp-cover-main {
+	position: relative;
+	display: grid;
+	grid-template-columns: minmax(340px, 1.1fr) minmax(420px, 1fr) 96px;
+	align-items: center;
+	gap: 30px;
+	min-height: 122px;
+}
+
+.arco-emp-form-chrome.is-compact .arco-emp-dossier-cover {
+	background: #fff;
+	border-color: var(--emp-border);
+}
+
+.arco-emp-form-chrome.is-compact .arco-emp-dossier-cover .arco-card-body {
+	padding: 14px 18px;
+}
+
+.arco-emp-form-chrome.is-compact .arco-emp-cover-main {
+	grid-template-columns: 1fr;
+	min-height: 48px;
+}
+
+.arco-emp-identity {
+	display: flex;
+	align-items: center;
+	gap: 22px;
+	min-width: 0;
+}
+
+.arco-emp-identity-copy {
+	min-width: 0;
+}
+
+.arco-emp-avatar {
+	flex: 0 0 auto;
+	background: #fff;
+	color: var(--emp-primary);
+	border: 1px solid #94bfff;
+	box-shadow: 0 5px 16px rgba(22, 93, 255, 0.1), inset 0 0 0 7px #edf5ff;
+	font-size: 34px;
+	font-weight: 600;
+	transition: width 200ms cubic-bezier(0.22, 1, 0.36, 1), height 200ms cubic-bezier(0.22, 1, 0.36, 1), font-size 200ms ease;
+}
+
+.arco-emp-avatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.arco-emp-hero-title-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.arco-emp-name {
+	margin: 0;
+	color: var(--emp-text);
+	font-size: 24px;
+	font-weight: 650;
+	line-height: 1.25;
+}
+
+.arco-emp-status-tag {
+	border-radius: 999px;
+	padding: 0 9px;
+}
+
+.arco-emp-status-dot {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin-right: 5px;
+	border-radius: 50%;
+	background: currentColor;
+	vertical-align: 1px;
+}
+
+.arco-emp-id {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	margin-top: 7px;
+	color: var(--emp-text-3);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+.arco-emp-id .arco-icon {
+	color: var(--emp-primary);
+}
+
+.arco-emp-role-line,
+.arco-emp-company-line {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 0;
+	margin-top: 13px;
+	color: var(--emp-text-2);
+	font-size: 13px;
+}
+
+.arco-emp-role-line > *,
+.arco-emp-company-line > * {
+	display: inline-flex;
+	align-items: center;
+	min-width: 0;
+}
+
+.arco-emp-role-line > * + *,
+.arco-emp-company-line > * + * {
+	margin-left: 12px;
+	padding-left: 12px;
+	border-left: 1px solid #c9cdd4;
+}
+
+.arco-emp-role-line strong {
+	font-weight: 500;
+}
+
+.arco-emp-company-line {
+	margin-top: 10px;
+	color: var(--emp-text-3);
+	font-size: 12px;
+}
+
+.arco-emp-company-line .arco-icon {
+	margin-right: 5px;
+	color: #6b92e5;
+}
+
+.arco-emp-lifecycle {
+	position: relative;
+	z-index: 1;
+	padding-left: 28px;
+	border-left: 1px solid #dbe7ff;
+}
+
+.arco-emp-join-summary {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 20px;
+	margin-bottom: 20px;
+}
+
+.arco-emp-join-summary > div > span {
+	display: block;
+	margin-bottom: 5px;
+	color: var(--emp-text-3);
+	font-size: 12px;
+}
+
+.arco-emp-join-summary > div > strong {
+	color: var(--emp-text);
+	font-size: 15px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.arco-emp-join-summary .arco-emp-tenure {
+	display: flex;
+	align-items: baseline;
+	gap: 5px;
+	white-space: nowrap;
+}
+
+.arco-emp-join-summary .arco-emp-tenure span {
+	display: inline;
+	margin: 0;
+}
+
+.arco-emp-tenure strong {
+	color: var(--emp-primary) !important;
+	font-size: 30px !important;
+	line-height: 1;
+}
+
+.arco-emp-tenure small {
+	color: var(--emp-text-2);
+	font-size: 13px;
+}
+
+.arco-emp-lifecycle-steps .arco-steps-item-title {
+	font-size: 12px;
+}
+
+.arco-emp-lifecycle-steps .arco-steps-item-description {
+	display: none;
+}
+
+.arco-emp-cover-emblem {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 82px;
+	height: 82px;
+	border: 1px solid #cfe0ff;
+	border-radius: 20px;
+	background: #edf5ff;
+	color: #6b9df5;
+	font-size: 42px;
+	transform: rotate(7deg);
+	box-shadow: 0 10px 24px rgba(22, 93, 255, 0.1);
+}
+
+.arco-emp-metric-strip {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	margin-top: 24px;
+	padding: 13px 16px;
+	border: 1px solid #dbe7ff;
+	border-radius: 12px;
+	background: rgba(255, 255, 255, 0.9);
+}
+
+.arco-emp-metric-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+	padding: 2px 22px;
+}
+
+.arco-emp-metric-item + .arco-emp-metric-item {
+	border-left: 1px solid #e5e6eb;
+}
+
+.arco-emp-metric-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	flex: 0 0 auto;
+	border-radius: 9px;
+	background: #e8f3ff;
+	color: var(--emp-primary);
+	font-size: 17px;
+}
+
+.arco-emp-metric-icon.is-leave {
+	background: #e8ffea;
+	color: #00b42a;
+}
+
+.arco-emp-metric-icon.is-related {
+	background: #f5e8ff;
+	color: #722ed1;
+}
+
+.arco-emp-metric-item > div > span {
+	display: block;
+	margin-bottom: 2px;
+	color: var(--emp-text-3);
+	font-size: 12px;
+}
+
+.arco-emp-metric-item > div > strong {
+	color: var(--emp-text);
+	font-size: 21px;
+	font-weight: 600;
+	font-variant-numeric: tabular-nums;
+}
+
+.arco-emp-metric-item > div > strong small {
+	margin-left: 3px;
+	color: var(--emp-text-2);
+	font-size: 12px;
+	font-weight: 400;
+}
+
+.arco-emp-metric-item.is-completion .arco-progress-circle {
+	flex: 0 0 auto;
+}
+
+.arco-emp-overview {
+	margin: 0 0 14px;
+}
+
+.arco-emp-workspace-grid {
+	display: grid;
+	grid-template-columns: repeat(12, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.arco-emp-section-card {
+	min-width: 0;
+	border: 1px solid var(--emp-border, #e5e6eb);
+	border-radius: 12px;
+	background: #fff;
+	box-shadow: 0 2px 8px rgba(29, 33, 41, 0.035);
+	transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.arco-emp-section-card:hover {
+	border-color: #d3ddf2;
+	box-shadow: 0 8px 22px rgba(29, 33, 41, 0.07);
+	transform: translateY(-1px);
+}
+
+.arco-emp-section-card.span-3 { grid-column: span 3; }
+.arco-emp-section-card.span-4 { grid-column: span 4; }
+.arco-emp-section-card.span-6 { grid-column: span 6; }
+.arco-emp-section-card.span-8 { grid-column: span 8; }
+.arco-emp-section-card.span-12 { grid-column: span 12; }
+
+.arco-emp-section-card .arco-card-header {
+	min-height: 62px;
+	padding: 13px 16px;
+	border-bottom: 1px solid #f2f3f5;
+}
+
+.arco-emp-section-card .arco-card-body {
+	padding: 15px 16px 17px;
+}
+
+.arco-emp-section-heading {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.arco-emp-section-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	flex: 0 0 auto;
+	border-radius: 9px;
+	background: #e8f3ff;
+	color: var(--emp-primary, #165dff);
+	font-size: 16px;
+}
+
+.arco-emp-section-heading strong,
+.arco-emp-section-heading small {
+	display: block;
+}
+
+.arco-emp-section-heading strong {
+	color: var(--emp-text, #1d2129);
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+
+.arco-emp-section-heading small {
+	margin-top: 2px;
+	color: var(--emp-text-3, #86909c);
+	font-size: 11px;
+	font-weight: 400;
+}
+
+.arco-emp-link-btn {
+	border-radius: 7px !important;
+	color: var(--emp-primary, #165dff) !important;
+}
+
+.arco-emp-role-card-body {
+	position: relative;
+	min-height: 147px;
+}
+
+.arco-emp-role-descriptions {
+	position: relative;
+	z-index: 1;
+	max-width: calc(100% - 94px);
+}
+
+.arco-emp-role-descriptions .arco-descriptions-item-label {
+	width: 76px;
+	padding-bottom: 12px;
+	color: var(--emp-text-3);
+	font-size: 12px;
+}
+
+.arco-emp-role-descriptions .arco-descriptions-item-value {
+	padding-bottom: 12px;
+	color: var(--emp-text);
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.arco-emp-role-watermark {
+	position: absolute;
+	right: 10px;
+	bottom: 8px;
+	display: flex;
+	align-items: flex-end;
+	justify-content: center;
+	width: 78px;
+	height: 96px;
+	border-radius: 12px 12px 4px 4px;
+	background: #f2f7ff;
+	color: #c3d7ff;
+	font-size: 52px;
+	opacity: 0.85;
+}
+
+.arco-emp-contact-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 11px 16px;
+}
+
+.arco-emp-contact-list span,
+.arco-emp-contact-list strong {
+	display: block;
+}
+
+.arco-emp-contact-list span {
+	margin-bottom: 3px;
+	color: var(--emp-text-3);
+	font-size: 11px;
+}
+
+.arco-emp-contact-list strong {
+	overflow: hidden;
+	color: var(--emp-text);
+	font-size: 12px;
+	font-weight: 500;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.arco-emp-completion-summary > strong {
+	display: block;
+	margin-bottom: 7px;
+	color: var(--emp-text);
+	font-size: 28px;
+	font-weight: 600;
+	line-height: 1;
+}
+
+.arco-emp-completion-summary > strong small {
+	font-size: 14px;
+}
+
+.arco-emp-completion-tip {
+	margin: 14px 0 7px;
+	color: var(--emp-text-2);
+	font-size: 12px;
+}
+
+.arco-emp-missing-list {
+	display: grid;
+	gap: 2px;
+}
+
+.arco-emp-missing-list button {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	width: 100%;
+	min-height: 30px;
+	padding: 4px 0;
+	border: 0;
+	background: transparent;
+	color: var(--emp-text-2);
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.arco-emp-missing-list button:hover,
+.arco-emp-missing-list button:focus-visible {
+	color: var(--emp-primary);
+	outline: none;
+}
+
+.arco-emp-missing-list button span {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.arco-emp-missing-list button span .arco-icon {
+	color: #00b42a;
+}
+
+.arco-emp-missing-list button em {
+	padding: 2px 7px;
+	border: 1px solid #cfe0ff;
+	border-radius: 999px;
+	color: var(--emp-primary);
+	font-size: 11px;
+	font-style: normal;
+	white-space: nowrap;
+}
+
+.arco-emp-complete-state {
+	padding: 16px 0 4px;
+	color: #00b42a;
+	font-size: 12px;
+}
+
+.arco-emp-journey {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	min-height: 122px;
+}
+
+.arco-emp-journey-item {
+	position: relative;
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	min-width: 0;
+	padding: 10px 22px 10px 4px;
+	border: 0;
+	background: transparent;
+	text-align: left;
+	cursor: pointer;
+}
+
+.arco-emp-journey-item:hover .arco-emp-journey-copy strong,
+.arco-emp-journey-item:focus-visible .arco-emp-journey-copy strong {
+	color: var(--emp-primary);
+}
+
+.arco-emp-journey-item:focus-visible {
+	border-radius: 8px;
+	outline: 2px solid rgba(22, 93, 255, 0.25);
+	outline-offset: 2px;
+}
+
+.arco-emp-journey-node {
+	position: relative;
+	z-index: 2;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	flex: 0 0 auto;
+	border-radius: 50%;
+	background: #e8f3ff;
+	color: #165dff;
+	font-size: 15px;
+}
+
+.arco-emp-journey-node.is-green {
+	background: #e8ffea;
+	color: #00b42a;
+}
+
+.arco-emp-journey-node.is-purple {
+	background: #f5e8ff;
+	color: #722ed1;
+}
+
+.arco-emp-journey-copy {
+	position: relative;
+	z-index: 2;
+	min-width: 0;
+}
+
+.arco-emp-journey-copy > * {
+	display: block;
+}
+
+.arco-emp-journey-copy strong {
+	color: var(--emp-text);
+	font-size: 13px;
+	font-weight: 600;
+	transition: color 160ms ease;
+}
+
+.arco-emp-journey-copy small {
+	margin-top: 10px;
+	color: var(--emp-text-2);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+}
+
+.arco-emp-journey-copy em {
+	margin-top: 4px;
+	overflow: hidden;
+	color: var(--emp-text-3);
+	font-size: 11px;
+	font-style: normal;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.arco-emp-journey-line {
+	position: absolute;
+	top: 25px;
+	left: 36px;
+	right: -4px;
+	height: 1px;
+	background: #dbe7ff;
+}
+
+.arco-emp-private-descriptions .arco-descriptions-item-label {
+	padding-bottom: 3px;
+	color: var(--emp-text-3);
+	font-size: 11px;
+}
+
+.arco-emp-private-descriptions .arco-descriptions-item-value {
+	padding-bottom: 13px;
+	color: var(--emp-text);
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.arco-emp-bio-text {
+	margin: 0;
+	color: var(--emp-text-2);
+	font-size: 13px;
+	line-height: 1.75;
+	white-space: pre-wrap;
+}
+
+.arco-emp-empty {
+	padding: 7px 0 2px;
+}
+
+.arco-emp-empty .arco-empty-image {
+	height: 34px;
+}
+
+.arco-emp-empty .arco-empty-description {
+	font-size: 12px;
+}
+
+.emp-expand-enter-active,
+.emp-expand-leave-active,
+.emp-overview-enter-active,
+.emp-overview-leave-active {
+	transform-origin: top center;
+	transition: opacity 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.emp-expand-enter-from,
+.emp-expand-leave-to,
+.emp-overview-enter-from,
+.emp-overview-leave-to {
+	opacity: 0;
+	transform: translateY(-6px);
+}
+
+@media (max-width: 1440px) {
+	.arco-emp-cover-main {
+		grid-template-columns: minmax(300px, 1fr) minmax(360px, 0.95fr) 72px;
+		gap: 22px;
+	}
+
+	.arco-emp-cover-emblem {
+		width: 68px;
+		height: 68px;
+		font-size: 34px;
+	}
+
+	.arco-emp-metric-item {
+		padding-inline: 14px;
+	}
+}
+
+@media (max-width: 1180px) {
+	.arco-emp-cover-main {
+		grid-template-columns: 1fr 1fr;
+	}
+
+	.arco-emp-cover-emblem {
+		display: none;
+	}
+
+	.arco-emp-section-card.span-3,
+	.arco-emp-section-card.span-4,
+	.arco-emp-section-card.span-6,
+	.arco-emp-section-card.span-8 {
+		grid-column: span 6;
+	}
+
+	.arco-emp-section-card.is-featured,
+	.arco-emp-section-card.is-journey {
+		grid-column: span 12;
+	}
+}
+
+@media (max-width: 900px) {
+	.arco-emp-dossier-cover .arco-card-body {
+		padding: 20px;
+	}
+
+	.arco-emp-cover-main {
+		grid-template-columns: 1fr;
+	}
+
+	.arco-emp-lifecycle {
+		padding: 18px 0 0;
+		border-top: 1px solid #dbe7ff;
+		border-left: 0;
+	}
+
+	.arco-emp-metric-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.arco-emp-metric-item + .arco-emp-metric-item {
+		border-left: 0;
+	}
+
+	.arco-emp-metric-item:nth-child(even) {
+		border-left: 1px solid #e5e6eb;
+	}
+
+	.arco-emp-metric-item:nth-child(n + 3) {
+		margin-top: 10px;
+		padding-top: 10px;
+		border-top: 1px solid #e5e6eb;
+	}
+}
+
+@media (max-width: 720px) {
+	.arco-emp-identity {
+		align-items: flex-start;
+		gap: 14px;
+	}
+
+	.arco-emp-role-line,
+	.arco-emp-company-line {
+		align-items: flex-start;
+		flex-direction: column;
+		gap: 5px;
+	}
+
+	.arco-emp-role-line > * + *,
+	.arco-emp-company-line > * + * {
+		margin-left: 0;
+		padding-left: 0;
+		border-left: 0;
+	}
+
+	.arco-emp-metric-strip {
+		grid-template-columns: 1fr;
+	}
+
+	.arco-emp-metric-item,
+	.arco-emp-metric-item:nth-child(even),
+	.arco-emp-metric-item:nth-child(n + 3) {
+		margin: 0;
+		padding: 10px 4px;
+		border: 0;
+		border-top: 1px solid #e5e6eb;
+	}
+
+	.arco-emp-metric-item:first-child {
+		border-top: 0;
+	}
+
+	.arco-emp-section-card.span-3,
+	.arco-emp-section-card.span-4,
+	.arco-emp-section-card.span-6,
+	.arco-emp-section-card.span-8,
+	.arco-emp-section-card.span-12 {
+		grid-column: span 12;
+	}
+
+	.arco-emp-journey {
+		grid-template-columns: 1fr;
+	}
+
+	.arco-emp-journey-item {
+		min-height: 92px;
+	}
+
+	.arco-emp-journey-line {
+		top: 36px;
+		bottom: -12px;
+		left: 19px;
+		right: auto;
+		width: 1px;
+		height: auto;
+	}
+}
+
 /* —— Approvals admin —— */
 .arco-approvals-wrapper .page-head {
 	display: none !important;
@@ -1486,33 +2795,467 @@ html body {
 }
 
 /* —— HR Workplace / Dashboard —— */
-.arco-hr-home-wrapper .page-head,
-.arco-hr-dashboard-wrapper .page-head {
-	display: none !important;
-}
-
-.arco-hr-home-wrapper .layout-main-section,
-.arco-hr-dashboard-wrapper .layout-main-section {
-	border: none !important;
-	box-shadow: none !important;
-	background: transparent !important;
-	padding: 0 !important;
-}
-
-.arco-hr-home-wrapper .page-content,
-.arco-hr-home-wrapper .layout-main,
-.arco-hr-home-wrapper .layout-main-section-wrapper,
-.arco-hr-dashboard-wrapper .page-content,
-.arco-hr-dashboard-wrapper .layout-main,
-.arco-hr-dashboard-wrapper .layout-main-section-wrapper {
-	background: #f2f3f5 !important;
-}
+/* Shell rules consolidated at top (.arco-hr-*-wrapper, .arco-orgchart-wrapper, …) */
 
 .hr-workplace,
-.hr-dashboard {
+.hr-dashboard,
+.hr-orgdiagram {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
+}
+
+/* —— HR Workplace Pro —— */
+.hr-wp-pro {
+	--hr-wp-gap: 16px;
+	padding: var(--hr-wp-gap);
+	box-sizing: border-box;
+}
+
+.hr-wp-stack {
+	display: flex;
+	flex-direction: column;
+	gap: var(--hr-wp-gap);
+}
+
+.hr-wp-hero {
+	position: relative;
+	overflow: hidden;
+	border-radius: 8px;
+	min-height: 148px;
+}
+
+.hr-wp-hero-bg {
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.35) 100%),
+		linear-gradient(135deg, #7eb6ff 0%, #b8dcff 38%, #dbeafe 62%, #93c5fd 100%);
+}
+
+.hr-wp-hero-bg::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background:
+		radial-gradient(ellipse 80% 50% at 70% 100%, rgba(255, 255, 255, 0.55), transparent 70%),
+		linear-gradient(180deg, transparent 55%, rgba(255, 255, 255, 0.25) 100%);
+}
+
+.hr-wp-hero-inner {
+	position: relative;
+	z-index: 1;
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 20px;
+	padding: 24px 28px;
+}
+
+.hr-wp-hero-title {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 600;
+	line-height: 1.35;
+	color: var(--color-text-1);
+}
+
+.hr-wp-wave {
+	margin-left: 4px;
+}
+
+.hr-wp-hero-sub {
+	margin: 8px 0 0;
+	max-width: 520px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--color-text-2);
+}
+
+.hr-wp-hero-tagline {
+	margin-top: 18px;
+	font-size: 28px;
+	font-weight: 700;
+	line-height: 1.2;
+	letter-spacing: 0.02em;
+	color: rgba(22, 93, 255, 0.12);
+	user-select: none;
+}
+
+.hr-wp-hero-side {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 12px;
+	flex: 0 0 auto;
+}
+
+.hr-wp-company {
+	width: 180px;
+	background: rgba(255, 255, 255, 0.88);
+}
+
+.hr-wp-date-card {
+	min-width: 280px;
+	padding: 18px 22px;
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.88);
+	border: 1px solid rgba(255, 255, 255, 0.95);
+	backdrop-filter: blur(8px);
+	box-shadow: 0 4px 16px rgba(22, 93, 255, 0.08);
+}
+
+html[data-theme="dark"] .hr-wp-hero-bg,
+html[arco-theme="dark"] .hr-wp-hero-bg {
+	background:
+		linear-gradient(180deg, rgba(35, 35, 36, 0.94) 0%, rgba(23, 23, 26, 0.82) 100%),
+		linear-gradient(135deg, #1a3654 0%, #243b53 36%, #1e293b 62%, #2c5282 100%);
+}
+
+html[data-theme="dark"] .hr-wp-hero-bg::after,
+html[arco-theme="dark"] .hr-wp-hero-bg::after {
+	background:
+		radial-gradient(ellipse 80% 50% at 70% 100%, rgba(60, 126, 255, 0.12), transparent 70%),
+		linear-gradient(180deg, transparent 55%, rgba(0, 0, 0, 0.18) 100%);
+}
+
+html[data-theme="dark"] .hr-wp-hero-tagline,
+html[arco-theme="dark"] .hr-wp-hero-tagline {
+	color: rgba(60, 126, 255, 0.22);
+}
+
+html[data-theme="dark"] .hr-wp-company,
+html[arco-theme="dark"] .hr-wp-company {
+	background: rgba(42, 42, 43, 0.92);
+}
+
+html[data-theme="dark"] .hr-wp-date-card,
+html[arco-theme="dark"] .hr-wp-date-card {
+	background: rgba(42, 42, 43, 0.92);
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+}
+
+.hr-wp-date {
+	font-size: 15px;
+	font-weight: 500;
+	color: var(--color-text-1);
+}
+
+.hr-wp-quote {
+	margin-top: 10px;
+	font-size: 13px;
+	line-height: 1.65;
+	color: var(--color-text-2);
+}
+
+.hr-wp-kpis {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--hr-wp-gap);
+}
+
+.hr-wp-kpi-card {
+	border-radius: 8px;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04);
+}
+
+.hr-wp-kpi-card.is-clickable {
+	cursor: pointer;
+	transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.hr-wp-kpi-card.is-clickable:hover {
+	box-shadow: 0 4px 12px rgba(29, 33, 41, 0.08);
+}
+
+.hr-wp-kpi-card .arco-card-body {
+	padding: 16px 18px;
+}
+
+.hr-wp-kpi-head {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.hr-wp-kpi-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: 50%;
+	font-size: 20px;
+	flex: 0 0 auto;
+}
+
+.hr-wp-kpi-body {
+	flex: 1;
+	min-width: 0;
+}
+
+.hr-wp-kpi-title {
+	font-size: 13px;
+	color: var(--color-text-3);
+}
+
+.hr-wp-kpi-value {
+	margin-top: 4px;
+	font-size: 26px;
+	font-weight: 600;
+	line-height: 1.2;
+	color: var(--color-text-1);
+	font-variant-numeric: tabular-nums;
+}
+
+.hr-wp-kpi-unit {
+	margin-left: 4px;
+	font-size: 14px;
+	font-weight: 400;
+	color: var(--color-text-3);
+}
+
+.hr-wp-kpi-meta {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	margin-top: 8px;
+	font-size: 12px;
+}
+
+.hr-wp-kpi-delta-label {
+	color: var(--color-text-3);
+}
+
+.hr-wp-kpi-delta-abs,
+.hr-wp-kpi-delta-pct {
+	font-variant-numeric: tabular-nums;
+}
+
+.hr-wp-kpi-delta-abs.is-up,
+.hr-wp-kpi-delta-pct.is-up {
+	color: rgb(var(--danger-6));
+}
+
+.hr-wp-kpi-delta-abs.is-down,
+.hr-wp-kpi-delta-pct.is-down {
+	color: rgb(var(--success-6));
+}
+
+.hr-wp-kpi-chart {
+	flex: 0 0 88px;
+	width: 88px;
+	align-self: center;
+}
+
+.hr-wp-content {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 320px;
+	grid-template-rows: auto auto;
+	gap: var(--hr-wp-gap);
+	align-items: stretch;
+}
+
+.hr-wp-cell-dept {
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.hr-wp-cell-quick {
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.hr-wp-cell-joiners {
+	grid-column: 1;
+	grid-row: 2;
+}
+
+.hr-wp-cell-rank {
+	grid-column: 2;
+	grid-row: 2;
+}
+
+.hr-wp-content > .hr-wp-panel {
+	height: 100%;
+}
+
+.hr-wp-cell-quick :deep(.arco-card-body),
+.hr-wp-cell-rank :deep(.arco-card-body) {
+	display: flex;
+	flex-direction: column;
+}
+
+.hr-wp-panel {
+	border-radius: 8px;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04);
+}
+
+.hr-wp-panel .arco-card-header {
+	border-bottom: none;
+	padding: 16px 20px 0;
+	min-height: auto;
+}
+
+.hr-wp-panel .arco-card-body {
+	padding: 12px 20px 20px;
+}
+
+.hr-wp-dept-charts {
+	display: grid;
+	grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+	gap: 8px;
+}
+
+.hr-wp-dept-bar,
+.hr-wp-dept-pie {
+	min-width: 0;
+	overflow: hidden;
+}
+
+.hr-wp-cell-quick .hr-wp-quick-grid {
+	flex: 1;
+	align-content: stretch;
+}
+
+.hr-wp-cell-rank .hr-wp-rank-table {
+	flex: 1;
+}
+
+.hr-wp-join-table .arco-table-th {
+	background: transparent;
+	color: var(--color-text-3);
+	font-weight: 500;
+}
+
+.hr-wp-join-table .arco-table-td {
+	font-size: 13px;
+}
+
+.hr-wp-rank-card .arco-card-body {
+	padding-top: 4px;
+	flex: 1;
+	min-height: 0;
+}
+
+.hr-wp-rank-table--fill {
+	flex: 1;
+	height: 100%;
+	min-height: 280px;
+}
+
+.hr-wp-cell-rank :deep(.arco-table) {
+	height: 100%;
+}
+
+.hr-wp-cell-rank :deep(.arco-table-container) {
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.hr-wp-cell-rank :deep(.arco-table-content-scroll),
+.hr-wp-cell-rank :deep(.arco-table-content) {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.hr-wp-cell-rank :deep(.arco-table-body) {
+	flex: 1;
+	min-height: 0;
+}
+
+.hr-wp-cell-rank :deep(.arco-table-element) {
+	height: 100%;
+}
+
+.hr-wp-cell-rank :deep(.arco-table-tbody) {
+	height: 100%;
+}
+
+.hr-wp-rank-table--fill :deep(.arco-table-tr) {
+	height: calc(100% / var(--rank-rows, 8));
+}
+
+.hr-wp-rank-table--fill :deep(.arco-table-td .arco-table-cell),
+.hr-wp-rank-table--fill :deep(.arco-table-th .arco-table-cell) {
+	height: 100%;
+	display: flex;
+	align-items: center;
+}
+
+.hr-wp-rank-table .arco-table-cell {
+	padding: 8px 4px;
+}
+
+.hr-wp-rank-name {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 120px;
+}
+
+.hr-wp-quick-label {
+	display: block;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--color-text-1);
+}
+
+.hr-wp-quick-desc {
+	display: block;
+	margin-top: 2px;
+	font-size: 11px;
+	line-height: 1.4;
+	color: var(--color-text-3);
+}
+
+@media (max-width: 1200px) {
+	.hr-wp-kpis {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.hr-wp-content {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto;
+	}
+
+	.hr-wp-cell-dept,
+	.hr-wp-cell-quick,
+	.hr-wp-cell-joiners,
+	.hr-wp-cell-rank {
+		grid-column: 1;
+		grid-row: auto;
+	}
+
+	.hr-wp-dept-charts {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 768px) {
+	.hr-wp-hero-inner {
+		flex-direction: column;
+		padding: 18px;
+	}
+
+	.hr-wp-hero-side {
+		align-items: stretch;
+		width: 100%;
+	}
+
+	.hr-wp-hero-tagline {
+		font-size: 18px;
+	}
+
+	.hr-wp-kpis {
+		grid-template-columns: 1fr;
+	}
 }
 
 .hr-wp-banner {
@@ -1552,18 +3295,29 @@ html body {
 
 .hr-wp-stat-card {
 	cursor: default;
-	transition: box-shadow 0.2s ease;
+	min-height: 118px;
 }
 
-.hr-wp-stat-card:hover {
-	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+.hr-wp-stat-card.is-clickable {
+	cursor: pointer;
+}
+
+.hr-wp-stat-card.is-clickable:active {
+	transform: translateY(1px);
+	box-shadow: var(--hr-shadow-rest);
+}
+
+.hr-wp-stat-card.is-clickable:focus-visible {
+	outline: 2px solid rgb(var(--arcoblue-6));
+	outline-offset: 2px;
 }
 
 .hr-wp-stat-card .arco-card-body {
 	padding: 16px 20px;
 }
 
-.hr-wp-stat-suffix {
+.hr-wp-stat-suffix,
+.hr-stat-suffix {
 	margin-left: 4px;
 	font-size: 14px;
 	color: var(--color-text-3);
@@ -1573,6 +3327,12 @@ html body {
 	margin-top: 8px;
 	font-size: 12px;
 	color: var(--color-text-3);
+}
+
+.hr-wp-stat-card .arco-statistic-extra {
+	margin-top: 8px;
+	color: var(--color-text-3);
+	font-size: 12px;
 }
 
 .hr-wp-main {
@@ -1610,18 +3370,33 @@ html body {
 	gap: 10px;
 	padding: 14px;
 	border: 1px solid var(--color-border-2, #e5e6eb);
-	border-radius: 4px;
-	background: #fff;
+	min-height: 96px;
+	border-radius: var(--hr-radius-md);
+	background: var(--color-fill-1, #f7f8fa);
 	cursor: pointer;
 	text-align: left;
 	font-size: 13px;
 	color: var(--color-text-1);
-	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	transition:
+		border-color var(--hr-motion-fast) ease,
+		background-color var(--hr-motion-fast) ease,
+		box-shadow var(--hr-motion-fast) ease,
+		transform var(--hr-motion-fast) ease;
 }
 
 .hr-wp-quick:hover {
 	border-color: rgb(var(--primary-6));
+	background: var(--color-bg-2, #fff);
 	box-shadow: 0 2px 8px rgba(22, 93, 255, 0.08);
+}
+
+.hr-wp-quick:active {
+	transform: translateY(1px);
+}
+
+.hr-wp-quick:focus-visible {
+	outline: 2px solid rgb(var(--arcoblue-6));
+	outline-offset: 2px;
 }
 
 .hr-wp-quick-icon {
@@ -1766,9 +3541,7 @@ html body {
 
 /* —— HR Analysis Dashboard —— */
 .arco-org-ui.hr-analysis {
-	--hr-dash-gap: 16px;
-	padding: var(--hr-dash-gap);
-	box-sizing: border-box;
+	--hr-dash-gap: var(--hr-desk-gap, 16px);
 }
 
 .hr-analysis {
@@ -1791,7 +3564,7 @@ html body {
 .hr-analysis-toolbar {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
+	justify-content: flex-end;
 	gap: 12px;
 	flex-wrap: wrap;
 }
@@ -1829,6 +3602,10 @@ html body {
 
 .hr-kpi-card .arco-card-body {
 	padding: 16px 20px;
+}
+
+.hr-kpi-card {
+	min-height: 126px;
 }
 
 .hr-kpi-head {
@@ -1950,7 +3727,7 @@ html body {
 	justify-content: center;
 	width: 20px;
 	height: 20px;
-	border-radius: 2px;
+	border-radius: 6px;
 	font-size: 12px;
 	background: var(--color-fill-2);
 	color: var(--color-text-2);

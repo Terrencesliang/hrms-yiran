@@ -2,20 +2,22 @@
 
 /* ---------- 页面内容 ---------- */
 .hr-roster-page {
-	--hr-primary: #00b386;
-	--hr-primary-hover: #00a077;
+	--hr-primary: #165dff;
+	--hr-primary-hover: #4080ff;
 	--hr-border: #e5e6eb;
 	--hr-bg: #fff;
-	--hr-subtle: #f7f8fa;
-	--hr-text: #1f2329;
-	--hr-muted: #8f959e;
+	--hr-subtle: #f2f3f5;
+	--hr-text: #1d2129;
+	--hr-muted: #86909c;
+	padding: 16px;
+	box-sizing: border-box;
 	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
 }
 
 .hr-roster-page .hr-page-shell {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: 16px;
 	min-height: 0;
 }
 

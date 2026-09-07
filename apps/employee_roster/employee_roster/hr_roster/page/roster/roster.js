@@ -41,6 +41,7 @@ frappe.pages["roster"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	$(wrapper).addClass("arco-hr-roster-wrapper");
 	$(wrapper).find(".layout-main").addClass("row");
 	$(wrapper).find(".layout-main-section-wrapper").addClass("col-md-12");
 

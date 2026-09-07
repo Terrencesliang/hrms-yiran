@@ -1,0 +1,566 @@
+/* Shared HR page foundation: layout rhythm, surfaces, radii and interactions. */
+
+.arco-org-ui {
+	--hr-page-gutter: 16px;
+	--hr-section-gap: 16px;
+	--hr-radius-sm: 8px;
+	--hr-radius-md: 10px;
+	--hr-radius-lg: 12px;
+	--hr-surface: var(--color-bg-2, #fff);
+	--hr-page-bg: var(--color-fill-2, #f2f3f5);
+	--hr-border: var(--color-border-2, #e5e6eb);
+	--hr-shadow-rest: 0 1px 3px rgba(29, 33, 41, 0.04);
+	--hr-shadow-hover: 0 8px 24px rgba(29, 33, 41, 0.09);
+	--hr-motion-fast: 180ms;
+	min-height: calc(100dvh - 52px);
+	padding: 16px var(--hr-page-gutter) 28px;
+	color: var(--color-text-1);
+	font-size: 14px;
+}
+
+.arco-org-ui.hr-desk-header-only {
+	min-height: 0 !important;
+	padding: 0 !important;
+	background: transparent !important;
+}
+
+.arco-org-ui .hr-page-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 20px;
+	min-height: 0;
+	margin-bottom: 0;
+}
+
+.arco-org-ui .hr-page-heading {
+	min-width: 0;
+}
+
+.arco-org-ui .hr-page-breadcrumb {
+	margin-bottom: 0;
+}
+
+.arco-org-ui .hr-page-breadcrumb .arco-breadcrumb {
+	font-size: 14px;
+	line-height: 1.5715;
+}
+
+.arco-org-ui .hr-page-breadcrumb .arco-breadcrumb-item,
+.arco-org-ui .hr-page-breadcrumb .arco-breadcrumb-item-separator {
+	color: var(--color-text-3, #86909c);
+}
+
+.arco-org-ui .hr-page-breadcrumb .arco-breadcrumb-item:last-child {
+	color: var(--color-text-2, #4e5969);
+}
+
+.arco-org-ui .hr-page-breadcrumb-link {
+	color: var(--color-text-3, #86909c);
+	text-decoration: none;
+	transition: color 0.15s ease;
+}
+
+.arco-org-ui .hr-page-breadcrumb-link:hover {
+	color: rgb(var(--arcoblue-6, 22, 93, 255));
+}
+
+.arco-org-ui .oc-page-title {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.4;
+	color: var(--color-text-1);
+}
+
+.arco-org-ui .hr-page-subtitle {
+	margin: 4px 0 0;
+	color: var(--color-text-3);
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.arco-org-ui .hr-page-actions {
+	display: flex;
+	flex: 0 0 auto;
+	align-items: center;
+}
+
+.arco-org-ui .arco-card {
+	border: 1px solid var(--hr-border);
+	border-radius: var(--hr-radius-lg);
+	box-shadow: var(--hr-shadow-rest);
+	transition:
+		border-color var(--hr-motion-fast) ease,
+		box-shadow var(--hr-motion-fast) ease,
+		transform var(--hr-motion-fast) ease;
+}
+
+.arco-org-ui .arco-card-hoverable:hover {
+	border-color: var(--color-border-3);
+	box-shadow: var(--hr-shadow-hover);
+}
+
+.arco-org-ui .arco-btn,
+.arco-org-ui .arco-input-wrapper,
+.arco-org-ui .arco-select-view,
+.arco-org-ui .arco-radio-group-button {
+	border-radius: var(--hr-radius-sm);
+}
+
+/* ---------- Employee list overview mounted inside Frappe ListView ---------- */
+.hr-employee-overview-card {
+	border: 1px solid var(--color-border-2, #e5e6eb);
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(29, 33, 41, 0.04);
+	overflow: hidden;
+}
+
+.hr-employee-overview-card--compact .hr-employee-overview-grid {
+	padding: 6px;
+}
+
+.hr-employee-overview-card--compact .hr-employee-overview-item {
+	min-height: 56px;
+	padding: 8px 10px;
+	gap: 8px;
+}
+
+.hr-employee-overview-card--compact .hr-employee-overview-icon {
+	width: 32px;
+	height: 32px;
+	font-size: 16px;
+}
+
+.hr-employee-overview-card--compact .hr-employee-overview-copy strong {
+	font-size: 18px;
+}
+
+.hr-employee-overview-card .arco-card-body {
+	padding: 0;
+}
+
+.hr-employee-overview-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	padding: 16px 20px 12px;
+	border-bottom: 1px solid var(--hr-border, var(--color-border-2));
+}
+
+.hr-employee-overview-title {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	color: var(--color-text-1);
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.hr-employee-overview-title .arco-icon {
+	color: rgb(var(--arcoblue-6));
+	font-size: 18px;
+}
+
+.hr-employee-overview-hint {
+	margin-top: 3px;
+	color: var(--color-text-3);
+	font-size: 12px;
+}
+
+.hr-employee-overview-grid {
+	display: grid;
+	grid-template-columns: repeat(6, minmax(0, 1fr));
+	padding: 8px;
+}
+
+.hr-employee-overview-grid--four {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.hr-employee-overview-grid--three {
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.hr-employee-overview-item.is-disabled {
+	cursor: default;
+	opacity: 0.92;
+}
+
+.hr-employee-overview-item.is-disabled:hover {
+	background: transparent;
+}
+
+/* ---------- Shared Desk page stack (list / rules / archive) ---------- */
+.hr-desk-page-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+	min-width: 0;
+}
+
+.hr-desk-toolbar-card,
+.hr-desk-guide-card,
+.hr-desk-table-card {
+	border: 1px solid var(--color-border-2, #e5e6eb);
+	border-radius: 8px;
+	box-shadow: 0 1px 3px rgba(29, 33, 41, 0.04);
+	overflow: hidden;
+}
+
+.hr-desk-toolbar-card .arco-card-body,
+.hr-desk-guide-card .arco-card-body,
+.hr-desk-table-card .arco-card-body {
+	padding: 0 16px 16px;
+}
+
+.hr-desk-toolbar-card .arco-card-body {
+	padding: 8px 16px;
+}
+
+.hr-desk-guide-card .arco-card-header,
+.hr-desk-table-card .arco-card-header {
+	padding: 12px 16px 0;
+	border-bottom: 0;
+	min-height: 44px;
+}
+
+.hr-attendance-rules-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+}
+
+.hr-attendance-rules-tabs {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.hr-attendance-rules-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex: 0 0 auto;
+}
+
+.hr-attendance-rules-guide-body p {
+	margin: 0 0 6px;
+	color: var(--color-text-2);
+	line-height: 1.6;
+}
+
+.hr-attendance-rules-guide-body p:last-child {
+	margin-bottom: 0;
+}
+
+.hr-attendance-rules-count {
+	color: var(--color-text-3);
+	font-size: 13px;
+}
+
+.hr-employee-overview-item.is-neutral .hr-employee-overview-icon {
+	background: var(--color-fill-2);
+	color: var(--color-text-2);
+}
+
+.hr-employee-overview-item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
+	min-height: 78px;
+	padding: 12px 14px;
+	border: 0;
+	border-radius: var(--hr-radius-sm, 8px);
+	background: transparent;
+	color: var(--color-text-1);
+	cursor: pointer;
+	text-align: left;
+	transition:
+		background-color var(--hr-motion-fast, 180ms) ease,
+		box-shadow var(--hr-motion-fast, 180ms) ease,
+		transform var(--hr-motion-fast, 180ms) ease;
+}
+
+.hr-employee-overview-item:hover {
+	background: var(--color-fill-2);
+}
+
+.hr-employee-overview-item:active {
+	transform: translateY(1px);
+}
+
+.hr-employee-overview-item:focus-visible {
+	outline: 2px solid rgb(var(--arcoblue-6));
+	outline-offset: -2px;
+}
+
+.hr-employee-overview-item.is-active {
+	background: rgb(var(--arcoblue-1));
+	box-shadow: inset 0 -2px 0 rgb(var(--arcoblue-6));
+}
+
+.hr-employee-overview-icon {
+	display: inline-flex;
+	width: 38px;
+	height: 38px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	background: var(--color-fill-2);
+	color: var(--color-text-2);
+	font-size: 19px;
+	flex: 0 0 auto;
+}
+
+.hr-employee-overview-item.is-primary .hr-employee-overview-icon,
+.hr-employee-overview-item.is-active .hr-employee-overview-icon {
+	background: rgb(var(--arcoblue-2));
+	color: rgb(var(--arcoblue-6));
+}
+
+.hr-employee-overview-item.is-success .hr-employee-overview-icon {
+	background: rgb(var(--green-1));
+	color: rgb(var(--green-6));
+}
+
+.hr-employee-overview-item.is-warning .hr-employee-overview-icon {
+	background: rgb(var(--orange-1));
+	color: rgb(var(--orange-6));
+}
+
+.hr-employee-overview-item.is-danger .hr-employee-overview-icon {
+	background: rgb(var(--red-1));
+	color: rgb(var(--red-6));
+}
+
+.hr-employee-overview-item.is-purple .hr-employee-overview-icon {
+	background: rgb(var(--purple-1));
+	color: rgb(var(--purple-6));
+}
+
+.hr-employee-overview-copy {
+	display: flex;
+	min-width: 0;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.hr-employee-overview-label {
+	color: var(--color-text-3);
+	font-size: 12px;
+}
+
+.hr-employee-overview-copy strong {
+	color: var(--color-text-1);
+	font-size: 22px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.2;
+}
+
+.hr-employee-overview-copy small {
+	margin-left: 4px;
+	color: var(--color-text-3);
+	font-size: 12px;
+	font-weight: 400;
+}
+
+@media (max-width: 1100px) {
+	.hr-employee-overview-grid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.hr-employee-overview-grid--four {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.hr-employee-overview-grid--three {
+		grid-template-columns: repeat(1, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 768px) {
+	.arco-org-ui {
+		--hr-page-gutter: 12px;
+	}
+
+	.arco-org-ui .hr-page-header {
+		align-items: flex-start;
+		flex-direction: column;
+	}
+
+	.arco-org-ui .hr-page-actions,
+	.arco-org-ui .hr-page-actions > .arco-space {
+		width: 100%;
+	}
+
+	.hr-employee-overview-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.arco-org-ui *,
+	.arco-org-ui *::before,
+	.arco-org-ui *::after {
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
+	}
+}
+
+/* ---------- Dark theme (Arco + HR Desk) ---------- */
+html[data-theme="dark"] .arco-org-ui,
+html[arco-theme="dark"] .arco-org-ui {
+	--hr-surface: var(--hr-desk-surface, #232324);
+	--hr-page-bg: var(--hr-desk-page-bg, #17171a);
+	--hr-border: var(--hr-desk-border, rgba(255, 255, 255, 0.08));
+	color: var(--hr-desk-text, rgba(255, 255, 255, 0.9));
+}
+
+html[data-theme="dark"] .arco-org-ui .arco-card,
+html[arco-theme="dark"] .arco-org-ui .arco-card {
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+}
+
+html[data-theme="dark"] .arco-org-ui .hr-kpi-title,
+html[arco-theme="dark"] .arco-org-ui .hr-kpi-value,
+html[arco-theme="dark"] .arco-org-ui .oc-page-title {
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] .arco-org-ui .hr-kpi-delta,
+html[arco-theme="dark"] .arco-org-ui .oc-muted,
+html[arco-theme="dark"] .arco-org-ui .hr-page-subtitle {
+	color: var(--hr-desk-text-3);
+}
+
+html[data-theme="dark"] .arco-org-ui.hr-analysis,
+html[arco-theme="dark"] .arco-org-ui.hr-dashboard,
+html[data-theme="dark"] .arco-org-ui.hr-workplace,
+html[arco-theme="dark"] .arco-org-ui.hr-attendance-rules-shell {
+	background: transparent;
+}
+
+html[data-theme="dark"] .arco-org-ui .hr-panel-card .arco-table-th,
+html[arco-theme="dark"] .arco-org-ui .hr-panel-card .arco-table-td {
+	background: transparent;
+	border-color: var(--hr-desk-border);
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] .arco-org-ui .hr-panel-card .arco-table-tr:hover .arco-table-td,
+html[arco-theme="dark"] .arco-org-ui .hr-rank-table .arco-table-tr:hover .arco-table-td {
+	background: var(--hr-desk-surface-2);
+}
+
+/* Org diagram canvas */
+html[data-theme="dark"] .arco-org-ui .od-canvas-viewport,
+html[arco-theme="dark"] .arco-org-ui .od-canvas-viewport {
+	background: var(--hr-desk-surface-2, #2a2a2b);
+	border-color: var(--hr-desk-border);
+}
+
+html[data-theme="dark"] .arco-org-ui .od-canvas,
+html[arco-theme="dark"] .arco-org-ui .od-canvas {
+	--od-line: rgba(255, 255, 255, 0.16);
+}
+
+/* Employee form chrome (Vue mount) */
+html[data-theme="dark"] .arco-emp-form-chrome,
+html[arco-theme="dark"] .arco-emp-form-chrome {
+	--emp-surface: var(--hr-desk-surface, #232324);
+	--emp-bg-soft: rgba(22, 93, 255, 0.08);
+	--emp-border: var(--hr-desk-border, rgba(255, 255, 255, 0.08));
+	--emp-text: var(--hr-desk-text, rgba(255, 255, 255, 0.9));
+	--emp-text-2: var(--hr-desk-text-2, rgba(255, 255, 255, 0.68));
+	--emp-text-3: var(--hr-desk-text-3, rgba(255, 255, 255, 0.45));
+	--emp-primary-soft: rgba(22, 93, 255, 0.18);
+}
+
+html[data-theme="dark"] .arco-emp-pro .arco-emp-hero,
+html[arco-theme="dark"] .arco-emp-pro .arco-emp-hero,
+html[data-theme="dark"] .arco-emp-stat-card,
+html[arco-theme="dark"] .arco-emp-stat-card,
+html[data-theme="dark"] .arco-emp-section-card,
+html[arco-theme="dark"] .arco-emp-section-card {
+	background: var(--hr-desk-surface, #232324);
+	border-color: var(--hr-desk-border);
+	box-shadow: none;
+}
+
+html[data-theme="dark"] .arco-emp-form-chrome.is-compact .arco-emp-dossier-cover,
+html[arco-theme="dark"] .arco-emp-form-chrome.is-compact .arco-emp-dossier-cover {
+	background: var(--hr-desk-surface, #232324);
+	border-color: var(--hr-desk-border);
+}
+
+html[data-theme="dark"] .arco-emp-name,
+html[arco-theme="dark"] .arco-emp-name,
+html[data-theme="dark"] .arco-emp-kv-value,
+html[arco-theme="dark"] .arco-emp-kv-value,
+html[data-theme="dark"] .arco-emp-stat-value,
+html[arco-theme="dark"] .arco-emp-stat-value,
+html[data-theme="dark"] .arco-emp-section-title,
+html[arco-theme="dark"] .arco-emp-section-title,
+html[data-theme="dark"] .arco-emp-info-value,
+html[arco-theme="dark"] .arco-emp-info-value,
+html[data-theme="dark"] .arco-emp-compact-table .arco-table-td,
+html[arco-theme="dark"] .arco-emp-compact-table .arco-table-td {
+	color: var(--hr-desk-text);
+}
+
+html[data-theme="dark"] .arco-emp-sub,
+html[arco-theme="dark"] .arco-emp-sub,
+html[data-theme="dark"] .arco-emp-id,
+html[arco-theme="dark"] .arco-emp-id,
+html[data-theme="dark"] .arco-emp-kv-label,
+html[arco-theme="dark"] .arco-emp-kv-label,
+html[data-theme="dark"] .arco-emp-stat-title,
+html[arco-theme="dark"] .arco-emp-stat-title,
+html[data-theme="dark"] .arco-emp-stat-suffix,
+html[arco-theme="dark"] .arco-emp-stat-suffix,
+html[data-theme="dark"] .arco-emp-info-label,
+html[arco-theme="dark"] .arco-emp-info-label,
+html[data-theme="dark"] .arco-emp-bio-text,
+html[arco-theme="dark"] .arco-emp-bio-text,
+html[data-theme="dark"] .arco-emp-work-label,
+html[arco-theme="dark"] .arco-emp-work-label {
+	color: var(--hr-desk-text-3);
+}
+
+html[data-theme="dark"] .arco-emp-kv-grid,
+html[arco-theme="dark"] .arco-emp-kv-grid,
+html[data-theme="dark"] .arco-emp-work-block + .arco-emp-work-block,
+html[arco-theme="dark"] .arco-emp-work-block + .arco-emp-work-block {
+	border-color: var(--hr-desk-border);
+}
+
+html[data-theme="dark"] .arco-emp-pill,
+html[arco-theme="dark"] .arco-emp-pill {
+	background: var(--hr-desk-surface-2, rgba(255, 255, 255, 0.06)) !important;
+	border-color: var(--hr-desk-border) !important;
+	color: var(--hr-desk-text-2) !important;
+}
+
+html[data-theme="dark"] .arco-emp-compact-table .arco-table-th,
+html[arco-theme="dark"] .arco-emp-compact-table .arco-table-th {
+	background: var(--hr-desk-surface-2) !important;
+	color: var(--hr-desk-text-2);
+}
+
+html[data-theme="dark"] .arco-emp-dossier-cover,
+html[arco-theme="dark"] .arco-emp-dossier-cover {
+	border-color: rgba(22, 93, 255, 0.25);
+}
+
+html[data-theme="dark"] .arco-emp-avatar,
+html[arco-theme="dark"] .arco-emp-avatar {
+	background: var(--hr-desk-surface-2);
+	box-shadow: inset 0 0 0 1px rgba(22, 93, 255, 0.25);
+}
+

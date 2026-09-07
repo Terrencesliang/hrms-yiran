@@ -23,6 +23,37 @@ frappe.provide("employee_roster.unified_sidebar");
 	const NAVBAR_ROOT_ID = "hr-arco-navbar-root";
 	const BODY_CLASS = "hr-unified-sidebar-active";
 
+	function applyStoredHrTheme() {
+		let theme = "light";
+		try {
+			theme = window.localStorage.getItem("arco-theme") || "light";
+		} catch (e) {
+			/* ignore */
+		}
+		if (theme !== "dark" && theme !== "light") {
+			theme = "light";
+		}
+		document.body.setAttribute("data-theme", theme);
+		document.body.setAttribute("arco-theme", theme);
+		document.documentElement.setAttribute("data-theme", theme);
+		document.documentElement.setAttribute("arco-theme", theme);
+		return theme;
+	}
+
+	function setHrTheme(theme) {
+		const next = theme === "dark" ? "dark" : "light";
+		document.body.setAttribute("data-theme", next);
+		document.body.setAttribute("arco-theme", next);
+		document.documentElement.setAttribute("data-theme", next);
+		document.documentElement.setAttribute("arco-theme", next);
+		try {
+			window.localStorage.setItem("arco-theme", next);
+		} catch (e) {
+			/* ignore */
+		}
+		return next;
+	}
+
 	const MODULE_TAB_LABELS = {
 		"HR Setup": __("人事"),
 		Tenure: __("在职"),
@@ -151,6 +182,66 @@ frappe.provide("employee_roster.unified_sidebar");
 	]);
 
 	const SKIP_LINK_LABELS = new Set([]);
+
+	/** 人事模块下隐藏的主数据/设置入口（公司、部门、职位等） */
+	const HR_SETUP_HIDDEN_LINK_TO = new Set([
+		"Company",
+		"Branch",
+		"Department",
+		"Designation",
+		"Employee Group",
+		"Employee Grade",
+		"HR Settings",
+		"Settings",
+	]);
+
+	const HR_SETUP_HIDDEN_SECTIONS = new Set(["Setup"]);
+
+	/** 考勤模块仅保留打卡记录与考勤规则 */
+	const ATTENDANCE_ALLOWED_LINK_TO = new Set(["Employee Checkin", "attendance-rules"]);
+	const ATTENDANCE_ALLOWED_LABELS = new Set([
+		"Employee Checkin",
+		"Attendance Rules",
+		"打卡记录",
+		"考勤规则",
+	]);
+
+	function isAttendanceAllowedItem(item) {
+		if (item.type !== "Link" || item.hidden) return false;
+		if (ATTENDANCE_ALLOWED_LINK_TO.has(item.link_to)) return true;
+		if (ATTENDANCE_ALLOWED_LABELS.has(item.label)) return true;
+		return false;
+	}
+
+	function filterSidebarItems(items, moduleKey) {
+		if (moduleKey === "Shift & Attendance") {
+			return (items || []).filter(isAttendanceAllowedItem);
+		}
+		if (moduleKey !== "HR Setup") return items || [];
+		return (items || []).filter((item) => {
+			if (item.type === "Section Break" && HR_SETUP_HIDDEN_SECTIONS.has(String(item.label || ""))) {
+				return false;
+			}
+			if (item.type !== "Link") return true;
+			if (item.hidden) return false;
+			if (HR_SETUP_HIDDEN_LINK_TO.has(item.link_to)) return false;
+			if (HR_SETUP_HIDDEN_LINK_TO.has(item.label)) return false;
+			return true;
+		});
+	}
+
+	function shouldSkipSidebarItem(item, moduleKey) {
+		if (SKIP_LINK_LABELS.has(item.label)) return true;
+		if (moduleKey === "Shift & Attendance") {
+			return !isAttendanceAllowedItem(item);
+		}
+		if (moduleKey !== "HR Setup") return false;
+		if (item.type === "Section Break" && HR_SETUP_HIDDEN_SECTIONS.has(String(item.label || ""))) {
+			return true;
+		}
+		if (item.type !== "Link") return false;
+		return HR_SETUP_HIDDEN_LINK_TO.has(item.link_to) || HR_SETUP_HIDDEN_LINK_TO.has(item.label);
+	}
 
 	const SIDEBAR_LABEL_MAP = {
 		// Common
@@ -344,6 +435,18 @@ frappe.provide("employee_roster.unified_sidebar");
 		navbarApp: null,
 		compact: false,
 
+		redirectLegacyHrSetup() {
+			try {
+				const parts = frappe.router?.current_route;
+				if (!Array.isArray(parts) || !parts.length) return;
+				if (String(parts[0] || "") === "hr-setup") {
+					frappe.set_route("hr-home");
+				}
+			} catch (e) {
+				/* ignore */
+			}
+		},
+
 		init() {
 			if (this.initialized || !frappe.boot.setup_complete) return;
 			this.initialized = true;
@@ -354,6 +457,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			});
 
 			frappe.router.on("change", () => {
+				this.redirectLegacyHrSetup();
 				window.requestAnimationFrame(() => this.refresh());
 			});
 
@@ -361,6 +465,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				this.syncCollapseControls();
 			});
 
+			this.redirectLegacyHrSetup();
 			this.waitForSidebar(() => this.refresh());
 		},
 
@@ -546,6 +651,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				}
 
 				document.body.classList.add(BODY_CLASS);
+				applyStoredHrTheme();
 				if (!frappe.is_mobile()) document.body.classList.remove("sidebar-collapsed");
 				document.body.classList.toggle("hr-sidebar-compact", this.compact);
 				this.ensureNavbar();
@@ -673,6 +779,9 @@ frappe.provide("employee_roster.unified_sidebar");
 				},
 				onLogout: () => {
 					frappe.app?.logout?.();
+				},
+				onThemeChange: (theme) => {
+					setHrTheme(theme);
 				},
 			});
 		},
@@ -1475,7 +1584,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		buildGroups(items, moduleKey) {
-			const prepared = this.prepareItems(items);
+			const prepared = this.prepareItems(filterSidebarItems(items, moduleKey));
 			const groups = [];
 			let current = null;
 			let sectionChildMode = false;
@@ -1509,7 +1618,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				}
 
 				if (item.type !== "Link" || item.hidden) continue;
-				if (SKIP_LINK_LABELS.has(item.label)) continue;
+				if (shouldSkipSidebarItem(item, moduleKey)) continue;
 
 				if (item.child && current && sectionChildMode) {
 					current.items.push(item);

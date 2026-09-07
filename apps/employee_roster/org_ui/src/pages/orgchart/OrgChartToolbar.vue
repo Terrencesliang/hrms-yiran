@@ -1,5 +1,5 @@
 <template>
-	<a-card class="oc-toolbar-card" :bordered="false">
+	<a-card class="hr-panel-card oc-toolbar-card" :bordered="false">
 		<div class="oc-toolbar-row">
 			<a-space wrap>
 				<a-select

@@ -1,0 +1,58 @@
+/* Attendance Rules Desk page — 与人事模块统一的 Desk 壳层 */
+
+.page-container[data-page-route="attendance-rules"] .layout-side-section,
+body[data-route="attendance-rules"] .layout-side-section,
+.arco-hr-attendance-rules-wrapper .layout-side-section {
+	display: none !important;
+}
+
+.page-container[data-page-route="attendance-rules"] .layout-main-section-wrapper,
+body[data-route="attendance-rules"] .layout-main-section-wrapper,
+.arco-hr-attendance-rules-wrapper .layout-main-section-wrapper {
+	flex: 1 1 100% !important;
+	max-width: 100% !important;
+	width: 100% !important;
+	background: var(--hr-desk-page-bg, #f2f3f5);
+}
+
+.page-container[data-page-route="attendance-rules"] .layout-main,
+body[data-route="attendance-rules"] .layout-main,
+.arco-hr-attendance-rules-wrapper .layout-main {
+	display: flex;
+	flex-wrap: nowrap;
+	min-width: 0;
+	width: 100%;
+}
+
+.page-container[data-page-route="attendance-rules"] .page-head,
+body[data-route="attendance-rules"] .page-head,
+.arco-hr-attendance-rules-wrapper .page-head {
+	display: none !important;
+}
+
+.page-container[data-page-route="attendance-rules"] .layout-main-section,
+body[data-route="attendance-rules"] .layout-main-section,
+.arco-hr-attendance-rules-wrapper .layout-main-section {
+	border: 0;
+	background: transparent;
+	box-shadow: none;
+	padding: 0 !important;
+}
+
+.arco-hr-attendance-rules-wrapper #hr-attendance-rules-arco-root {
+	min-height: calc(100dvh - 52px);
+}
+
+.hr-attendance-rules-page.hr-desk-content-stack {
+	padding: 16px;
+	gap: 16px;
+	box-sizing: border-box;
+}
+
+.hr-attendance-rules-body {
+	min-width: 0;
+}
+
+body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .hr-attendance-rules-page.hr-desk-content-stack {
+	padding: 16px !important;
+}

@@ -13,6 +13,8 @@ from frappe import _
 ALLOWED_ARCHIVE_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx", ".xls", ".xlsx"}
 MAX_ARCHIVE_FILES = 1000
 MAX_ARCHIVE_UNCOMPRESSED_BYTES = 500 * 1024 * 1024
+DEFAULT_PAGE_SIZE = 50
+MAX_PAGE_SIZE = 200
 
 
 def _require_archive_permission(permission_type: str = "read") -> None:
@@ -76,6 +78,26 @@ def _employee_filters(department=None, status=None):
 	return filters
 
 
+def _parse_pagination(page=None, page_size=None):
+	page = max(1, int(page or 1))
+	page_size = min(MAX_PAGE_SIZE, max(1, int(page_size or DEFAULT_PAGE_SIZE)))
+	return page, page_size
+
+
+def _paginated_response(rows, total, page, page_size):
+	return {
+		"rows": rows,
+		"total": total,
+		"page": page,
+		"page_size": page_size,
+		"has_more": page * page_size < total,
+	}
+
+
+def _employee_display_fields():
+	return ["name", "employee_name", "employee_number", "department", "status"]
+
+
 def _get_employees(department=None, status=None, include_completeness=False):
 	fields = ["name", "employee_name", "employee_number", "department", "status"]
 	if include_completeness:
@@ -122,6 +144,33 @@ def _education_employee_names(employee_names):
 	return {row.parent for row in rows}
 
 
+def _employees_with_work_history(employee_names):
+	if not employee_names:
+		return set()
+	found = set()
+	for doctype in ("Employee External Work History", "Employee Internal Work History"):
+		found.update(
+			frappe.get_all(
+				doctype,
+				filters={"parent": ("in", employee_names)},
+				pluck="parent",
+			)
+		)
+	return found
+
+
+def _employees_with_skills(employee_names):
+	if not employee_names:
+		return set()
+	return set(
+		frappe.get_all(
+			"Employee Skill Map",
+			filters={"employee": ("in", employee_names)},
+			pluck="employee",
+		)
+	)
+
+
 def _file_size_map(uploads):
 	file_urls = {row.file for employee_uploads in uploads.values() for row in employee_uploads.values() if row.file}
 	if not file_urls:
@@ -134,7 +183,8 @@ def _file_size_map(uploads):
 	return {row.file_url: row.file_size or 0 for row in rows}
 
 
-def _completeness_score(emp, employees_with_education):
+def _completeness_score(emp, employees_with_education, employees_with_work, employees_with_skills, emp_uploads, required_types):
+	"""按档案库各维度统计员工信息完整度（基础信息、联系人、子表、必传材料）。"""
 	checks = [
 		bool(emp.employee_name),
 		bool(emp.employee_number),
@@ -143,14 +193,29 @@ def _completeness_score(emp, employees_with_education):
 		bool(emp.date_of_joining),
 		bool(emp.cell_number),
 		bool(emp.person_to_be_contacted and emp.emergency_phone_number and emp.relation),
+		emp.name in employees_with_education,
+		emp.name in employees_with_work,
+		emp.name in employees_with_skills,
 	]
-	checks.append(emp.name in employees_with_education)
+	if required_types:
+		uploaded = sum(1 for doc_type in required_types if emp_uploads.get(doc_type))
+		checks.append(uploaded / len(required_types))
+	else:
+		checks.append(1.0)
 
-	filled = sum(1 for item in checks if item)
+	filled = sum(checks)
 	return filled, len(checks)
 
 
-def _group_stats(employees, doc_types, uploads, employees_with_education, file_sizes):
+def _group_stats(
+	employees,
+	doc_types,
+	uploads,
+	employees_with_education,
+	employees_with_work,
+	employees_with_skills,
+	file_sizes,
+):
 	required_types = [d.name for d in doc_types if d.is_required]
 	total = len(employees)
 	archived = 0
@@ -167,7 +232,14 @@ def _group_stats(employees, doc_types, uploads, employees_with_education, file_s
 			if row.file:
 				material_count += 1
 				storage_bytes += file_sizes.get(row.file, 0)
-		filled, total_fields = _completeness_score(emp, employees_with_education)
+		filled, total_fields = _completeness_score(
+			emp,
+			employees_with_education,
+			employees_with_work,
+			employees_with_skills,
+			emp_uploads,
+			required_types,
+		)
 		if total_fields:
 			completeness_total += filled / total_fields
 
@@ -183,18 +255,36 @@ def _group_stats(employees, doc_types, uploads, employees_with_education, file_s
 	}
 
 
-def _document_progress(employees, doc_types, uploads):
-	total = len(employees)
+def _document_progress(employee_names, doc_types):
+	total = len(employee_names)
+	if not total:
+		return [
+			{
+				"document_type": doc.name,
+				"document_slug": doc.document_type or doc.name,
+				"document_name": doc.document_name,
+				"uploaded": 0,
+				"total": 0,
+				"rate": 0,
+			}
+			for doc in doc_types
+		]
+
 	progress = []
 	for doc in doc_types:
-		uploaded = 0
-		for emp in employees:
-			if uploads.get(emp.name, {}).get(doc.name):
-				uploaded += 1
+		uploaded = frappe.db.count(
+			"Employee Archive Document",
+			{
+				"employee": ("in", employee_names),
+				"document_type": doc.name,
+				"file": ("!=", ""),
+			},
+		)
 		rate = round(uploaded / total * 100) if total else 0
 		progress.append(
 			{
 				"document_type": doc.name,
+				"document_slug": doc.document_type or doc.name,
 				"document_name": doc.document_name,
 				"uploaded": uploaded,
 				"total": total,
@@ -236,20 +326,117 @@ def get_archive_overview(department: str | None = None) -> dict:
 	all_names = [e.name for e in active_employees + left_employees]
 	uploads = _uploaded_map(all_names)
 	employees_with_education = _education_employee_names(all_names)
+	employees_with_work = _employees_with_work_history(all_names)
+	employees_with_skills = _employees_with_skills(all_names)
 	file_sizes = _file_size_map(uploads)
+
+	active_names = [employee.name for employee in active_employees]
+	left_names = [employee.name for employee in left_employees]
 
 	return {
 		"departments": frappe.get_all("Department", fields=["name"], order_by="name asc", pluck="name"),
 		"document_types": doc_types,
 		"active": {
-			**_group_stats(active_employees, doc_types, uploads, employees_with_education, file_sizes),
-			"progress": _document_progress(active_employees, doc_types, uploads),
+			**_group_stats(
+				active_employees,
+				doc_types,
+				uploads,
+				employees_with_education,
+				employees_with_work,
+				employees_with_skills,
+				file_sizes,
+			),
+			"progress": _document_progress(active_names, doc_types),
 		},
 		"left": {
-			**_group_stats(left_employees, doc_types, uploads, employees_with_education, file_sizes),
-			"progress": _document_progress(left_employees, doc_types, uploads),
+			**_group_stats(
+				left_employees,
+				doc_types,
+				uploads,
+				employees_with_education,
+				employees_with_work,
+				employees_with_skills,
+				file_sizes,
+			),
+			"progress": _document_progress(left_names, doc_types),
 		},
 	}
+
+
+def _filtered_document_types(document_type: str | None = None):
+	doc_types = get_active_document_types()
+	if document_type:
+		doc_types = [doc for doc in doc_types if doc.name == document_type]
+	return doc_types
+
+
+def _build_archive_document_row(emp, doc, uploaded):
+	return {
+		"name": uploaded.name if uploaded else "",
+		"employee": emp.name,
+		"employee_name": emp.employee_name,
+		"employee_number": emp.employee_number,
+		"department": emp.department,
+		"employee_status": emp.status,
+		"document_type": doc.name,
+		"document_name": doc.document_name,
+		"status": uploaded.status if uploaded else "Pending",
+		"file": uploaded.file if uploaded else "",
+		"uploaded_on": uploaded.uploaded_on if uploaded else "",
+		"has_file": bool(uploaded and uploaded.file),
+	}
+
+
+def _count_archive_document_rows(employees, doc_types, uploads, missing_only: int | str = 0) -> int:
+	missing_only = int(missing_only or 0)
+	total = 0
+	for emp in employees:
+		emp_uploads = uploads.get(emp.name, {})
+		for doc in doc_types:
+			uploaded = emp_uploads.get(doc.name)
+			if missing_only and uploaded:
+				continue
+			total += 1
+	return total
+
+
+def _slice_archive_document_rows(employees, doc_types, uploads, missing_only, page, page_size):
+	missing_only = int(missing_only or 0)
+	start = (page - 1) * page_size
+	rows = []
+	index = 0
+	for emp in employees:
+		emp_uploads = uploads.get(emp.name, {})
+		for doc in doc_types:
+			uploaded = emp_uploads.get(doc.name)
+			if missing_only and uploaded:
+				continue
+			if index >= start and len(rows) < page_size:
+				rows.append(_build_archive_document_row(emp, doc, uploaded))
+			index += 1
+			if len(rows) >= page_size and index >= start + page_size:
+				return rows
+	return rows
+
+
+def _list_archive_documents_all(
+	department: str | None = None,
+	status: str | None = None,
+	document_type: str | None = None,
+	missing_only: int | str = 0,
+) -> list[dict]:
+	doc_types = _filtered_document_types(document_type)
+	employees = _get_employees(department=department, status=status or None)
+	uploads = _uploaded_map([employee.name for employee in employees])
+	rows = []
+	for emp in employees:
+		emp_uploads = uploads.get(emp.name, {})
+		for doc in doc_types:
+			uploaded = emp_uploads.get(doc.name)
+			if int(missing_only or 0) and uploaded:
+				continue
+			rows.append(_build_archive_document_row(emp, doc, uploaded))
+	return rows
 
 
 @frappe.whitelist()
@@ -258,38 +445,20 @@ def list_archive_documents(
 	status: str | None = None,
 	document_type: str | None = None,
 	missing_only: int | str = 0,
-) -> list[dict]:
+	page: int | str = 1,
+	page_size: int | str = DEFAULT_PAGE_SIZE,
+) -> dict:
 	_require_archive_permission()
-	doc_types = get_active_document_types()
+	page, page_size = _parse_pagination(page, page_size)
+	doc_types = _filtered_document_types(document_type)
 	employees = _get_employees(department=department, status=status or None)
-	uploads = _uploaded_map([e.name for e in employees])
-	rows = []
+	if not employees or not doc_types:
+		return _paginated_response([], 0, page, page_size)
 
-	for emp in employees:
-		for doc in doc_types:
-			if document_type and doc.name != document_type:
-				continue
-			uploaded = uploads.get(emp.name, {}).get(doc.name)
-			if int(missing_only or 0) and uploaded:
-				continue
-			rows.append(
-				{
-					"name": uploaded.name if uploaded else "",
-					"employee": emp.name,
-					"employee_name": emp.employee_name,
-					"employee_number": emp.employee_number,
-					"department": emp.department,
-					"employee_status": emp.status,
-					"document_type": doc.name,
-					"document_name": doc.document_name,
-					"status": uploaded.status if uploaded else "Pending",
-					"file": uploaded.file if uploaded else "",
-					"uploaded_on": uploaded.uploaded_on if uploaded else "",
-					"has_file": bool(uploaded and uploaded.file),
-				}
-			)
-
-	return rows
+	uploads = _uploaded_map([employee.name for employee in employees])
+	total = _count_archive_document_rows(employees, doc_types, uploads, missing_only)
+	rows = _slice_archive_document_rows(employees, doc_types, uploads, missing_only, page, page_size)
+	return _paginated_response(rows, total, page, page_size)
 
 
 def _get_uploaded_zip(file_url: str):
@@ -584,7 +753,7 @@ def delete_archive_document(name: str) -> dict:
 
 @frappe.whitelist()
 def export_missing_documents(department: str | None = None, status: str | None = None) -> None:
-	rows = list_archive_documents(department=department, status=status, missing_only=1)
+	rows = _list_archive_documents_all(department=department, status=status, missing_only=1)
 	output = io.StringIO()
 	writer = csv.writer(output)
 	writer.writerow(["employee", "employee_name", "employee_number", "department", "document_type", "document_name"])
@@ -614,7 +783,7 @@ def get_archive_export(
 	_require_archive_permission("read")
 	if export_type not in {"missing", "detail"}:
 		frappe.throw(_("Unsupported export type"), frappe.ValidationError)
-	rows = list_archive_documents(
+	rows = _list_archive_documents_all(
 		department=department,
 		status=status,
 		document_type=document_type,
@@ -641,18 +810,41 @@ def _employees_index(department: str | None = None, status: str | None = None) -
 	return {row.name: row for row in employees}
 
 
+def _employee_map(names: list[str]) -> dict:
+	if not names:
+		return {}
+	rows = frappe.get_all("Employee", filters={"name": ("in", names)}, fields=_employee_display_fields())
+	return {row.name: row for row in rows}
+
+
 @frappe.whitelist()
-def list_education_records(department: str | None = None, status: str | None = None) -> list[dict]:
+def list_education_records(
+	department: str | None = None,
+	status: str | None = None,
+	page: int | str = 1,
+	page_size: int | str = DEFAULT_PAGE_SIZE,
+) -> dict:
 	_require_archive_permission()
-	emp_map = _employees_index(department, status)
-	if not emp_map:
-		return []
+	page, page_size = _parse_pagination(page, page_size)
+	employee_names = frappe.get_all(
+		"Employee",
+		filters=_employee_filters(department, status),
+		pluck="name",
+	)
+	if not employee_names:
+		return _paginated_response([], 0, page, page_size)
+
+	filters = {"parent": ("in", employee_names)}
+	total = frappe.db.count("Employee Education", filters)
 	rows = frappe.get_all(
 		"Employee Education",
-		filters={"parent": ("in", list(emp_map.keys()))},
+		filters=filters,
 		fields=["parent", "school_univ", "qualification", "level", "year_of_passing", "class_per", "maj_opt_subj"],
 		order_by="year_of_passing desc",
+		limit_start=(page - 1) * page_size,
+		limit_page_length=page_size,
 	)
+	emp_map = _employee_map(list({row.parent for row in rows}))
 	result = []
 	for row in rows:
 		emp = emp_map.get(row.parent)
@@ -673,78 +865,124 @@ def list_education_records(department: str | None = None, status: str | None = N
 				"maj_opt_subj": row.maj_opt_subj or "",
 			}
 		)
-	return result
+	return _paginated_response(result, total, page, page_size)
 
 
 @frappe.whitelist()
-def list_work_history(department: str | None = None, status: str | None = None) -> list[dict]:
+def list_work_history(
+	department: str | None = None,
+	status: str | None = None,
+	page: int | str = 1,
+	page_size: int | str = DEFAULT_PAGE_SIZE,
+) -> dict:
 	_require_archive_permission()
-	emp_map = _employees_index(department, status)
-	if not emp_map:
-		return []
-	parents = list(emp_map.keys())
+	page, page_size = _parse_pagination(page, page_size)
+	parents = frappe.get_all(
+		"Employee",
+		filters=_employee_filters(department, status),
+		pluck="name",
+	)
+	if not parents:
+		return _paginated_response([], 0, page, page_size)
+
+	ext_count = frappe.db.count("Employee External Work History", {"parent": ("in", parents)})
+	int_count = frappe.db.count("Employee Internal Work History", {"parent": ("in", parents)})
+	total = ext_count + int_count
+	start = (page - 1) * page_size
 	rows = []
 
-	for row in frappe.get_all(
-		"Employee External Work History",
-		filters={"parent": ("in", parents)},
-		fields=["parent", "company_name", "designation", "salary", "address", "total_experience"],
-		order_by="idx asc",
-	):
-		emp = emp_map[row.parent]
-		rows.append(
-			{
-				"employee": emp.name,
-				"employee_name": emp.employee_name,
-				"employee_number": emp.employee_number,
-				"department": emp.department,
-				"history_type": __("外部"),
-				"organization": row.company_name or "",
-				"designation": row.designation or "",
-				"period": row.total_experience or "",
-				"detail": row.address or "",
-			}
+	if start < ext_count:
+		ext_rows = frappe.get_all(
+			"Employee External Work History",
+			filters={"parent": ("in", parents)},
+			fields=["parent", "company_name", "designation", "salary", "address", "total_experience"],
+			order_by="idx asc",
+			limit_start=start,
+			limit_page_length=min(page_size, ext_count - start),
 		)
+		emp_map = _employee_map(list({row.parent for row in ext_rows}))
+		for row in ext_rows:
+			emp = emp_map.get(row.parent)
+			if not emp:
+				continue
+			rows.append(
+				{
+					"employee": emp.name,
+					"employee_name": emp.employee_name,
+					"employee_number": emp.employee_number,
+					"department": emp.department,
+					"history_type": __("外部"),
+					"organization": row.company_name or "",
+					"designation": row.designation or "",
+					"period": row.total_experience or "",
+					"detail": row.address or "",
+				}
+			)
 
-	for row in frappe.get_all(
-		"Employee Internal Work History",
-		filters={"parent": ("in", parents)},
-		fields=["parent", "branch", "department", "designation", "from_date", "to_date"],
-		order_by="from_date desc",
-	):
-		emp = emp_map[row.parent]
-		period = " - ".join(filter(None, [str(row.from_date or ""), str(row.to_date or "")]))
-		rows.append(
-			{
-				"employee": emp.name,
-				"employee_name": emp.employee_name,
-				"employee_number": emp.employee_number,
-				"department": emp.department,
-				"history_type": __("内部"),
-				"organization": row.branch or row.department or "",
-				"designation": row.designation or "",
-				"period": period,
-				"detail": row.department or "",
-			}
+	remaining = page_size - len(rows)
+	if remaining > 0 and int_count:
+		int_start = 0 if start < ext_count else start - ext_count
+		int_rows = frappe.get_all(
+			"Employee Internal Work History",
+			filters={"parent": ("in", parents)},
+			fields=["parent", "branch", "department", "designation", "from_date", "to_date"],
+			order_by="from_date desc",
+			limit_start=int_start,
+			limit_page_length=remaining,
 		)
+		emp_map = _employee_map(list({row.parent for row in int_rows}))
+		for row in int_rows:
+			emp = emp_map.get(row.parent)
+			if not emp:
+				continue
+			period = " - ".join(filter(None, [str(row.from_date or ""), str(row.to_date or "")]))
+			rows.append(
+				{
+					"employee": emp.name,
+					"employee_name": emp.employee_name,
+					"employee_number": emp.employee_number,
+					"department": emp.department,
+					"history_type": __("内部"),
+					"organization": row.branch or row.department or "",
+					"designation": row.designation or "",
+					"period": period,
+					"detail": row.department or "",
+				}
+			)
 
-	return rows
+	return _paginated_response(rows, total, page, page_size)
 
 
 @frappe.whitelist()
-def list_emergency_contacts(department: str | None = None, status: str | None = None) -> list[dict]:
+def list_emergency_contacts(
+	department: str | None = None,
+	status: str | None = None,
+	page: int | str = 1,
+	page_size: int | str = DEFAULT_PAGE_SIZE,
+) -> dict:
 	_require_archive_permission()
-	employees = _get_employees(department=department, status=status)
+	page, page_size = _parse_pagination(page, page_size)
+	filters = _employee_filters(department, status)
+	total = frappe.db.count("Employee", filters)
+	employees = frappe.get_all(
+		"Employee",
+		filters=filters,
+		fields=[
+			"name",
+			"employee_name",
+			"employee_number",
+			"department",
+			"status",
+			"person_to_be_contacted",
+			"emergency_phone_number",
+			"relation",
+		],
+		order_by="employee_number asc",
+		limit_start=(page - 1) * page_size,
+		limit_page_length=page_size,
+	)
 	rows = []
 	for emp in employees:
-		contact_name = frappe.db.get_value(
-			"Employee",
-			emp.name,
-			["person_to_be_contacted", "emergency_phone_number", "relation"],
-			as_dict=True,
-		)
-		if not contact_name:
-			continue
 		rows.append(
 			{
 				"employee": emp.name,
@@ -752,39 +990,54 @@ def list_emergency_contacts(department: str | None = None, status: str | None = 
 				"employee_number": emp.employee_number,
 				"department": emp.department,
 				"employee_status": emp.status,
-				"contact_name": contact_name.person_to_be_contacted or "",
-				"contact_phone": contact_name.emergency_phone_number or "",
-				"relation": contact_name.relation or "",
+				"contact_name": emp.person_to_be_contacted or "",
+				"contact_phone": emp.emergency_phone_number or "",
+				"relation": emp.relation or "",
 				"is_complete": bool(
-					contact_name.person_to_be_contacted
-					and contact_name.emergency_phone_number
-					and contact_name.relation
+					emp.person_to_be_contacted and emp.emergency_phone_number and emp.relation
 				),
 			}
 		)
-	return rows
+	return _paginated_response(rows, total, page, page_size)
 
 
 @frappe.whitelist()
-def list_skill_records(department: str | None = None, status: str | None = None) -> list[dict]:
+def list_skill_records(
+	department: str | None = None,
+	status: str | None = None,
+	page: int | str = 1,
+	page_size: int | str = DEFAULT_PAGE_SIZE,
+) -> dict:
 	_require_archive_permission()
-	emp_map = _employees_index(department, status)
-	if not emp_map:
-		return []
+	page, page_size = _parse_pagination(page, page_size)
+	employee_names = frappe.get_all(
+		"Employee",
+		filters=_employee_filters(department, status),
+		pluck="name",
+	)
+	if not employee_names:
+		return _paginated_response([], 0, page, page_size)
+
 	skill_maps = frappe.get_all(
 		"Employee Skill Map",
-		filters={"employee": ("in", list(emp_map.keys()))},
+		filters={"employee": ("in", employee_names)},
 		fields=["name", "employee"],
 	)
 	if not skill_maps:
-		return []
+		return _paginated_response([], 0, page, page_size)
+
 	map_by_name = {row.name: row.employee for row in skill_maps}
+	parent_names = list(map_by_name.keys())
+	total = frappe.db.count("Employee Skill", {"parent": ("in", parent_names)})
 	skill_rows = frappe.get_all(
 		"Employee Skill",
-		filters={"parent": ("in", list(map_by_name.keys()))},
+		filters={"parent": ("in", parent_names)},
 		fields=["parent", "skill", "proficiency", "evaluation_date"],
 		order_by="evaluation_date desc",
+		limit_start=(page - 1) * page_size,
+		limit_page_length=page_size,
 	)
+	emp_map = _employee_map(list({map_by_name[row.parent] for row in skill_rows if row.parent in map_by_name}))
 	result = []
 	for row in skill_rows:
 		employee = map_by_name.get(row.parent)
@@ -802,4 +1055,4 @@ def list_skill_records(department: str | None = None, status: str | None = None)
 				"evaluation_date": row.evaluation_date or "",
 			}
 		)
-	return result
+	return _paginated_response(result, total, page, page_size)

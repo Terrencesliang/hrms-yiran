@@ -8,6 +8,51 @@ import frappe
 from employee_roster.hr_roster.page.employee_archive.employee_archive import seed_document_types
 
 
+def hide_hr_setup_workspace():
+	"""Hide legacy Frappe HR Setup workspace; 人事默认入口改为 hr-home。"""
+	if not frappe.db.exists("Workspace", "HR Setup"):
+		return
+	if frappe.db.get_value("Workspace", "HR Setup", "is_hidden"):
+		return
+	frappe.db.set_value("Workspace", "HR Setup", "is_hidden", 1, update_modified=False)
+	frappe.db.commit()
+
+
+HR_SETUP_HIDDEN_LINK_TO = {
+	"Company",
+	"Branch",
+	"Department",
+	"Designation",
+	"Employee Group",
+	"Employee Grade",
+	"HR Settings",
+	"Settings",
+}
+HR_SETUP_HIDDEN_SECTIONS = {"Setup"}
+
+
+def hide_hr_setup_sidebar_links():
+	"""Hide master-data links under 人事 — managed via org pages instead."""
+	if not frappe.db.exists("Sidebar", "HR Setup"):
+		return
+	doc = frappe.get_doc("Sidebar", "HR Setup")
+	changed = False
+	for row in doc.items:
+		if row.type == "Section Break" and row.label in HR_SETUP_HIDDEN_SECTIONS:
+			if not int(row.hidden or 0):
+				row.hidden = 1
+				changed = True
+		elif row.type == "Link" and (
+			row.link_to in HR_SETUP_HIDDEN_LINK_TO or row.label in HR_SETUP_HIDDEN_LINK_TO
+		):
+			if not int(row.hidden or 0):
+				row.hidden = 1
+				changed = True
+	if changed:
+		doc.save(ignore_permissions=True)
+		frappe.db.commit()
+
+
 def after_install():
 	from employee_roster.patches.post_fixture_sync.ensure_employee_group_name_field import execute as ensure_group_name_field
 	from employee_roster.patches.v1_0.ensure_employee_checkin_day_fields import (
@@ -23,6 +68,8 @@ def after_install():
 	ensure_org_custom_fields()
 	ensure_employee_checkin_day_fields()
 	sync_hr_roster_sidebar()
+	hide_hr_setup_sidebar_links()
+	hide_hr_setup_workspace()
 	setup_attendance_deduction_module()
 	seed_approval_admin_data()
 
@@ -87,6 +134,9 @@ def sync_sidebar():
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 
+	hide_hr_setup_sidebar_links()
+	hide_hr_setup_workspace()
+
 
 def sync_hr_roster_sidebar():
 	"""Load curated hr_roster sidebar (pages only, no setup doctypes)."""
@@ -139,3 +189,4 @@ def sync_hr_roster_sidebar():
 	finally:
 		frappe.conf.developer_mode = prev_dev
 	frappe.db.commit()
+	hide_hr_setup_sidebar_links()

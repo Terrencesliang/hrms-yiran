@@ -1,44 +1,49 @@
 <template>
 	<a-config-provider :locale="zhCN">
-		<HrPage title="组织架构">
-			<div class="oc-stat-grid">
-				<HrStatCard title="组织单元" :value="summary.units" extra="当前公司组织总数" group-separator />
-				<HrStatCard title="员工总数" :value="summary.employees" extra="在组织架构中的员工" group-separator />
-				<HrStatCard title="已设编制" :value="summary.quotaSet" :suffix="`/ ${summary.units}`" extra="已维护编制的组织" />
-				<HrStatCard title="待补岗位" :value="summary.vacancies" extra="根据已设置编制统计" alert />
+	<HrPage :breadcrumbs="breadcrumbs" class="hr-orgchart hr-analysis">
+		<div class="hr-analysis-stack">
+			<div class="hr-analysis-kpis">
+				<a-card v-for="card in summaryCards" :key="card.key" :bordered="false" class="hr-kpi-card">
+					<a-statistic
+						:title="card.title"
+						:value="card.value"
+						:suffix="card.suffix"
+						:extra="card.extra"
+						:value-from="0"
+						show-group-separator
+					/>
+				</a-card>
 			</div>
 
 			<OrgChartToolbar
-				:company="company"
-				:company-options="companyOptions"
-				:keyword="keyword"
-				:filters="filters"
-				:filter-visible="filterVisible"
-				:filter-count="filterCount"
-				:column-defs="columnDefs"
-				@update:company="company = $event"
-				@update:keyword="keyword = $event"
-				@update:filter-visible="filterVisible = $event"
-				@company-change="onCompanyChange"
-				@reset-filters="resetFilters"
-				@create="openDrawer()"
-				@batch="batchVisible = true"
-				@expand-all="expandAll"
-				@collapse-all="collapseAll"
-				@export="exportCsv"
-				@refresh="loadTree"
+					:company="company"
+					:company-options="companyOptions"
+					:keyword="keyword"
+					:filters="filters"
+					:filter-visible="filterVisible"
+					:filter-count="filterCount"
+					:column-defs="columnDefs"
+					@update:company="company = $event"
+					@update:keyword="keyword = $event"
+					@update:filter-visible="filterVisible = $event"
+					@company-change="onCompanyChange"
+					@reset-filters="resetFilters"
+					@create="openDrawer()"
+					@batch="batchVisible = true"
+					@expand-all="expandAll"
+					@collapse-all="collapseAll"
+					@export="exportCsv"
+					@refresh="loadTree"
 			/>
 
-			<a-card class="oc-table-card" :bordered="false">
-				<div class="oc-table-caption">
-					<div>
-						<strong>组织明细</strong>
-						<a-typography-text type="secondary">
-							共 {{ orgCount }} 个组织 · {{ memberCount }} 名成员
-						</a-typography-text>
-					</div>
-					<span>将鼠标移到组织行可快速新增下级</span>
-				</div>
+			<a-card :bordered="false" class="hr-panel-card hr-panel-card--fill">
+				<template #title>组织明细</template>
+				<template #extra>
+					<a-typography-text type="secondary">
+						共 {{ orgCount }} 个组织 · {{ memberCount }} 名成员
+					</a-typography-text>
+				</template>
+				<div class="hr-panel-body hr-rank-wrap">
 				<a-spin :loading="loading" style="width: 100%">
 					<a-table
 						row-key="key"
@@ -116,7 +121,9 @@
 						</template>
 					</a-table>
 				</a-spin>
+				</div>
 			</a-card>
+		</div>
 
 			<OrgDrawer
 				v-model:visible="drawerVisible"
@@ -138,14 +145,17 @@
 </template>
 
 <script setup>
+import { computed } from "vue";
 import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import HrPage from "../../components/HrPage.vue";
-import HrStatCard from "../../components/HrStatCard.vue";
+import { hrPageBreadcrumbs } from "../../utils/hrBreadcrumbs.js";
 import PersonCell from "../../components/PersonCell.vue";
 import OrgChartBatchModal from "./OrgChartBatchModal.vue";
 import OrgChartToolbar from "./OrgChartToolbar.vue";
 import OrgDrawer from "./OrgDrawer.vue";
 import { useOrgChart } from "./composables/useOrgChart";
+
+const breadcrumbs = hrPageBreadcrumbs("组织架构");
 
 const {
 	loading,
@@ -185,4 +195,17 @@ const {
 	onBatchFile,
 	runImport,
 } = useOrgChart();
+
+const summaryCards = computed(() => [
+	{ key: "units", title: "组织单元", value: summary.value?.units || 0, suffix: "", extra: "当前公司组织总数" },
+	{ key: "employees", title: "员工总数", value: summary.value?.employees || 0, suffix: "", extra: "在组织架构中的员工" },
+	{
+		key: "quota",
+		title: "已设编制",
+		value: summary.value?.quotaSet || 0,
+		suffix: `/ ${summary.value?.units || 0}`,
+		extra: "已维护编制的组织",
+	},
+	{ key: "vacancies", title: "待补岗位", value: summary.value?.vacancies || 0, suffix: "", extra: "根据已设置编制统计" },
+]);
 </script>

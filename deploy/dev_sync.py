@@ -8,6 +8,7 @@ Windows and macOS, while stat-based polling is predictable on both platforms.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
 import signal
@@ -20,6 +21,7 @@ from pathlib import Path
 SOURCE_ROOT = Path("/workspace/source")
 BENCH_ROOT = Path("/home/frappe/frappe-bench")
 POLL_INTERVAL = max(float(os.environ.get("DEV_SYNC_INTERVAL", "0.5")), 0.2)
+STATE_FILE = Path(os.environ.get("DEV_SYNC_STATE_FILE", BENCH_ROOT / ".dev-sync-state.json"))
 
 IGNORED_DIRECTORIES = {
 	".codegraph",
@@ -107,6 +109,52 @@ def copy_file(source_path: Path, destination_path: Path) -> None:
 			temporary_path.unlink()
 
 
+def load_snapshots() -> tuple[dict[Path, dict[Path, tuple[int, int]]], bool]:
+	snapshots: dict[Path, dict[Path, tuple[int, int]]] = {mapping.source: {} for mapping in MAPPINGS}
+	try:
+		payload = json.loads(STATE_FILE.read_text(encoding="utf-8"))
+		if payload.get("version") != 1:
+			return snapshots, False
+		stored_mappings = payload.get("mappings", {})
+		for mapping in MAPPINGS:
+			stored_files = stored_mappings.get(str(mapping.source), {})
+			snapshots[mapping.source] = {
+				Path(relative_path): (int(values[0]), int(values[1]))
+				for relative_path, values in stored_files.items()
+				if isinstance(values, list) and len(values) == 2
+			}
+		return snapshots, True
+	except (FileNotFoundError, json.JSONDecodeError, OSError, TypeError, ValueError):
+		return snapshots, False
+
+
+def save_snapshots(snapshots: dict[Path, dict[Path, tuple[int, int]]]) -> None:
+	payload = {
+		"version": 1,
+		"mappings": {
+			str(mapping.source): {
+				str(relative_path): list(file_signature)
+				for relative_path, file_signature in snapshots[mapping.source].items()
+			}
+			for mapping in MAPPINGS
+		},
+	}
+	STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
+	file_descriptor, temporary_name = tempfile.mkstemp(
+		dir=STATE_FILE.parent,
+		prefix=f".{STATE_FILE.name}.",
+		suffix=".tmp",
+	)
+	temporary_path = Path(temporary_name)
+	try:
+		with os.fdopen(file_descriptor, "w", encoding="utf-8") as state_handle:
+			json.dump(payload, state_handle, separators=(",", ":"))
+		os.replace(temporary_path, STATE_FILE)
+	finally:
+		if temporary_path.exists():
+			temporary_path.unlink()
+
+
 def sync_mapping(mapping: SyncMapping, previous: dict[Path, tuple[int, int]]) -> tuple[dict[Path, tuple[int, int]], int, int]:
 	current: dict[Path, tuple[int, int]] = {}
 	copied = 0
@@ -114,9 +162,9 @@ def sync_mapping(mapping: SyncMapping, previous: dict[Path, tuple[int, int]]) ->
 	for relative_path, source_path in source_files(mapping) or ():
 		file_signature = signature(source_path)
 		current[relative_path] = file_signature
-		if previous.get(relative_path) == file_signature:
-			continue
 		destination_path = mapping.destination / relative_path
+		if previous.get(relative_path) == file_signature and destination_path.is_file():
+			continue
 		if destination_path.is_file() and signature(destination_path) == file_signature:
 			continue
 		copy_file(source_path, destination_path)
@@ -138,16 +186,19 @@ def main() -> None:
 
 	signal.signal(signal.SIGTERM, stop)
 	signal.signal(signal.SIGINT, stop)
-	snapshots: dict[Path, dict[Path, tuple[int, int]]] = {mapping.source: {} for mapping in MAPPINGS}
+	snapshots, state_loaded = load_snapshots()
 	if args.once:
 		print(f"[dev-sync] synchronizing {SOURCE_ROOT}", flush=True)
 	else:
 		print(f"[dev-sync] watching {SOURCE_ROOT} every {POLL_INTERVAL:.1f}s", flush=True)
 
 	while running:
+		state_changed = not state_loaded
 		for mapping in MAPPINGS:
 			try:
 				updated, copied, removed = sync_mapping(mapping, snapshots[mapping.source])
+				if updated != snapshots[mapping.source]:
+					state_changed = True
 				snapshots[mapping.source] = updated
 				if copied or removed:
 					print(
@@ -157,6 +208,12 @@ def main() -> None:
 					)
 			except Exception as exc:
 				print(f"[dev-sync] sync failed for {mapping.source}: {exc}", flush=True)
+		if state_changed:
+			try:
+				save_snapshots(snapshots)
+				state_loaded = True
+			except OSError as exc:
+				print(f"[dev-sync] state save failed: {exc}", flush=True)
 		if args.once:
 			break
 		time.sleep(POLL_INTERVAL)

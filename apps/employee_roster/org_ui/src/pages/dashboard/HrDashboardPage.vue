@@ -1,15 +1,10 @@
 <template>
-	<div class="arco-org-ui hr-dashboard hr-analysis">
+	<HrPage :breadcrumbs="breadcrumbs" class="hr-dashboard hr-analysis">
 		<a-spin :loading="loading" style="width: 100%">
 			<!-- Arco Spin 不包 .arco-spin-children，内容直接挂在 .arco-spin 下，间距必须落在本层 -->
 			<div class="hr-analysis-stack">
-				<div class="hr-analysis-toolbar">
-					<a-breadcrumb>
-						<a-breadcrumb-item>人事</a-breadcrumb-item>
-						<a-breadcrumb-item>数据面板</a-breadcrumb-item>
-					</a-breadcrumb>
+				<div v-if="(data?.companies || []).length > 1" class="hr-analysis-toolbar">
 					<a-select
-						v-if="(data?.companies || []).length > 1"
 						v-model="company"
 						allow-clear
 						placeholder="全部公司"
@@ -19,7 +14,6 @@
 						<a-option v-for="c in data.companies" :key="c" :value="c">{{ c }}</a-option>
 					</a-select>
 				</div>
-
 				<div class="hr-analysis-kpis">
 					<a-card v-for="card in metricCards" :key="card.key" :bordered="false" class="hr-kpi-card">
 						<div class="hr-kpi-head">
@@ -85,14 +79,21 @@
 				</a-card>
 			</div>
 		</a-spin>
-	</div>
+	</HrPage>
 </template>
 
 <script setup>
 import { computed, nextTick, onMounted, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
 import HrEchart from "../../components/HrEchart.vue";
+import HrPage from "../../components/HrPage.vue";
+import { hrPageBreadcrumbs } from "../../utils/hrBreadcrumbs.js";
 import { getHrDashboard } from "../../api/hrHome.js";
+import { hrChartTheme, useHrTheme } from "../../utils/useHrTheme.js";
+
+const breadcrumbs = hrPageBreadcrumbs("数据面板");
+const { isDark } = useHrTheme();
+const chartTheme = computed(() => hrChartTheme(isDark.value));
 
 const loading = ref(false);
 const company = ref("");
@@ -119,9 +120,11 @@ function shortDept(name) {
 }
 
 function sparkOption(card) {
+	const theme = chartTheme.value;
 	if (card.chart === "pie") {
 		const pie = card.pie || [];
 		return {
+			backgroundColor: "transparent",
 			color: ["#165DFF", "#14C9C9", "#F7BA1E", "#722ED1", "#FF7D00"],
 			tooltip: { trigger: "item" },
 			series: [
@@ -130,6 +133,7 @@ function sparkOption(card) {
 					radius: ["48%", "72%"],
 					center: ["58%", "50%"],
 					label: { show: false },
+					itemStyle: { borderColor: theme.surface, borderWidth: 2 },
 					data: pie.map((p) => ({ name: p.name, value: p.count })),
 				},
 			],
@@ -138,6 +142,7 @@ function sparkOption(card) {
 	const series = card.series || [];
 	const isBar = card.chart === "bar";
 	return {
+		backgroundColor: "transparent",
 		grid: { left: 0, right: 0, top: 8, bottom: 0 },
 		xAxis: { type: "category", show: false, data: series.map((_, i) => i) },
 		yAxis: { type: "value", show: false },
@@ -171,21 +176,25 @@ function sparkOption(card) {
 }
 
 const deptBarOption = computed(() => {
+	const theme = chartTheme.value;
 	const items = [...(data.value?.by_department || [])].reverse();
 	const names = items.map((i) => shortDept(i.name));
 	const values = items.map((i) => i.count);
 	return {
+		backgroundColor: "transparent",
 		color: ["#165DFF"],
 		tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
 		grid: { left: 96, right: 36, top: 16, bottom: 16 },
 		xAxis: {
 			type: "value",
-			splitLine: { lineStyle: { type: "dashed" } },
+			splitLine: { lineStyle: { type: "dashed", color: theme.splitLine } },
+			axisLabel: { color: theme.text3 },
 		},
 		yAxis: {
 			type: "category",
 			data: names,
-			axisLabel: { width: 80, overflow: "truncate" },
+			axisLabel: { width: 80, overflow: "truncate", color: theme.text2 },
+			axisLine: { lineStyle: { color: theme.splitLine } },
 		},
 		series: [
 			{
@@ -207,33 +216,40 @@ const deptBarOption = computed(() => {
 						],
 					},
 				},
-				label: { show: true, position: "right", color: "#4E5969" },
+				label: { show: true, position: "right", color: theme.text2 },
 			},
 		],
 	};
 });
 
 const periodOption = computed(() => {
+	const theme = chartTheme.value;
 	const pa = data.value?.period_analysis || {};
 	const hiring = pa.hiring || [];
 	const attrition = pa.attrition || [];
 	const net = pa.net || [];
 	return {
+		backgroundColor: "transparent",
 		color: ["#165DFF", "#F77234", "#14C9C9"],
 		tooltip: { trigger: "axis" },
-		legend: { data: ["入职", "离职", "净增"], top: 0 },
+		legend: {
+			data: ["入职", "离职", "净增"],
+			top: 0,
+			textStyle: { color: theme.text2 },
+		},
 		grid: { left: 48, right: 24, top: 40, bottom: 28 },
 		xAxis: {
 			type: "category",
 			boundaryGap: false,
 			data: pa.labels || [],
-			axisLabel: { color: "#86909C" },
+			axisLabel: { color: theme.text3 },
+			axisLine: { lineStyle: { color: theme.splitLine } },
 		},
 		yAxis: {
 			type: "value",
 			minInterval: 1,
-			splitLine: { lineStyle: { type: "dashed" } },
-			axisLabel: { color: "#86909C" },
+			splitLine: { lineStyle: { type: "dashed", color: theme.splitLine } },
+			axisLabel: { color: theme.text3 },
 		},
 		series: [
 			{

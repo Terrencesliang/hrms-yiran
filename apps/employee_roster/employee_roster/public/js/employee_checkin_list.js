@@ -14,19 +14,6 @@
 	const DASHBOARD_METHOD =
 		"employee_roster.hr_roster.api.employee_checkin_dashboard.get_checkin_dashboard";
 
-	const ICONS = {
-		present:
-			'<svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4 4 12.954 4 24s8.954 20 20 20Z" stroke="currentColor" stroke-width="3"/><path d="m15 24 6 6 12-12" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-		both_punches:
-			'<svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 14v10l6 4" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4 4 12.954 4 24s8.954 20 20 20Z" stroke="currentColor" stroke-width="3"/></svg>',
-		late:
-			'<svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 12v14h10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4 4 12.954 4 24s8.954 20 20 20Z" stroke="currentColor" stroke-width="3"/><path d="M36 6 42 12M12 6 6 12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
-		missing:
-			'<svg width="20" height="20" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M24 44c11.046 0 20-8.954 20-20S35.046 4 24 4 4 12.954 4 24s8.954 20 20 20Z" stroke="currentColor" stroke-width="3"/><path d="M24 14v14M24 34h.02" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>',
-		home:
-			'<svg width="16" height="16" viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M9 18 24 6l15 12v22a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V18Z" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M19 42V26h10v16" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/></svg>',
-	};
-
 	const prev = frappe.listview_settings[DOCTYPE] || {};
 	const prev_onload = prev.onload;
 	const prev_before_render = prev.before_render;
@@ -46,6 +33,7 @@
 			listview._checkin_dashboard = listview._checkin_dashboard || null;
 			listview._checkin_result_filter = listview._checkin_result_filter || null;
 
+			patch_empty_state(listview);
 			init_default_today_filter(listview);
 			enhance_list_shell(listview);
 			inject_stat_board(listview);
@@ -58,6 +46,7 @@
 			if (typeof prev_refresh === "function") {
 				prev_refresh(listview);
 			}
+			patch_empty_state(listview);
 			enhance_list_shell(listview);
 			if (!listview.$hr_checkin_stats || !listview.$hr_checkin_stats.length) {
 				inject_stat_board(listview);
@@ -65,6 +54,7 @@
 			}
 			refresh_dashboard(listview);
 			sync_list_toolbar(listview);
+			refresh_empty_state(listview);
 		},
 
 		before_render() {
@@ -106,6 +96,38 @@
 			},
 		}),
 	});
+
+	function refresh_empty_state(listview) {
+		if (!listview?.$no_result?.length || !listview.get_no_result_message) {
+			return;
+		}
+		listview.$no_result.html(listview.get_no_result_message());
+	}
+
+	function patch_empty_state(listview) {
+		if (listview._hr_checkin_empty_patched) {
+			return;
+		}
+		listview._hr_checkin_empty_patched = true;
+		listview.get_no_result_message = function get_checkin_no_result_message() {
+			const filters = this.filter_area && this.filter_area.get();
+			const has_filters_set = filters && filters.length;
+			const title = has_filters_set ? __("未找到打卡记录") : __("暂无打卡记录");
+			const description = has_filters_set
+				? __("清除筛选条件以查看全部记录。")
+				: __("当前还没有打卡数据。");
+			const icon =
+				this.meta?.icon && !String(this.meta.icon).startsWith("fa fa-")
+					? this.meta.icon
+					: "pointer";
+			return frappe.ui.empty_state.html({
+				icon,
+				title,
+				description,
+				actions: [],
+			});
+		};
+	}
 
 	function init_default_today_filter(listview) {
 		if (listview._hr_checkin_default_applied) {
@@ -222,11 +244,7 @@
 	}
 
 	function set_loading(listview, on) {
-		const $wrap = listview.$hr_checkin_stats;
-		if (!$wrap || !$wrap.length) {
-			return;
-		}
-		$wrap.toggleClass("is-loading", !!on);
+		window.OrgUI?.updateEmployeeCheckinOverview?.({ loading: !!on });
 	}
 
 	function lookup_summary(listview, doc) {
@@ -289,15 +307,42 @@
 
 	/** 筛选区 + 列表区套上 Arco Pro search-table 卡片壳 */
 	function enhance_list_shell(listview) {
+		const $page = listview.$page;
+		$page.addClass("arco-hr-checkin-list-wrapper");
+
 		const $section = listview.$page.find(".layout-main-section");
 		if (!$section.length) {
 			return;
 		}
-		$section.addClass("hr-checkin-list-page");
+		$section.addClass("hr-checkin-list-page hr-desk-content-stack");
+
+		const $layoutMain = listview.$page.find(".layout-main").first();
+		if ($layoutMain.length) {
+			$layoutMain.addClass("row");
+		}
+		listview.$page.find(".layout-side-section").hide();
+		listview.$page
+			.find(".layout-main-section-wrapper")
+			.addClass("col-md-12")
+			.css({ flex: "1 1 100%", maxWidth: "100%", width: "100%" });
+
+		$section.find("#hr-checkin-list-header-root").remove();
+		if (!$section.find("#hr-checkin-list-header-root").length) {
+			const $header = $('<div id="hr-checkin-list-header-root" class="hr-desk-header-host"></div>');
+			$section.prepend($header);
+			if (window.OrgUI?.mountEmployeeCheckinDeskHeader) {
+				try {
+					listview.$hr_checkin_header_app?.unmount?.();
+				} catch (error) {
+					console.warn("[employee-checkin] desk header unmount failed", error);
+				}
+				listview.$hr_checkin_header_app = window.OrgUI.mountEmployeeCheckinDeskHeader($header.get(0));
+			}
+		}
 
 		const $form = $section.find(".page-form").first();
 		if ($form.length) {
-			$form.addClass("hr-ck-filter-card");
+			$form.addClass("hr-emp-filter-card");
 		}
 
 		const $list = $section.find(".frappe-list").first();
@@ -305,18 +350,18 @@
 			return;
 		}
 
-		if (!$list.parent().hasClass("hr-ck-table-card")) {
-			$list.wrap('<div class="hr-ck-table-card"></div>');
+		if (!$list.parent().hasClass("hr-emp-table-card")) {
+			$list.wrap('<div class="hr-emp-table-card"></div>');
 			$list.before(`
-				<div class="hr-ck-table-toolbar">
-					<div class="hr-ck-table-toolbar-left">
-						<span class="hr-ck-table-title">${__("打卡明细")}</span>
-						<span class="hr-ck-table-count"></span>
+				<div class="hr-emp-table-toolbar">
+					<div class="hr-emp-table-toolbar-left">
+						<span class="hr-emp-table-title">${__("打卡明细")}</span>
+						<span class="hr-emp-table-count"></span>
 					</div>
 				</div>
 			`);
 		}
-		listview.$hr_checkin_table = $list.closest(".hr-ck-table-card");
+		listview.$hr_checkin_table = $list.closest(".hr-emp-table-card");
 		sync_list_toolbar(listview);
 	}
 
@@ -329,7 +374,7 @@
 			(listview.total_count != null && listview.total_count) ||
 			(listview.data && listview.data.length) ||
 			0;
-		$card.find(".hr-ck-table-count").text(`${__("共")} ${total} ${__("条")}`);
+		$card.find(".hr-emp-table-count").text(`${__("共")} ${total} ${__("条")}`);
 	}
 
 	function inject_stat_board(listview) {
@@ -339,49 +384,52 @@
 		}
 		$section.addClass("hr-checkin-list-page");
 		enhance_list_shell(listview);
-		$section.find(".hr-checkin-list-stats").remove();
+		const $existing = $section.find(".hr-checkin-list-stats").first();
+		if ($existing.length) {
+			listview.$hr_checkin_stats = $existing;
+			return;
+		}
+		try {
+			listview.$hr_checkin_overview_app?.unmount?.();
+		} catch (error) {
+			console.warn("[employee-checkin] overview unmount failed", error);
+		}
 
 		const $board = $(`
-			<div class="hr-roster-page hr-checkin-list-stats is-loading">
-				<div class="hr-ck-panel">
-					<div class="hr-ck-panel-meta">
-						<h3 class="hr-ck-panel-title">${ICONS.home}<span>${__("考勤概览")}</span></h3>
-						<span class="hr-ck-panel-range"></span>
-					</div>
-					<div class="hr-stat-board hr-checkin-stat-board"></div>
-					<div class="hr-ck-hint">${__("点击指标可按人员下钻筛选，再次点击取消")}</div>
-				</div>
+			<div class="hr-roster-page hr-checkin-list-stats">
+				<div class="hr-checkin-overview-root"></div>
 			</div>
 		`);
+
 		const $page_form = $section.find(".page-form").first();
 		if ($page_form.length) {
 			$page_form.after($board);
 		} else {
 			$section.prepend($board);
 		}
+
 		listview.$hr_checkin_stats = $board;
+		const mountEl = $board.find(".hr-checkin-overview-root").get(0);
+		if (!mountEl || !window.OrgUI?.mountEmployeeCheckinOverview) {
+			return;
+		}
+		listview.$hr_checkin_overview_app = window.OrgUI.mountEmployeeCheckinOverview(mountEl, {}, {
+			onFilter: async (resultKey) => {
+				const current = listview._checkin_result_filter;
+				if (current === resultKey) {
+					listview._checkin_result_filter = null;
+					await clear_employee_in_filter(listview);
+				} else {
+					listview._checkin_result_filter = resultKey;
+					await apply_result_drilldown(listview, resultKey);
+				}
+				sync_stat_active(listview);
+			},
+		});
 	}
 
 	function bind_stat_board(listview) {
-		const $board = listview.$hr_checkin_stats;
-		if (!$board || !$board.length) {
-			return;
-		}
-		$board.off("click.hr-checkin-stat").on("click.hr-checkin-stat", ".hr-stat-cell[data-result]", async function () {
-			const result_key = $(this).attr("data-result");
-			if (!result_key) {
-				return;
-			}
-			const current = listview._checkin_result_filter;
-			if (current === result_key) {
-				listview._checkin_result_filter = null;
-				await clear_employee_in_filter(listview);
-			} else {
-				listview._checkin_result_filter = result_key;
-				await apply_result_drilldown(listview, result_key);
-			}
-			sync_stat_active(listview);
-		});
+		/* Vue overview handles click via onFilter */
 	}
 
 	async function apply_result_drilldown(listview, result_key) {
@@ -439,10 +487,6 @@
 	}
 
 	function render_stat_board(listview) {
-		const $wrap = listview.$hr_checkin_stats;
-		if (!$wrap || !$wrap.length) {
-			return;
-		}
 		const dash = listview._checkin_dashboard || {};
 		const stats = dash.stats || {
 			present: 0,
@@ -450,56 +494,17 @@
 			late: 0,
 			missing: 0,
 		};
-
-		$wrap.find(".hr-ck-panel-range").text(format_range_label(dash));
-		$wrap.find(".hr-checkin-stat-board").html(`
-			<div class="hr-stat-card">${stat_cell(__("出勤"), stats.present || 0, "present", " is-green")}</div>
-			<div class="hr-stat-card">${stat_cell(__("上下班打卡"), stats.both_punches || 0, "both_punches", " is-blue")}</div>
-			<div class="hr-stat-card">${stat_cell(__("迟到"), stats.late || 0, "late", " is-warn")}</div>
-			<div class="hr-stat-card">${stat_cell(__("缺卡"), stats.missing || 0, "missing", " is-danger")}</div>
-		`);
-		sync_stat_active(listview);
+		window.OrgUI?.updateEmployeeCheckinOverview?.({
+			stats,
+			rangeLabel: format_range_label(dash),
+			activeResult: listview._checkin_result_filter || null,
+			loading: false,
+		});
 	}
 
 	function sync_stat_active(listview) {
-		const $wrap = listview.$hr_checkin_stats;
-		if (!$wrap) {
-			return;
-		}
-		$wrap.find(".hr-stat-cell").removeClass("is-active");
-		const key = listview._checkin_result_filter;
-		if (key) {
-			$wrap.find(`.hr-stat-cell[data-result="${key}"]`).addClass("is-active");
-			const labels = {
-				present: __("出勤"),
-				both_punches: __("上下班打卡"),
-				late: __("迟到"),
-				missing: __("缺卡"),
-			};
-			$wrap.find(".hr-ck-hint").html(
-				`${__("当前筛选")}：<strong>${frappe.utils.escape_html(labels[key] || key)}</strong> · ${__(
-					"再次点击取消",
-				)}`,
-			);
-		} else {
-			$wrap.find(".hr-ck-hint").text(__("点击指标可按人员下钻筛选，再次点击取消"));
-		}
-	}
-
-	function escape_attr(value) {
-		return frappe.utils.escape_html(String(value || ""));
-	}
-
-	function stat_cell(label, value, resultKey, extraClass) {
-		const icon = ICONS[resultKey] || ICONS.present;
-		return `<button type="button" class="hr-stat-cell${extraClass || ""}" data-result="${escape_attr(
-			resultKey,
-		)}">
-			<span class="hr-stat-avatar">${icon}</span>
-			<span class="hr-stat-body">
-				<span class="hr-stat-label">${label}</span>
-				<span class="hr-stat-num">${value}<span class="hr-stat-unit">${__("人")}</span></span>
-			</span>
-		</button>`;
+		window.OrgUI?.updateEmployeeCheckinOverview?.({
+			activeResult: listview._checkin_result_filter || null,
+		});
 	}
 })();
