@@ -6,16 +6,20 @@ DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ENV_FILE="${DEPLOY_DIR}/.env"
 compose_args=(-f docker-compose.yml -f docker-compose.dev.yml)
 show_logs=false
+allow_migrate=false
 force_migrate=false
 force_recreate=false
 
 for arg in "$@"; do
 	case "${arg}" in
 		--logs) show_logs=true ;;
-		--migrate) force_migrate=true ;;
+		--migrate) allow_migrate=true ;;
+		--force-migrate) allow_migrate=true; force_migrate=true ;;
 		--recreate) force_recreate=true ;;
 		-h|--help)
-			echo "Usage: bash deploy/dev.sh [--logs] [--migrate] [--recreate]"
+			echo "Usage: bash deploy/dev.sh [--logs] [--migrate] [--force-migrate] [--recreate]"
+			echo "  --migrate        Run migration only when schema metadata changed."
+			echo "  --force-migrate  Run a full migration even when metadata is unchanged."
 			exit 0
 			;;
 		*) echo "Unknown option: ${arg}" >&2; exit 2 ;;
@@ -54,21 +58,17 @@ echo "Synchronizing mounted source code..."
 docker compose "${compose_args[@]}" exec -T backend \
 	python /workspace/source/deploy/dev_sync.py --once
 
+prepare_args=()
 if grep -qE '^USE_BUNDLED_POSTGRES=true' "${ENV_FILE}"; then
-	if [ "${force_migrate}" = true ]; then
-		docker compose "${compose_args[@]}" exec -T backend \
-			bash /workspace/source/deploy/scripts/prepare_dev.sh --local-database --migrate
-	else
-		docker compose "${compose_args[@]}" exec -T backend \
-			bash /workspace/source/deploy/scripts/prepare_dev.sh --local-database
-	fi
-elif [ "${force_migrate}" = true ]; then
-	docker compose "${compose_args[@]}" exec -T backend \
-		bash /workspace/source/deploy/scripts/prepare_dev.sh --migrate
-else
-	docker compose "${compose_args[@]}" exec -T backend \
-		bash /workspace/source/deploy/scripts/prepare_dev.sh
+	prepare_args+=(--local-database)
 fi
+if [ "${force_migrate}" = true ]; then
+	prepare_args+=(--force-migrate)
+elif [ "${allow_migrate}" = true ]; then
+	prepare_args+=(--migrate)
+fi
+docker compose "${compose_args[@]}" exec -T backend \
+	bash /workspace/source/deploy/scripts/prepare_dev.sh "${prepare_args[@]}"
 
 port="$(sed -n 's/^HTTP_PORT=//p' "${ENV_FILE}" | tail -1 | tr -d '"\r')"
 port="${port:-8080}"

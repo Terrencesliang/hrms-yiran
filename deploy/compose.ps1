@@ -30,7 +30,13 @@ $argsList += $ComposeArgs
 
 $prevErrorAction = $ErrorActionPreference
 $ErrorActionPreference = "Continue"
-& docker @argsList 2>&1 | ForEach-Object { "$_" }
-$exitCode = $LASTEXITCODE
-$ErrorActionPreference = $prevErrorAction
+Push-Location $DeployDir
+try {
+    & docker @argsList 2>&1 | ForEach-Object { "$_" }
+    $exitCode = $LASTEXITCODE
+}
+finally {
+    Pop-Location
+    $ErrorActionPreference = $prevErrorAction
+}
 exit $exitCode

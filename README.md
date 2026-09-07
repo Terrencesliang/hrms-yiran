@@ -82,10 +82,13 @@ This repository includes a Windows/macOS-compatible Docker development mode. It 
 
 - macOS: `bash deploy/dev.sh`
 - Windows PowerShell: `.\deploy\dev.ps1`
+- Apply schema changes when needed: `bash deploy/dev.sh --migrate` / `.\deploy\dev.ps1 -Migrate`
+- Force a full migration: `bash deploy/dev.sh --force-migrate` / `.\deploy\dev.ps1 -ForceMigrate`
 - Stable start (macOS): `bash deploy/start.sh`
 - Stable start (Windows PowerShell): `.\deploy\start.ps1`
 - Stop (macOS): `bash deploy/stop.sh`
 - Stop (Windows PowerShell): `.\deploy\stop.ps1`
+- Stop and remove containers/network: `bash deploy/stop.sh --down` / `.\deploy\stop.ps1 -Down`
 - Detailed guide: [other/DEVELOPMENT.md](other/DEVELOPMENT.md)
 
 ### Docker
