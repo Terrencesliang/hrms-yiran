@@ -163,16 +163,14 @@ def list_startable_forms(keyword: str | None = None):
 			"description",
 			"process_summary",
 			"visibility",
+			"visibility_json",
+			"status",
 			"sort_order",
 		],
 		order_by="sort_order asc, form_name asc",
 	)
-	out = []
-	for row in rows:
-		doc = frappe.get_doc("Approval Form", row.name)
-		if _user_can_see_form(doc):
-			out.append(row)
-	return out
+	# Most forms are 全公司 — skip get_doc N+1; only resolve 自定义 visibility in-memory.
+	return [row for row in rows if _user_can_see_form(row)]
 
 
 @frappe.whitelist()
@@ -432,19 +430,35 @@ def get_workspace_detail(instance_name: str | None = None, task_name: str | None
 def workspace_stats():
 	_require_login()
 	user = frappe.session.user
+	# One round-trip instead of 4 separate COUNT queries
+	row = frappe.db.sql(
+		"""
+		SELECT
+			(
+				SELECT COUNT(*) FROM `tabApproval Task`
+				WHERE assignee = %(user)s AND status = '待处理' AND task_type = 'approve'
+			) AS todo,
+			(
+				SELECT COUNT(*) FROM `tabApproval Task`
+				WHERE assignee = %(user)s AND task_type = 'approve'
+					AND status IN ('已同意', '已驳回', '已转交')
+			) AS done,
+			(
+				SELECT COUNT(*) FROM `tabApproval Instance`
+				WHERE applicant_user = %(user)s
+			) AS mine,
+			(
+				SELECT COUNT(*) FROM `tabApproval Task`
+				WHERE assignee = %(user)s AND task_type = 'cc'
+			) AS cc
+		""",
+		{"user": user},
+		as_dict=True,
+	)
+	stats = row[0] if row else {}
 	return {
-		"todo": frappe.db.count(
-			"Approval Task",
-			{"assignee": user, "status": "待处理", "task_type": "approve"},
-		),
-		"done": frappe.db.count(
-			"Approval Task",
-			{
-				"assignee": user,
-				"task_type": "approve",
-				"status": ["in", ["已同意", "已驳回", "已转交"]],
-			},
-		),
-		"mine": frappe.db.count("Approval Instance", {"applicant_user": user}),
-		"cc": frappe.db.count("Approval Task", {"assignee": user, "task_type": "cc"}),
+		"todo": cint(stats.get("todo")),
+		"done": cint(stats.get("done")),
+		"mine": cint(stats.get("mine")),
+		"cc": cint(stats.get("cc")),
 	}

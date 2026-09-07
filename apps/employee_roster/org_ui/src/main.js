@@ -15,6 +15,8 @@ import ApprovalDesignerApp from "./pages/approvals/designer/ApprovalDesignerApp.
 import ApprovalsWorkspace from "./pages/approvals/workspace/ApprovalsWorkspace.vue";
 import HrHomePage from "./pages/home/HrHomePage.vue";
 import HrDashboardPage from "./pages/dashboard/HrDashboardPage.vue";
+import ContractOverviewPage from "./pages/contract/ContractOverviewPage.vue";
+import ContractTemplatesPage from "./pages/contract/ContractTemplatesPage.vue";
 
 function boot(app) {
 	app.use(ArcoVue);
@@ -107,6 +109,30 @@ export function mountHrDashboard(el) {
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () => h(HrDashboardPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractOverview(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(ContractOverviewPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountContractTemplates(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(ContractTemplatesPage));
 			},
 		})
 	);

@@ -3,7 +3,7 @@
 		<div class="ap-panel-header">
 			<div>
 				<h1 class="oc-page-title" style="margin-bottom: 4px">审批模板库</h1>
-				<p class="ap-hint">从预置模板一键创建审批表单，可再在「审批表单」中设置</p>
+				<p class="ap-hint">与「审批表单 / 审批中心」同步的预置模板，可一键复用创建</p>
 			</div>
 			<a-input-search
 				v-model="keyword"

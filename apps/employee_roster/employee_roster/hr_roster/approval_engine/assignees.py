@@ -29,9 +29,11 @@ def resolve_assignees(
 	*,
 	applicant_employee: str | None,
 	applicant_user: str | None,
+	form_data: dict[str, Any] | None = None,
 ) -> list[str]:
 	"""Return list of User ids."""
 	props = props or {}
+	form_data = form_data or {}
 	assignee_type = (props.get("assignee_type") or "reports_to").strip()
 	users: list[str] = []
 
@@ -50,34 +52,52 @@ def resolve_assignees(
 			if u:
 				users.append(u)
 	elif assignee_type == "role":
-		role = props.get("role") or "HR Manager"
-		role_users = frappe.get_all(
-			"Has Role",
-			filters={"role": role, "parenttype": "User"},
-			pluck="parent",
-		)
-		users.extend([u for u in role_users if u and u != "Guest"])
+		roles = props.get("roles")
+		if isinstance(roles, str):
+			roles = [r.strip() for r in roles.split(",") if r.strip()]
+		if not roles:
+			role = props.get("role") or "HR Manager"
+			roles = [role]
+		for role in roles:
+			role_users = frappe.get_all(
+				"Has Role",
+				filters={"role": role, "parenttype": "User"},
+				pluck="parent",
+			)
+			users.extend([u for u in role_users if u and u != "Guest"])
 	elif assignee_type == "department_head":
-		dept = None
-		if applicant_employee:
-			dept = frappe.db.get_value("Employee", applicant_employee, "department")
-		if dept:
-			# Prefer Department.department_head / custom leave_approver style fields if present
-			head = None
-			meta = frappe.get_meta("Department")
-			for fieldname in ("department_head", "leave_approver", "approver"):
-				if meta.has_field(fieldname):
-					head = frappe.db.get_value("Department", dept, fieldname)
-					if head:
-						break
-			if head:
-				# may be Employee or User
-				if frappe.db.exists("Employee", head):
-					u = get_user_for_employee(head)
+		users.extend(
+			_users_for_department_head(
+				_department_of_employee(applicant_employee),
+			)
+		)
+	elif assignee_type == "form_field":
+		field = (props.get("field") or "").strip()
+		raw = form_data.get(field) if field else None
+		resolve_as = (props.get("resolve_as") or "employee").strip()
+		if raw:
+			if resolve_as == "user":
+				if isinstance(raw, list):
+					users.extend([x for x in raw if x])
+				else:
+					users.append(raw)
+			elif resolve_as == "department_head":
+				dept = raw if isinstance(raw, str) else None
+				users.extend(_users_for_department_head(dept))
+			else:
+				# employee (default)
+				emps = raw if isinstance(raw, list) else [raw]
+				for emp in emps:
+					u = get_user_for_employee(emp)
 					if u:
 						users.append(u)
-				elif frappe.db.exists("User", head):
-					users.append(head)
+	elif assignee_type == "reports_to_chain":
+		# Prefer expanding into sequential nodes in runtime; here return chain users
+		# for single-node fallback (会签/或签 depending on mode).
+		levels = int(props.get("levels") or 3)
+		users.extend(
+			_users_for_reports_to_chain(applicant_employee, levels=levels)
+		)
 	else:
 		# reports_to (default)
 		reports_to = None
@@ -104,3 +124,79 @@ def resolve_assignees(
 	if not users:
 		frappe.throw(_("无法解析审批人，请检查流程节点配置或组织汇报关系"))
 	return users
+
+
+def _department_of_employee(employee: str | None) -> str | None:
+	if not employee:
+		return None
+	return frappe.db.get_value("Employee", employee, "department")
+
+
+def _users_for_department_head(dept: str | None) -> list[str]:
+	if not dept:
+		return []
+	head = None
+	meta = frappe.get_meta("Department")
+	for fieldname in ("department_head", "leave_approver", "approver"):
+		if meta.has_field(fieldname):
+			head = frappe.db.get_value("Department", dept, fieldname)
+			if head:
+				break
+	if not head:
+		return []
+	if frappe.db.exists("Employee", head):
+		u = get_user_for_employee(head)
+		return [u] if u else []
+	if frappe.db.exists("User", head):
+		return [head]
+	return []
+
+
+def _users_for_reports_to_chain(employee: str | None, *, levels: int = 3) -> list[str]:
+	"""Walk reports_to up to `levels` managers (unique users, bottom → top)."""
+	users: list[str] = []
+	current = employee
+	seen_emp: set[str] = set()
+	for _ in range(max(1, levels)):
+		if not current or current in seen_emp:
+			break
+		seen_emp.add(current)
+		manager = frappe.db.get_value("Employee", current, "reports_to")
+		if not manager or manager in seen_emp:
+			break
+		u = get_user_for_employee(manager)
+		if u and u not in users:
+			users.append(u)
+		current = manager
+	return users
+
+
+def build_reports_to_chain_nodes(
+	base_node: dict[str, Any],
+	*,
+	applicant_employee: str | None,
+) -> list[dict[str, Any]]:
+	"""Expand a reports_to_chain approver into sequential per-manager nodes."""
+	props = dict(base_node.get("props") or {})
+	levels = int(props.get("levels") or 3)
+	users = _users_for_reports_to_chain(applicant_employee, levels=levels)
+	if not users:
+		# keep original node so resolve_assignees fallback can still run
+		return [base_node]
+	out = []
+	for idx, user in enumerate(users, start=1):
+		nid = f"{base_node.get('id') or 'chain'}_{idx}"
+		out.append(
+			{
+				"id": nid,
+				"type": "approver",
+				"label": f"{base_node.get('label') or '上级'}（第{idx}级）",
+				"props": {
+					"assignee_type": "user",
+					"user": user,
+					"mode": props.get("mode") or "or",
+					"field_perms": props.get("field_perms") or {},
+				},
+			}
+		)
+	return out

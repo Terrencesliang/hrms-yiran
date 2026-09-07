@@ -264,8 +264,12 @@ def _advance_from(instance, after_node_id: str | None) -> None:
 	nodes = process["nodes"]
 	form_data = _loads(instance.form_data_json, {})
 
-	# Build linear walk with condition expansion
-	sequence = _expand_sequence(nodes, form_data)
+	# Build linear walk with condition / reports_to_chain expansion
+	sequence = _expand_sequence(
+		nodes,
+		form_data,
+		applicant_employee=instance.applicant_employee,
+	)
 	start_idx = -1
 	if after_node_id:
 		for i, n in enumerate(sequence):
@@ -296,19 +300,48 @@ def _advance_from(instance, after_node_id: str | None) -> None:
 	_finish_approved(instance)
 
 
-def _expand_sequence(nodes: list[dict], form_data: dict) -> list[dict]:
+def _expand_sequence(
+	nodes: list[dict],
+	form_data: dict,
+	*,
+	applicant_employee: str | None = None,
+) -> list[dict]:
+	from employee_roster.hr_roster.approval_engine.assignees import build_reports_to_chain_nodes
+
 	out: list[dict] = []
 	for node in nodes:
 		if node["type"] == "condition":
 			branch = _pick_branch(node, form_data)
 			if branch:
-				out.extend(_expand_sequence(branch.get("nodes") or [], form_data))
+				out.extend(
+					_expand_sequence(
+						branch.get("nodes") or [],
+						form_data,
+						applicant_employee=applicant_employee,
+					)
+				)
 			continue
 		if node["type"] == "parallel":
 			# Phase 2.4 light support: run branches sequentially for simplicity
 			for branch in (node.get("props") or {}).get("branches") or []:
-				out.extend(_expand_sequence(branch.get("nodes") or [], form_data))
+				out.extend(
+					_expand_sequence(
+						branch.get("nodes") or [],
+						form_data,
+						applicant_employee=applicant_employee,
+					)
+				)
 			continue
+		if node["type"] == "approver":
+			props = node.get("props") or {}
+			if (props.get("assignee_type") or "") == "reports_to_chain":
+				out.extend(
+					build_reports_to_chain_nodes(
+						node,
+						applicant_employee=applicant_employee,
+					)
+				)
+				continue
 		out.append(node)
 	return out
 
@@ -328,10 +361,12 @@ def _pick_branch(node: dict, form_data: dict) -> dict | None:
 
 def _create_approve_tasks(instance, node: dict) -> None:
 	props = node.get("props") or {}
+	form_data = _loads(instance.form_data_json, {})
 	users = resolve_assignees(
 		props,
 		applicant_employee=instance.applicant_employee,
 		applicant_user=instance.applicant_user,
+		form_data=form_data,
 	)
 	mode = (props.get("mode") or "or").lower()
 	created = []
@@ -361,10 +396,12 @@ def _create_approve_tasks(instance, node: dict) -> None:
 
 def _create_cc_tasks(instance, node: dict) -> None:
 	props = node.get("props") or {}
+	form_data = _loads(instance.form_data_json, {})
 	users = resolve_assignees(
 		props,
 		applicant_employee=instance.applicant_employee,
 		applicant_user=instance.applicant_user,
+		form_data=form_data,
 	)
 	for user in users:
 		task = frappe.get_doc(

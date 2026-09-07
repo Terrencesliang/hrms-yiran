@@ -43,20 +43,53 @@
 						<a-form-item label="审批人类型">
 							<a-select v-model="selected.props.assignee_type">
 								<a-option value="reports_to">直属上级</a-option>
+								<a-option value="reports_to_chain">多级汇报链</a-option>
 								<a-option value="role">角色</a-option>
 								<a-option value="user">指定用户</a-option>
 								<a-option value="employee">指定员工</a-option>
 								<a-option value="department_head">部门负责人</a-option>
+								<a-option value="form_field">表单字段</a-option>
 							</a-select>
 						</a-form-item>
 						<a-form-item v-if="selected.props.assignee_type === 'role'" label="角色">
-							<a-input v-model="selected.props.role" placeholder="HR Manager" />
+							<LinkSearchSelect
+								v-model="selected.props.role"
+								doctype="Role"
+								placeholder="搜索角色，如 总经理 / HRBP"
+							/>
+						</a-form-item>
+						<a-form-item
+							v-if="selected.props.assignee_type === 'reports_to_chain'"
+							label="汇报级数"
+						>
+							<a-input-number v-model="selected.props.levels" :min="1" :max="10" />
+						</a-form-item>
+						<a-form-item v-if="selected.props.assignee_type === 'form_field'" label="表单字段 key">
+							<a-input
+								v-model="selected.props.field"
+								placeholder="如 to_department / handover_employee"
+							/>
+						</a-form-item>
+						<a-form-item v-if="selected.props.assignee_type === 'form_field'" label="字段解析为">
+							<a-select v-model="selected.props.resolve_as">
+								<a-option value="employee">员工</a-option>
+								<a-option value="department_head">部门负责人</a-option>
+								<a-option value="user">用户</a-option>
+							</a-select>
 						</a-form-item>
 						<a-form-item v-if="selected.props.assignee_type === 'user'" label="用户">
-							<a-input v-model="selected.props.user" placeholder="user@example.com" />
+							<LinkSearchSelect
+								v-model="selected.props.user"
+								doctype="User"
+								placeholder="搜索姓名 / 邮箱选择用户"
+								:filters="{ enabled: 1, user_type: 'System User' }"
+							/>
 						</a-form-item>
-						<a-form-item v-if="selected.props.assignee_type === 'employee'" label="员工 ID">
-							<a-input v-model="selected.props.employee" />
+						<a-form-item v-if="selected.props.assignee_type === 'employee'" label="员工">
+							<EmployeeSearchSelect
+								v-model="selected.props.employee"
+								placeholder="搜索员工姓名选择"
+							/>
 						</a-form-item>
 						<a-form-item v-if="selected.type === 'approver'" label="会签模式">
 							<a-select v-model="selected.props.mode">
@@ -109,6 +142,8 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
+import EmployeeSearchSelect from "../../../components/EmployeeSearchSelect.vue";
+import LinkSearchSelect from "../../../components/LinkSearchSelect.vue";
 
 const props = defineProps({
 	nodes: { type: Array, default: () => [] },
@@ -147,7 +182,25 @@ function uid(prefix) {
 function nodeHint(node) {
 	const p = node.props || {};
 	if (node.type === "approver" || node.type === "cc") {
-		return p.assignee_type || "reports_to";
+		const t = p.assignee_type || "reports_to";
+		if (t === "user" && p.user) return `用户：${p.user}`;
+		if (t === "employee" && p.employee) return `员工：${p.employee}`;
+		if (t === "role" && (p.role || p.roles)) {
+			const roles = p.roles?.length ? p.roles.join("、") : p.role;
+			return `角色：${roles}`;
+		}
+		if (t === "form_field") return `字段：${p.field || "?"} → ${p.resolve_as || "employee"}`;
+		if (t === "reports_to_chain") return `汇报链 ${p.levels || 3} 级`;
+		const map = {
+			reports_to: "直属上级",
+			reports_to_chain: "多级汇报链",
+			role: "角色",
+			user: "指定用户",
+			employee: "指定员工",
+			department_head: "部门负责人",
+			form_field: "表单字段",
+		};
+		return map[t] || t;
 	}
 	if (node.type === "condition") {
 		return `${(p.branches || []).length} 个分支`;

@@ -15,6 +15,14 @@
 					@clear="loadForms"
 					@press-enter="loadForms"
 				/>
+				<a-button
+					status="danger"
+					:disabled="!selectedKeys.length"
+					:loading="deleting"
+					@click="batchDelete"
+				>
+					删除所选{{ selectedKeys.length ? ` (${selectedKeys.length})` : "" }}
+				</a-button>
 				<a-button @click="openGroupModal">编辑分组</a-button>
 				<a-button type="primary" @click="openCreateForm">
 					<template #icon><icon-plus /></template>
@@ -24,7 +32,7 @@
 		</div>
 
 		<a-card :bordered="false" class="oc-table-card">
-			<a-tabs v-model:active-key="activeGroup" type="rounded" @change="loadForms">
+			<a-tabs v-model:active-key="activeGroup" type="rounded" @change="onGroupChange">
 				<a-tab-pane
 					v-for="g in groups"
 					:key="g.name"
@@ -33,10 +41,12 @@
 			</a-tabs>
 
 			<a-table
+				v-model:selected-keys="selectedKeys"
 				:columns="columns"
 				:data="forms"
 				:loading="loading"
 				:pagination="false"
+				:row-selection="rowSelection"
 				row-key="name"
 			>
 				<template #formName="{ record }">
@@ -74,6 +84,9 @@
 								<a-doption @click="openEditForm(record)">编辑</a-doption>
 								<a-doption @click="toggleStatus(record)">
 									{{ record.status === "使用中" ? "停用" : "启用" }}
+								</a-doption>
+								<a-doption class="ap-danger-option" @click="deleteOne(record)">
+									删除
 								</a-doption>
 							</template>
 						</a-dropdown>
@@ -166,10 +179,18 @@ import { call } from "../../api/frappe";
 
 const loading = ref(false);
 const saving = ref(false);
+const deleting = ref(false);
 const keyword = ref("");
 const groups = ref([]);
 const forms = ref([]);
 const activeGroup = ref("");
+const selectedKeys = ref([]);
+
+const rowSelection = {
+	type: "checkbox",
+	showCheckedAll: true,
+	onlyCurrent: false,
+};
 
 const formModalVisible = ref(false);
 const formModel = reactive({
@@ -210,7 +231,7 @@ async function loadGroups() {
 	}
 }
 
-async function loadForms() {
+async function loadForms({ refreshGroups = false } = {}) {
 	loading.value = true;
 	try {
 		forms.value =
@@ -218,13 +239,87 @@ async function loadForms() {
 				group: activeGroup.value || undefined,
 				keyword: keyword.value || undefined,
 			})) || [];
-		// refresh counts on current groups
-		await loadGroups();
+		const names = new Set(forms.value.map((f) => f.name));
+		selectedKeys.value = selectedKeys.value.filter((k) => names.has(k));
+		if (refreshGroups) {
+			await loadGroups();
+		}
 	} catch (e) {
 		Message.error("加载审批表单失败");
 	} finally {
 		loading.value = false;
 	}
+}
+
+function onGroupChange() {
+	selectedKeys.value = [];
+	loadForms();
+}
+
+async function doDelete(names) {
+	if (!names?.length) return;
+	deleting.value = true;
+	try {
+		const res = await call("employee_roster.hr_roster.approval_admin.delete_approval_forms", {
+			names,
+		});
+		const deleted = res?.deleted || [];
+		const count = res?.count ?? deleted.length;
+		Message.success(count ? `已删除 ${count} 个表单` : "没有可删除的表单");
+		selectedKeys.value = [];
+
+		// List API is not server-paginated; local remove keeps group/keyword filter intact
+		// and avoids an extra round-trip. Tab badge still needs a count refresh.
+		if (deleted.length) {
+			const deletedSet = new Set(deleted);
+			forms.value = forms.value.filter((f) => !deletedSet.has(f.name));
+			const g = groups.value.find((x) => x.name === activeGroup.value);
+			if (g) {
+				g.form_count = Math.max(0, (Number(g.form_count) || 0) - count);
+			}
+		}
+	} catch (e) {
+		const msg =
+			e?.message ||
+			e?._server_messages ||
+			(typeof e === "string" ? e : "") ||
+			"删除失败";
+		Message.error(String(msg).replace(/<[^>]+>/g, "").slice(0, 200) || "删除失败");
+	} finally {
+		deleting.value = false;
+	}
+}
+
+function batchDelete() {
+	if (!selectedKeys.value.length) {
+		Message.warning("请先勾选要删除的表单");
+		return;
+	}
+	const titles = forms.value
+		.filter((f) => selectedKeys.value.includes(f.name))
+		.map((f) => f.form_name)
+		.slice(0, 5);
+	const more =
+		selectedKeys.value.length > titles.length
+			? ` 等 ${selectedKeys.value.length} 个`
+			: "";
+	Modal.confirm({
+		title: "批量删除审批表单",
+		content: `确认删除「${titles.join("、")}${more}」？删除后不可恢复。`,
+		okText: "删除",
+		okButtonProps: { status: "danger" },
+		onOk: () => doDelete([...selectedKeys.value]),
+	});
+}
+
+function deleteOne(record) {
+	Modal.confirm({
+		title: "删除审批表单",
+		content: `确认删除「${record.form_name}」？删除后不可恢复。`,
+		okText: "删除",
+		okButtonProps: { status: "danger" },
+		onOk: () => doDelete([record.name]),
+	});
 }
 
 function resetFormModel(extra = {}) {
@@ -274,7 +369,7 @@ async function submitForm() {
 		});
 		Message.success("已保存");
 		formModalVisible.value = false;
-		await loadForms();
+		await loadForms({ refreshGroups: true });
 	} catch (e) {
 		Message.error("保存失败");
 		return false;
@@ -299,7 +394,7 @@ async function toggleStatus(record) {
 		},
 	});
 	Message.success(next === "使用中" ? "已启用" : "已停用");
-	await loadForms();
+	await loadForms({ refreshGroups: true });
 }
 
 async function openGroupModal() {
@@ -321,7 +416,7 @@ async function saveGroup(g) {
 	Message.success("分组已保存");
 	await loadGroups();
 	allGroups.value = JSON.parse(JSON.stringify(groups.value));
-	await loadForms();
+	await loadForms({ refreshGroups: false });
 }
 
 async function createGroup() {
@@ -350,14 +445,26 @@ function removeGroup(g) {
 			if (activeGroup.value === g.name) activeGroup.value = "";
 			await loadGroups();
 			allGroups.value = JSON.parse(JSON.stringify(groups.value));
-			await loadForms();
+			await loadForms({ refreshGroups: false });
 		},
 	});
 }
 
 async function reload() {
-	await loadGroups();
-	await loadForms();
+	loading.value = true;
+	try {
+		await loadGroups();
+		forms.value =
+			(await call("employee_roster.hr_roster.approval_admin.list_approval_forms", {
+				group: activeGroup.value || undefined,
+				keyword: keyword.value || undefined,
+			})) || [];
+		selectedKeys.value = [];
+	} catch (e) {
+		Message.error("加载审批表单失败");
+	} finally {
+		loading.value = false;
+	}
 }
 
 defineExpose({ reload });

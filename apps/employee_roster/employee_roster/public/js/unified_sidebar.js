@@ -52,12 +52,14 @@ frappe.provide("employee_roster.unified_sidebar");
 		Contract: {
 			items: [
 				{
-					label: __("合同台账"),
-					path: "/app/employee-archive",
+					label: __("合同概览"),
+					path: "/app/contract-overview",
+					link_to: "contract-overview",
 				},
 				{
-					label: __("劳动合同"),
-					path: "/app/employee-archive",
+					label: __("合同模板"),
+					path: "/app/contract-templates",
+					link_to: "contract-templates",
 				},
 			],
 		},
