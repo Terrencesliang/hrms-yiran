@@ -1,6 +1,8 @@
 <template>
 	<div class="arco-org-ui contract-seals">
-		<div class="cse-toolbar">
+		<ContractSectionNav group="settings" active-key="contract-seals" />
+
+		<ContractActionToolbar title="企业印章" description="管理各公司主体用于电子合同的印章">
 			<a-input
 				v-model="keyword"
 				class="cse-search"
@@ -15,7 +17,7 @@
 				<template #icon><icon-plus /></template>
 				新增印章
 			</a-button>
-		</div>
+		</ContractActionToolbar>
 
 		<div class="cse-grid">
 			<a-card v-for="seal in filteredSeals" :key="seal.id" :bordered="false" class="cse-card">
@@ -80,6 +82,8 @@
 import { computed, reactive, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { IconPlus, IconSearch } from "@arco-design/web-vue/es/icon";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
+import ContractSectionNav from "./ContractSectionNav.vue";
 
 const keyword = ref("");
 const modalVisible = ref(false);

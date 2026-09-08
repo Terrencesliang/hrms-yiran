@@ -13,7 +13,7 @@ const ARCHIVE_TABS = [
 	{ key: "skills", label: () => __("工作技能") },
 ];
 
-const ARCHIVE_ASSET_VERSION = "20260910f";
+const ARCHIVE_ASSET_VERSION = "20260912a";
 
 const ARCHIVE_DOC_NAME_SLUGS = {
 	身份证原件: "id_card",

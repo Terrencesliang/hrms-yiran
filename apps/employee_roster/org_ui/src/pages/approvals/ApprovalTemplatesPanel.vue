@@ -1,23 +1,24 @@
 <template>
 	<div class="ap-panel">
-		<div class="ap-panel-header">
-			<div>
-				<h1 class="oc-page-title" style="margin-bottom: 4px">审批模板库</h1>
-				<p class="ap-hint">与「审批表单 / 审批中心」同步的预置模板，可一键复用创建</p>
+		<a-card :bordered="false" class="hr-desk-toolbar-card ap-toolbar-card">
+			<div class="ap-panel-toolbar">
+				<a-input-search
+					v-model="keyword"
+					allow-clear
+					placeholder="搜索模板"
+					class="ap-search"
+					@search="load"
+					@clear="load"
+					@press-enter="load"
+				/>
+				<span class="ap-toolbar-hint">选择模板可快速创建标准审批表单</span>
 			</div>
-			<a-input-search
-				v-model="keyword"
-				allow-clear
-				placeholder="搜索模板"
-				style="width: 260px"
-				@search="load"
-				@clear="load"
-				@press-enter="load"
-			/>
-		</div>
+		</a-card>
 
-		<a-card :bordered="false" class="oc-table-card">
-			<a-tabs v-model:active-key="category" type="rounded" @change="load">
+		<a-card :bordered="false" class="hr-desk-table-card ap-content-card">
+			<template #title>审批模板列表</template>
+			<template #extra><span class="ap-list-count">共 {{ rows.length }} 个模板</span></template>
+			<a-tabs v-model:active-key="category" type="rounded" class="ap-category-tabs" @change="load">
 				<a-tab-pane v-for="c in categories" :key="c" :title="c" />
 			</a-tabs>
 
@@ -27,6 +28,8 @@
 				:loading="loading"
 				:pagination="false"
 				row-key="name"
+				:bordered="false"
+				size="medium"
 			>
 				<template #name="{ record }">
 					<div class="ap-form-name">
@@ -41,6 +44,7 @@
 						{{ using === record.name ? "创建中…" : "使用" }}
 					</a-link>
 				</template>
+				<template #empty><a-empty description="当前分类暂无审批模板" /></template>
 			</a-table>
 		</a-card>
 	</div>

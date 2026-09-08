@@ -79,35 +79,44 @@ body[data-route="employee-archive"] .page-head {
 
 .hr-archive-tabs {
 	display: flex;
-	gap: 24px;
-	padding: 0 4px;
-	border-bottom: 1px solid var(--hr-border);
+	align-items: center;
+	gap: 8px;
+	padding: 8px 16px;
+	border: 1px solid var(--hr-border);
+	border-radius: 8px;
 	overflow-x: auto;
 	white-space: nowrap;
-	background: transparent;
+	background: var(--hr-bg);
+	box-shadow: var(--hr-archive-shadow);
+	scrollbar-width: thin;
 }
 
 .hr-archive-tab {
 	border: none;
 	background: transparent;
-	padding: 10px 0;
+	padding: 6px 16px;
 	font-size: 14px;
-	line-height: 22px;
+	line-height: 20px;
 	color: var(--hr-muted);
-	border-bottom: 2px solid transparent;
-	margin-bottom: -1px;
+	border-radius: 999px;
 	cursor: pointer;
-	transition: color 0.15s ease, border-color 0.15s ease;
+	transition: color 0.18s ease, background-color 0.18s ease;
 }
 
 .hr-archive-tab:hover {
 	color: var(--hr-text);
+	background: var(--color-fill-2, #f2f3f5);
 }
 
 .hr-archive-tab.is-active {
 	color: var(--hr-primary);
-	font-weight: 500;
-	border-bottom-color: var(--hr-primary);
+	font-weight: 600;
+	background: var(--color-fill-2, #f2f3f5);
+}
+
+.hr-archive-tab:focus-visible {
+	outline: 2px solid var(--hr-primary);
+	outline-offset: 2px;
 }
 
 .hr-archive-toolbar {
@@ -774,7 +783,9 @@ body[data-route="employee-archive"] .page-head {
 /* ---------- Dark theme refinements ---------- */
 html[data-theme="dark"] .hr-archive-tabs,
 html[arco-theme="dark"] .hr-archive-tabs {
-	background: transparent;
+	background: var(--hr-desk-surface);
+	border-color: var(--hr-desk-border);
+	box-shadow: none;
 }
 
 html[data-theme="dark"] .hr-archive-column,

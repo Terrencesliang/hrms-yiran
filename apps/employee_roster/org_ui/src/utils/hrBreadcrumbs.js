@@ -4,6 +4,9 @@ export const HR_MODULE_LABEL = "人事";
 /** 与 unified_sidebar MODULE_TAB_LABELS["Shift & Attendance"] 一致 */
 export const ATTENDANCE_MODULE_LABEL = "考勤";
 
+/** 与 unified_sidebar MODULE_TAB_LABELS["Approval"] 一致 */
+export const APPROVAL_MODULE_LABEL = "审批";
+
 /** Arco Pro 风格 HR 页面包屑：{模块} / {页面} */
 export function hrPageBreadcrumbs(pageLabel, moduleLabel = HR_MODULE_LABEL) {
 	const items = [{ label: moduleLabel }];

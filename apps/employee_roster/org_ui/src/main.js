@@ -26,6 +26,7 @@ import ContractSealsPage from "./pages/contract/ContractSealsPage.vue";
 import ContractPackagesPage from "./pages/contract/ContractPackagesPage.vue";
 import ContractArchivePage from "./pages/contract/ContractArchivePage.vue";
 import EmployeeListDeskHeader from "./pages/employee_list/EmployeeListDeskHeader.vue";
+import EmployeeFormDeskHeader from "./pages/employee_form/EmployeeFormDeskHeader.vue";
 import EmployeeArchiveDeskHeader from "./pages/employee_archive/EmployeeArchiveDeskHeader.vue";
 import EmployeeCheckinDeskHeader from "./pages/employee_checkin/EmployeeCheckinDeskHeader.vue";
 import EmployeeCheckinOverview from "./components/EmployeeCheckinOverview.vue";
@@ -310,11 +311,13 @@ export function updateNavbar(payload) {
 const employeeFormState = reactive({
 	name: "",
 	employee_name: "",
+	employee_number: "",
 	status: "",
 	department: "",
 	designation: "",
 	company: "",
 	branch: "",
+	group_name: "",
 	employment_type: "",
 	employment_type_label: "",
 	image: "",
@@ -335,6 +338,17 @@ const employeeFormState = reactive({
 	emergency_phone_number: "",
 	relation: "",
 	bio_text: "",
+	hr_job_title: "",
+	hr_position_category: "",
+	hr_work_city: "",
+	hr_work_location: "",
+	hr_employee_identity: "",
+	hr_oa_code: "",
+	attendance_device_id: "",
+	education_summary: "",
+	probation_days_remaining: null,
+	late_count: null,
+	overtime_hours: null,
 	education: [],
 	external_work_history: [],
 	internal_work_history: [],
@@ -345,6 +359,8 @@ const employeeFormState = reactive({
 	profile_completion: 0,
 	profile_missing: [],
 	show_overview: true,
+	can_edit: false,
+	can_create_transfer: false,
 });
 
 const employeeFormHandlers = {
@@ -368,8 +384,15 @@ export function mountEmployeeForm(el, payload = {}, handlers = {}) {
 	return app;
 }
 
+const employeeFormDeskHeaderState = reactive({
+	employeeName: "",
+});
+
 export function updateEmployeeForm(payload) {
 	Object.assign(employeeFormState, payload || {});
+	if ("employee_name" in (payload || {})) {
+		employeeFormDeskHeaderState.employeeName = payload.employee_name || "";
+	}
 }
 
 export function setEmployeeFormHandlers(handlers = {}) {
@@ -462,6 +485,27 @@ function mountDeskHeader(el, component) {
 
 export function mountEmployeeListDeskHeader(el) {
 	return mountDeskHeader(el, EmployeeListDeskHeader);
+}
+
+export function mountEmployeeFormDeskHeader(el) {
+	Object.assign(employeeFormDeskHeaderState, { employeeName: "" });
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(EmployeeFormDeskHeader, {
+						employeeName: employeeFormDeskHeaderState.employeeName,
+					})
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function updateEmployeeFormDeskHeader(payload = {}) {
+	Object.assign(employeeFormDeskHeaderState, payload);
 }
 
 export function mountEmployeeArchiveDeskHeader(el) {

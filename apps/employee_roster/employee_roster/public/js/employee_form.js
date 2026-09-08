@@ -4,11 +4,13 @@
  * Employee Form — Arco Design：
  * 仅「概况」页签（#basic_details_tab）展示摘要仪表盘；
  * 其它页签保持原生表单（可有轻量 Arco CSS）。
- * cache: 20260907l
+ * cache: 20260912r
  */
 (function () {
 	let employeeFormApp = null;
+	let employeeFormDeskHeaderApp = null;
 	let boundFrm = null;
+	let lastEmployeeName = "";
 	let lastActiveTab = "";
 	let transitionTimer = null;
 	let translationFrame = null;
@@ -83,6 +85,77 @@
 		NOV: "十一月",
 		DEC: "十二月",
 	};
+
+	const EMPLOYEE_TAB_LABELS = {
+		basic_details_tab: "概览",
+		employment_details: "在职信息",
+		personal_details: "个人信息",
+		contact_details: "联系信息",
+		salary_information: "工资社保",
+		hr_contract_tab: "合同信息",
+		hr_materials_tab: "材料附件",
+		hr_background_tab: "背景调查",
+		profile_tab: "履历资料",
+		attendance_and_leave_details: "考勤假期",
+		exit: "离职办理",
+		connections_tab: "更多",
+	};
+
+	const EMPLOYEE_TAB_ORDER = [
+		"basic_details_tab",
+		"employment_details",
+		"personal_details",
+		"contact_details",
+		"salary_information",
+		"hr_contract_tab",
+		"hr_materials_tab",
+		"attendance_and_leave_details",
+		"profile_tab",
+		"hr_background_tab",
+		"exit",
+		"connections_tab",
+	];
+
+	function reorder_employee_tabs($page) {
+		const $tabs = $page.find(".form-tabs .nav-item");
+		if (!$tabs.length) {
+			return;
+		}
+		const $container = $tabs.first().parent();
+		const tabMap = {};
+		$tabs.each(function () {
+			const fieldname =
+				this.querySelector(".nav-link")?.dataset?.fieldname ||
+				$(this).find(".nav-link").data("fieldname") ||
+				$(this).find(".nav-link").attr("data-fieldname") ||
+				"";
+			if (fieldname) {
+				tabMap[fieldname] = this;
+			}
+		});
+		EMPLOYEE_TAB_ORDER.forEach((fieldname) => {
+			if (tabMap[fieldname]) {
+				$container.append(tabMap[fieldname]);
+			}
+		});
+	}
+
+	function relabel_employee_tabs($page) {
+		$page.find(".form-tabs .nav-link, .form-tabs button.nav-link").each(function () {
+			const fieldname =
+				this.dataset?.fieldname || $(this).data("fieldname") || $(this).attr("data-fieldname") || "";
+			const label = EMPLOYEE_TAB_LABELS[fieldname];
+			if (!label) {
+				return;
+			}
+			const $label = $(this).find(".tab-label, span").first();
+			if ($label.length) {
+				$label.text(label);
+			} else {
+				$(this).text(label);
+			}
+		});
+	}
 
 	function translate_employee_text(value) {
 		const text = String(value || "").trim();
@@ -174,21 +247,80 @@
 	function profile_summary(doc) {
 		const checks = [
 			{ value: doc.employee_name || doc.first_name, label: "补充员工姓名", target: "employee_name" },
-			{ value: doc.date_of_joining, label: "补充入职日期", target: "employment_details" },
-			{ value: doc.company, label: "补充所属公司", target: "company" },
+			{ value: doc.date_of_joining, label: "补充入职日期", target: "date_of_joining" },
+			{ value: doc.company, label: "补充合同公司", target: "company" },
 			{ value: doc.department, label: "补充所属部门", target: "department" },
-			{ value: doc.designation, label: "补充员工职位", target: "designation" },
-			{ value: doc.branch, label: "补充分支机构", target: "branch" },
+			{ value: doc.designation, label: "补充岗位", target: "designation" },
+			{ value: doc.employee_number, label: "补充工号", target: "employee_number" },
 			{ value: doc.cell_number, label: "补充手机号", target: "contact" },
 			{ value: doc.company_email || doc.personal_email, label: "补充邮箱", target: "contact" },
-			{ value: doc.person_to_be_contacted && doc.emergency_phone_number, label: "完善紧急联系人", target: "contact" },
-			{ value: doc.bio || (doc.education || []).length || (doc.external_work_history || []).length, label: "完善个人履历", target: "bio" },
+			{
+				value: doc.hr_id_number || doc.passport_number || doc.custom_id_number,
+				label: "补充证件号码",
+				target: "passport_number",
+			},
+			{ value: doc.hr_native_place, label: "补充籍贯", target: "hr_native_place" },
 		];
 		const complete = checks.filter((item) => !!item.value).length;
 		return {
 			profile_completion: Math.round((complete / checks.length) * 100),
 			profile_missing: checks.filter((item) => !item.value).map(({ label, target }) => ({ label, target })),
 		};
+	}
+
+	function get_form_permissions(frm) {
+		try {
+			const can_edit = !!(frm?.perm?.[0]?.write && !frm?.doc?.__islocal);
+			const can_create_transfer =
+				typeof frappe.model?.can_create === "function" ? frappe.model.can_create("Employee Transfer") : false;
+			return { can_edit, can_create_transfer };
+		} catch (e) {
+			return { can_edit: false, can_create_transfer: false };
+		}
+	}
+
+	function trigger_form_edit() {
+		const btn =
+			document.querySelector(".page-head .btn-primary") ||
+			document.querySelector(".page-head .primary-action") ||
+			document.querySelector('.page-head [data-label="Edit"]');
+		btn?.click?.();
+	}
+
+	function trigger_employee_compare() {
+		frappe.show_alert?.({ message: __("员工对比功能即将开放"), indicator: "blue" });
+	}
+
+	function trigger_hr_transfer(frm) {
+		if (!frm?.doc?.name) {
+			return;
+		}
+		if (typeof frappe.model?.can_create === "function" && !frappe.model.can_create("Employee Transfer")) {
+			frappe.msgprint(__("您没有创建人事异动的权限"));
+			return;
+		}
+		frappe.new_doc("Employee Transfer", { employee: frm.doc.name });
+	}
+
+	function build_more_actions(frm) {
+		const actions = [];
+		if (frm?.doc?.name && !frm.doc.__islocal) {
+			actions.push({ key: "create_user", label: __("创建用户") });
+			actions.push({ key: "create_assignment", label: __("创建任务") });
+		}
+		return actions;
+	}
+
+	function handle_more_action(frm, key) {
+		if (key === "create_user") {
+			document.querySelector('.page-head [data-label="Create User"], .page-head .btn[data-label="Create User"]')?.click?.();
+			return;
+		}
+		if (key === "create_assignment") {
+			document
+				.querySelector('.page-head [data-label="Create Assignments"], .page-head .btn[data-label="Create Assignments"]')
+				?.click?.();
+		}
 	}
 
 	function strip_html(html) {
@@ -261,13 +393,16 @@
 
 		return {
 			...profile,
+			...get_form_permissions(frm),
 			name: doc.name || "",
 			employee_name: doc.employee_name || doc.first_name || "",
+			employee_number: doc.employee_number || "",
 			status: doc.status || "",
 			department: doc.department || "",
 			designation: doc.designation || "",
 			company: doc.company || "",
 			branch: doc.branch || "",
+			group_name: doc.group_name || "",
 			employment_type: doc.employment_type || "",
 			employment_type_label:
 				({ "Full-time": "全职", Intern: "实习", Probation: "试用期", Contract: "合同工", "Part-time": "兼职" }[
@@ -291,6 +426,24 @@
 			emergency_phone_number: doc.emergency_phone_number || "",
 			relation: doc.relation || "",
 			bio_text: strip_html(doc.bio),
+			hr_job_title: doc.hr_job_title || "",
+			hr_position_category: doc.hr_position_category || "",
+			hr_job_grade_level: doc.hr_job_grade_level || "",
+			hr_work_city: doc.hr_work_city || "",
+			hr_work_location: doc.hr_work_location || "",
+			hr_employee_identity: doc.hr_employee_identity || "",
+			hr_oa_code: doc.hr_oa_code || "",
+			hr_native_place: doc.hr_native_place || "",
+			hr_id_number: doc.hr_id_number || "",
+			hr_contract_type: doc.hr_contract_type || "",
+			hr_contract_status: doc.hr_contract_status || "",
+			hr_contract_expire_date: fmt_date(doc.hr_contract_expire_date),
+			hr_background_status: doc.hr_background_status || "",
+			attendance_device_id: doc.attendance_device_id || "",
+			education_summary: education[0]?.qualification || education[0]?.level || "",
+			probation_days_remaining: null,
+			late_count: null,
+			overtime_hours: null,
 			education,
 			external_work_history,
 			internal_work_history,
@@ -312,6 +465,9 @@
 			personal_details: 1,
 			profile_tab: 1,
 			employment_details: 1,
+			hr_contract_tab: 1,
+			hr_materials_tab: 1,
+			hr_background_tab: 1,
 			exit: 1,
 			connections_tab: 1,
 		};
@@ -329,6 +485,27 @@
 		const $active = (frm.$wrapper || $()).find(".form-tabs .nav-link.active").first();
 		const fromDom = $active.data("fieldname") || $active.attr("data-fieldname") || "";
 		return fromDom || "basic_details_tab";
+	}
+
+	function ensure_desk_header_root(frm) {
+		const $page = frm.$wrapper || frm.page?.wrapper;
+		if (!$page || !$page.length) {
+			return null;
+		}
+		$page.addClass("arco-hr-employee-form-wrapper");
+		$page.find(".layout-main-section").first().addClass("hr-desk-content-stack");
+		let $root = $page.find("#hr-employee-form-header-root");
+		if ($root.length) {
+			return $root.get(0);
+		}
+		$root = $('<div id="hr-employee-form-header-root" class="hr-desk-header-host"></div>');
+		const $section = $page.find(".layout-main-section").first();
+		if ($section.length) {
+			$section.prepend($root);
+		} else {
+			$page.find(".layout-main").first().prepend($root);
+		}
+		return $root.get(0);
 	}
 
 	function ensure_chrome_root(frm) {
@@ -391,6 +568,8 @@
 		$page.find(".form-grid-container, .form-grid").each(function () {
 			$(this).closest(".frappe-control, .form-group").addClass("arco-emp-grid-wrap");
 		});
+		relabel_employee_tabs($page);
+		reorder_employee_tabs($page);
 		bind_localization_observer($page);
 		schedule_localization($page);
 	}
@@ -429,15 +608,48 @@
 			internal_work_history: "internal_work_history",
 			contact: "cell_number",
 			personal: "marital_status",
+			on_job: "company",
+			contract: "hr_contract_type",
+			materials: "hr_attach_id_front",
+			background: "hr_background_status",
+			profile_tab: "education",
 		};
 		const fieldname = fieldMap[target] || target;
+		const tabByField = {
+			profile_tab: ["bio", "education", "external_work_history", "internal_work_history"],
+			contact_details: ["cell_number", "company_email", "person_to_be_contacted", "hr_wechat"],
+			personal_details: [
+				"marital_status",
+				"blood_group",
+				"passport_number",
+				"hr_native_place",
+				"hr_id_number",
+				"employee_name",
+			],
+			employment_details: [
+				"company",
+				"department",
+				"designation",
+				"employee_number",
+				"grade",
+				"reports_to",
+				"hr_job_title",
+				"hr_work_city",
+				"date_of_joining",
+			],
+			hr_contract_tab: ["hr_contract_type", "hr_contract_status", "hr_contract_expire_date"],
+			hr_materials_tab: ["hr_attach_id_front", "hr_attach_resume"],
+			hr_background_tab: ["hr_background_status"],
+			attendance_and_leave_details: ["attendance_device_id"],
+		};
 		try {
-			if (["bio", "education", "external_work_history", "internal_work_history"].includes(fieldname)) {
-				frm.set_active_tab?.("profile_tab");
-			} else if (["cell_number", "company_email", "person_to_be_contacted"].includes(fieldname)) {
-				frm.set_active_tab?.("contact_details");
-			} else if (["marital_status", "blood_group", "passport_number"].includes(fieldname)) {
-				frm.set_active_tab?.("personal_details");
+			if (target === "attendance") {
+				frm.set_active_tab?.("attendance_and_leave_details");
+			} else {
+				const tab = Object.keys(tabByField).find((key) => tabByField[key].includes(fieldname));
+				if (tab) {
+					frm.set_active_tab?.(tab);
+				}
 			}
 		} catch (e) {
 			/* ignore */
@@ -560,6 +772,7 @@
 
 	function mount_or_update(frm) {
 		boundFrm = frm;
+		const headerEl = ensure_desk_header_root(frm);
 		const el = ensure_chrome_root(frm);
 		ensure_overview_root(frm);
 		if (!el) {
@@ -570,6 +783,13 @@
 		const show_overview = sync_overview_visibility(frm);
 		const payload = payload_from_frm(frm, { show_overview });
 
+		if (headerEl && window.OrgUI?.mountEmployeeFormDeskHeader && !employeeFormDeskHeaderApp) {
+			employeeFormDeskHeaderApp = window.OrgUI.mountEmployeeFormDeskHeader(headerEl);
+		}
+		window.OrgUI?.updateEmployeeFormDeskHeader?.({
+			employeeName: payload.employee_name || payload.name || "",
+		});
+
 		if (!window.OrgUI?.mountEmployeeForm) {
 			return;
 		}
@@ -578,7 +798,26 @@
 			onNavigate(target) {
 				navigate_from_overview(frm, target);
 			},
+			onEdit() {
+				trigger_form_edit();
+			},
+			onCompare() {
+				trigger_employee_compare();
+			},
+			onTransfer() {
+				trigger_hr_transfer(frm);
+			},
+			onMore(key) {
+				handle_more_action(frm, key);
+			},
+			moreActions: build_more_actions(frm),
 		};
+
+		const currentName = frm.doc?.name || "";
+		if (lastEmployeeName && currentName && lastEmployeeName !== currentName) {
+			window.OrgUI.updateEmployeeForm?.({ name: "", show_overview: !!show_overview });
+		}
+		lastEmployeeName = currentName;
 
 		if (!employeeFormApp) {
 			employeeFormApp = window.OrgUI.mountEmployeeForm(el, payload, handlers);
@@ -593,6 +832,11 @@
 	function teardown() {
 		try {
 			employeeFormApp?.unmount?.();
+		} catch (e) {
+			/* ignore */
+		}
+		try {
+			employeeFormDeskHeaderApp?.unmount?.();
 		} catch (e) {
 			/* ignore */
 		}
@@ -614,7 +858,9 @@
 		}
 		$page.removeData("arco-emp-tab-bound arco-emp-tab-capture arco-emp-tab-mo arco-emp-zh-mo");
 		employeeFormApp = null;
+		employeeFormDeskHeaderApp = null;
 		boundFrm = null;
+		lastEmployeeName = "";
 		lastActiveTab = "";
 		clearTimeout(transitionTimer);
 		transitionTimer = null;
@@ -622,17 +868,20 @@
 		translationFrame = null;
 		$(window).off("hashchange.arcoEmpTab popstate.arcoEmpTab");
 		document.body.classList.remove("arco-employee-form");
+		document.querySelector("#hr-employee-form-header-root")?.remove();
 		document.querySelector("#employee-arco-chrome-root")?.remove();
 		document.querySelector("#employee-arco-overview-root")?.remove();
 	}
 
 	const watch_fields = [
 		"employee_name",
+		"employee_number",
 		"status",
 		"department",
 		"designation",
 		"company",
 		"branch",
+		"group_name",
 		"employment_type",
 		"image",
 		"date_of_joining",
@@ -653,6 +902,20 @@
 		"emergency_phone_number",
 		"relation",
 		"bio",
+		"attendance_device_id",
+		"hr_job_title",
+		"hr_position_category",
+		"hr_job_grade_level",
+		"hr_work_city",
+		"hr_work_location",
+		"hr_employee_identity",
+		"hr_oa_code",
+		"hr_native_place",
+		"hr_id_number",
+		"hr_contract_type",
+		"hr_contract_status",
+		"hr_contract_expire_date",
+		"hr_background_status",
 	];
 
 	const handlers = {

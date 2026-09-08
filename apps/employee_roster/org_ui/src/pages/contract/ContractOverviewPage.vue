@@ -1,25 +1,20 @@
 <template>
 	<div class="arco-org-ui contract-overview">
-		<div class="co-toolbar">
+		<ContractActionToolbar title="合同工作台" description="快速查找合同，或直接发起新的签署流程">
 			<a-input
 				v-model="keyword"
 				class="co-search"
-				size="large"
 				allow-clear
 				placeholder="搜索合同名称"
 				@press-enter="onSearch"
 			>
-				<template #suffix>
-					<button type="button" class="co-search-btn" aria-label="搜索" @click="onSearch">
-						<icon-search />
-					</button>
-				</template>
+				<template #prefix><icon-search /></template>
 			</a-input>
-			<a-button type="primary" size="large" class="co-quick-sign" @click="onQuickSign">
+			<a-button type="primary" class="co-quick-sign" @click="onQuickSign">
 				<template #icon><icon-edit /></template>
 				快速签署
 			</a-button>
-		</div>
+		</ContractActionToolbar>
 
 		<a-card :bordered="false" class="co-summary-card">
 			<a-row :gutter="0" class="co-summary-row">
@@ -131,6 +126,7 @@ import {
 	IconSearch,
 	IconUser,
 } from "@arco-design/web-vue/es/icon";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
 
 const keyword = ref("");
 

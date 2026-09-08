@@ -1,157 +1,143 @@
 <template>
-	<div class="arco-org-ui ap-root ap-workspace">
-		<!-- 页头 -->
-		<div class="apw-header">
-			<div class="apw-header-text">
-				<h1 class="oc-page-title">审批中心</h1>
-				<p class="ap-hint">发起申请、处理待办，并跟踪我发起与抄送的单据</p>
-			</div>
-			<a-space>
-				<a-button type="primary" @click="setView('start')">
-					<template #icon><icon-plus /></template>
-					发起审批
-				</a-button>
-			</a-space>
-		</div>
+	<HrPage :breadcrumbs="breadcrumbs" class="ap-workspace hr-analysis">
+		<div class="hr-analysis-stack">
+			<!-- 顶部导航与主操作 -->
+			<a-card :bordered="false" class="hr-desk-toolbar-card apw-nav-card">
+				<div class="apw-toolbar">
+					<a-tabs v-model:active-key="view" type="rounded" hide-content class="apw-nav-tabs" @change="onViewChange">
+						<a-tab-pane key="start" title="发起审批" />
+						<a-tab-pane key="todo" :title="stats.todo ? `我的待办 (${stats.todo})` : '我的待办'" />
+						<a-tab-pane key="done" title="我的已办" />
+						<a-tab-pane key="mine" title="我发起的" />
+						<a-tab-pane key="cc" title="抄送我的" />
+					</a-tabs>
+					<a-button type="primary" @click="setView('start')">
+						<template #icon><icon-plus /></template>
+						发起审批
+					</a-button>
+				</div>
+			</a-card>
 
-		<!-- 顶部分段导航（PC 主入口，不依赖窄侧栏） -->
-		<a-card :bordered="false" class="apw-nav-card">
-			<a-radio-group v-model="view" type="button" size="large" @change="onViewChange">
-				<a-radio value="start">发起审批</a-radio>
-				<a-radio value="todo">我的待办{{ stats.todo ? ` (${stats.todo})` : "" }}</a-radio>
-				<a-radio value="done">我的已办</a-radio>
-				<a-radio value="mine">我发起的</a-radio>
-				<a-radio value="cc">抄送我的</a-radio>
-			</a-radio-group>
-		</a-card>
+			<HrDeskStatOverview
+				v-if="view !== 'start'"
+				:items="statItems"
+				:loading="loading"
+				:handlers="statHandlers"
+				grid-class="hr-employee-overview-grid--four"
+				meta-title="审批概览"
+				:meta-icon="IconFile"
+				meta-hint="待办、已办及申请流转情况"
+			/>
 
-		<!-- 统计 -->
-		<a-row v-if="view !== 'start'" :gutter="16" class="apw-stats">
-			<a-col :xs="12" :sm="6" v-for="s in statCards" :key="s.key">
-				<a-card
+			<!-- 筛选 -->
+			<a-card :bordered="false" class="hr-desk-toolbar-card apw-filter-card">
+				<a-form :model="filters" layout="inline" class="apw-filter-form">
+					<a-form-item label="关键词">
+						<a-input-search
+							v-model="keyword"
+							allow-clear
+							:placeholder="view === 'start' ? '搜索可发起的审批表单' : '搜索标题 / 发起人 / 节点'"
+							style="width: 280px"
+							@search="reload"
+							@clear="reload"
+							@press-enter="reload"
+						/>
+					</a-form-item>
+					<a-form-item v-if="view === 'mine'" label="状态">
+						<a-select
+							v-model="filters.status"
+							allow-clear
+							placeholder="全部状态"
+							style="width: 140px"
+							@change="reload"
+						>
+							<a-option value="进行中">进行中</a-option>
+							<a-option value="已通过">已通过</a-option>
+							<a-option value="已驳回">已驳回</a-option>
+							<a-option value="已撤销">已撤销</a-option>
+						</a-select>
+					</a-form-item>
+					<a-form-item>
+						<a-space>
+							<a-button type="primary" @click="reload">查询</a-button>
+							<a-button @click="resetFilters">重置</a-button>
+						</a-space>
+					</a-form-item>
+				</a-form>
+			</a-card>
+
+			<!-- 发起：表单目录 -->
+			<a-card v-if="view === 'start'" :bordered="false" class="hr-desk-table-card apw-content-card">
+				<template #title>
+					<span>可发起的审批</span>
+					<span class="apw-card-sub">共 {{ startForms.length }} 个表单</span>
+				</template>
+				<a-spin :loading="loading" style="width: 100%">
+					<a-empty v-if="!loading && !startForms.length" description="暂无可发起的审批表单" />
+					<div v-else class="apw-start-grid">
+						<div
+							v-for="f in startForms"
+							:key="f.name"
+							class="apw-start-item"
+							@click="openStart(f)"
+						>
+							<span class="ap-icon apw-start-icon" :style="{ background: f.color || '#00b386' }">
+								{{ (f.form_name || "?").slice(0, 1) }}
+							</span>
+							<div class="apw-start-body">
+								<div class="ap-form-title">{{ f.form_name }}</div>
+								<div class="ap-form-desc">{{ f.description || "暂无说明" }}</div>
+								<div class="apw-start-meta">
+									<a-tag size="small" color="arcoblue">{{ f.group || "未分组" }}</a-tag>
+									<span>{{ f.process_summary || "流程未配置" }}</span>
+								</div>
+							</div>
+							<a-button type="outline" size="small" class="apw-start-btn">发起</a-button>
+						</div>
+					</div>
+				</a-spin>
+			</a-card>
+
+			<!-- 列表 -->
+			<a-card v-else :bordered="false" class="hr-desk-table-card apw-content-card">
+				<template #title>
+					<span>{{ title }}</span>
+					<span class="apw-card-sub">共 {{ filteredRows.length }} 条</span>
+				</template>
+				<a-table
+					:columns="columns"
+					:data="filteredRows"
+					:loading="loading"
+					:pagination="pagination"
+					row-key="name"
 					:bordered="false"
-					class="apw-stat"
-					:class="{ 'apw-stat--active': view === s.key }"
-					@click="setView(s.key)"
+					stripe
 				>
-					<a-statistic :title="s.title" :value="stats[s.stat] ?? 0">
-						<template #prefix>
-							<span class="apw-stat-dot" :style="{ background: s.color }" />
-						</template>
-					</a-statistic>
-				</a-card>
-			</a-col>
-		</a-row>
-
-		<!-- 筛选 -->
-		<a-card :bordered="false" class="apw-filter-card">
-			<a-form :model="filters" layout="inline" class="apw-filter-form">
-				<a-form-item label="关键词">
-					<a-input-search
-						v-model="keyword"
-						allow-clear
-						:placeholder="view === 'start' ? '搜索可发起的审批表单' : '搜索标题 / 发起人 / 节点'"
-						style="width: 280px"
-						@search="reload"
-						@clear="reload"
-						@press-enter="reload"
-					/>
-				</a-form-item>
-				<a-form-item v-if="view === 'mine'" label="状态">
-					<a-select
-						v-model="filters.status"
-						allow-clear
-						placeholder="全部状态"
-						style="width: 140px"
-						@change="reload"
-					>
-						<a-option value="进行中">进行中</a-option>
-						<a-option value="已通过">已通过</a-option>
-						<a-option value="已驳回">已驳回</a-option>
-						<a-option value="已撤销">已撤销</a-option>
-					</a-select>
-				</a-form-item>
-				<a-form-item>
-					<a-space>
-						<a-button type="primary" @click="reload">查询</a-button>
-						<a-button @click="resetFilters">重置</a-button>
-					</a-space>
-				</a-form-item>
-			</a-form>
-		</a-card>
-
-		<!-- 发起：表单目录 -->
-		<a-card v-if="view === 'start'" :bordered="false" class="oc-table-card apw-content-card">
-			<template #title>
-				<span>可发起的审批</span>
-				<span class="apw-card-sub">共 {{ startForms.length }} 个表单</span>
-			</template>
-			<a-spin :loading="loading" style="width: 100%">
-				<a-empty v-if="!loading && !startForms.length" description="暂无可发起的审批表单" />
-				<div v-else class="apw-start-grid">
-					<div
-						v-for="f in startForms"
-						:key="f.name"
-						class="apw-start-item"
-						@click="openStart(f)"
-					>
-						<span class="ap-icon apw-start-icon" :style="{ background: f.color || '#00b386' }">
-							{{ (f.form_name || "?").slice(0, 1) }}
-						</span>
-						<div class="apw-start-body">
-							<div class="ap-form-title">{{ f.form_name }}</div>
-							<div class="ap-form-desc">{{ f.description || "暂无说明" }}</div>
-							<div class="apw-start-meta">
-								<a-tag size="small" color="arcoblue">{{ f.group || "未分组" }}</a-tag>
-								<span>{{ f.process_summary || "流程未配置" }}</span>
+					<template #titleCol="{ record }">
+						<div class="apw-title-cell" @click="onRowClick(record)">
+							<div class="ap-form-title">{{ record.form_title || "—" }}</div>
+							<div class="ap-form-desc">
+								{{ record.node_label || record.current_node_label || "—" }}
+								· {{ record.name }}
 							</div>
 						</div>
-						<a-button type="outline" size="small" class="apw-start-btn">发起</a-button>
-					</div>
-				</div>
-			</a-spin>
-		</a-card>
-
-		<!-- 列表 -->
-		<a-card v-else :bordered="false" class="oc-table-card apw-content-card">
-			<template #title>
-				<span>{{ title }}</span>
-				<span class="apw-card-sub">共 {{ filteredRows.length }} 条</span>
-			</template>
-			<a-table
-				:columns="columns"
-				:data="filteredRows"
-				:loading="loading"
-				:pagination="pagination"
-				row-key="name"
-				:bordered="false"
-				stripe
-			>
-				<template #titleCol="{ record }">
-					<div class="apw-title-cell" @click="onRowClick(record)">
-						<div class="ap-form-title">{{ record.form_title || "—" }}</div>
-						<div class="ap-form-desc">
-							{{ record.node_label || record.current_node_label || "—" }}
-							· {{ record.name }}
-						</div>
-					</div>
-				</template>
-				<template #status="{ record }">
-					<a-tag :color="statusColor(record)">{{ statusText(record) }}</a-tag>
-				</template>
-				<template #ops="{ record }">
-					<a-space>
-						<a-link @click="onRowClick(record)">查看</a-link>
-						<a-link
-							v-if="view === 'todo'"
-							@click="onRowClick(record)"
-						>
-							处理
-						</a-link>
-					</a-space>
-				</template>
-			</a-table>
-		</a-card>
+					</template>
+					<template #status="{ record }">
+						<a-tag :color="statusColor(record)">{{ statusText(record) }}</a-tag>
+					</template>
+					<template #ops="{ record }">
+						<a-space>
+							<a-link @click="onRowClick(record)">查看</a-link>
+							<a-link
+								v-if="view === 'todo'"
+								@click="onRowClick(record)"
+							>
+								处理
+							</a-link>
+						</a-space>
+					</template>
+				</a-table>
+			</a-card>
 
 		<!-- 详情：宽抽屉，PC 双栏 -->
 		<a-drawer
@@ -284,12 +270,17 @@
 				</a-form-item>
 			</a-form>
 		</a-modal>
-	</div>
+		</div>
+	</HrPage>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from "vue";
 import { Message } from "@arco-design/web-vue";
+import { IconCheckCircle, IconClockCircle, IconFile, IconSend } from "@arco-design/web-vue/es/icon";
+import HrDeskStatOverview from "../../../components/HrDeskStatOverview.vue";
+import HrPage from "../../../components/HrPage.vue";
+import { APPROVAL_MODULE_LABEL, hrPageBreadcrumbs } from "../../../utils/hrBreadcrumbs.js";
 import FormRenderer from "../shared/FormRenderer.vue";
 
 const props = defineProps({
@@ -313,6 +304,7 @@ const startData = ref({});
 const showTransfer = ref(false);
 const transferUser = ref("");
 const filters = reactive({ status: undefined });
+const breadcrumbs = hrPageBreadcrumbs("审批中心", APPROVAL_MODULE_LABEL);
 
 const titleMap = {
 	start: "发起审批",
@@ -323,12 +315,18 @@ const titleMap = {
 };
 const title = computed(() => titleMap[view.value] || "审批工作区");
 
-const statCards = [
-	{ key: "todo", title: "待办", stat: "todo", color: "#F77234" },
-	{ key: "done", title: "已办", stat: "done", color: "#00B42A" },
-	{ key: "mine", title: "我发起的", stat: "mine", color: "#165DFF" },
-	{ key: "cc", title: "抄送我的", stat: "cc", color: "#0FC6C2" },
-];
+const statItems = computed(() => [
+	{ key: "todo", label: "我的待办", value: stats.value.todo || 0, suffix: "条", tone: "warning", icon: IconClockCircle, active: view.value === "todo" },
+	{ key: "done", label: "我的已办", value: stats.value.done || 0, suffix: "条", tone: "success", icon: IconCheckCircle, active: view.value === "done" },
+	{ key: "mine", label: "我发起的", value: stats.value.mine || 0, suffix: "条", tone: "primary", icon: IconSend, active: view.value === "mine" },
+	{ key: "cc", label: "抄送我的", value: stats.value.cc || 0, suffix: "条", tone: "purple", icon: IconFile, active: view.value === "cc" },
+]);
+
+const statHandlers = {
+	onSelect(item) {
+		setView(item.key);
+	},
+};
 
 const pagination = { pageSize: 10, showTotal: true, showPageSize: true };
 

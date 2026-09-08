@@ -1,36 +1,42 @@
 <template>
 	<div class="arco-org-ui contract-signing">
-		<div class="cs-toolbar">
-			<a-input
-				v-model="keyword"
-				class="cs-search"
-				allow-clear
-				placeholder="搜索合同名称 / 员工"
-				@press-enter="applyFilter"
-				@clear="applyFilter"
-			>
-				<template #prefix><icon-search /></template>
-			</a-input>
-			<a-select
-				v-model="department"
-				class="cs-filter"
-				allow-clear
-				placeholder="部门"
-				:options="deptOptions"
-			/>
-			<a-select
-				v-model="contractType"
-				class="cs-filter"
-				allow-clear
-				placeholder="合同类型"
-				:options="typeOptions"
-			/>
-			<a-range-picker v-model="dateRange" class="cs-range" />
-			<a-button type="primary" @click="onStartSign">
-				<template #icon><icon-plus /></template>
-				发起签署
-			</a-button>
-		</div>
+		<ContractSectionNav group="signing" :active-key="`contract-signing-${status}`" />
+
+		<ContractActionToolbar :title="toolbarTitle" :description="toolbarDescription">
+			<template #filters>
+				<a-input
+					v-model="keyword"
+					class="cs-search"
+					allow-clear
+					placeholder="搜索合同名称 / 员工"
+					@press-enter="applyFilter"
+					@clear="applyFilter"
+				>
+					<template #prefix><icon-search /></template>
+				</a-input>
+				<a-select
+					v-model="department"
+					class="cs-filter"
+					allow-clear
+					placeholder="部门"
+					:options="deptOptions"
+				/>
+				<a-select
+					v-model="contractType"
+					class="cs-filter"
+					allow-clear
+					placeholder="合同类型"
+					:options="typeOptions"
+				/>
+				<a-range-picker v-model="dateRange" class="cs-range" />
+			</template>
+			<template #actions>
+				<a-button type="primary" @click="onStartSign">
+					<template #icon><icon-plus /></template>
+					发起签署
+				</a-button>
+			</template>
+		</ContractActionToolbar>
 
 		<a-card v-if="status === 'pending'" :bordered="false" class="cs-stats-card">
 			<a-row :gutter="16">
@@ -64,7 +70,7 @@
 					<div class="cs-sub">{{ record.type }}</div>
 				</template>
 				<template #progress="{ record }">
-					<a-progress :percent="record.progress" size="small" :show-text="true" />
+					<a-progress :percent="record.progress / 100" size="small" :show-text="true" />
 				</template>
 				<template #status="{ record }">
 					<a-tag :color="statusTagColor">{{ record.node || statusLabel }}</a-tag>
@@ -128,6 +134,8 @@
 import { computed, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { IconPlus, IconSearch } from "@arco-design/web-vue/es/icon";
+import ContractSectionNav from "./ContractSectionNav.vue";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
 
 const props = defineProps({
 	status: {
@@ -161,6 +169,14 @@ const pageTitle = computed(() => {
 	if (props.status === "signed") return "已签署合同";
 	if (props.status === "void") return "已作废合同";
 	return "签署中合同";
+});
+
+const toolbarTitle = computed(() => pageTitle.value);
+
+const toolbarDescription = computed(() => {
+	if (props.status === "signed") return "检索已完成的签署记录，支持下载与归档";
+	if (props.status === "void") return "查看已作废合同及作废原因";
+	return "筛选签署任务，按部门、类型与日期跟踪进度";
 });
 
 const statusLabel = computed(() => {

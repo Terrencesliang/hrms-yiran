@@ -3,7 +3,7 @@
  */
 
 :root {
-	--hr-emp-bg: #f2f3f5;
+	--hr-emp-bg: #f7f8fa;
 	--hr-emp-card: #ffffff;
 	--hr-emp-border: #e5e6eb;
 	--hr-emp-text: #1d2129;
@@ -31,22 +31,14 @@ body.arco-employee-form .layout-main-section,
 	background: transparent !important;
 	border: none !important;
 	box-shadow: none !important;
-	padding: 12px 16px 24px !important;
+	padding: var(--hr-desk-gap, 16px) !important;
 }
 
-/* 弱化单据头标题区（Chrome 已展示姓名/状态），保留操作按钮 */
-body.arco-employee-form .page-head .title-area .title-text,
-body.arco-employee-form .page-head .title-area .indicator-pill,
-.page-container[data-page-route^="Form/Employee"] .page-head .title-area .title-text,
-.page-container[data-page-route^="Form/Employee"] .page-head .title-area .indicator-pill {
-	/* keep breadcrumbs + actions readable; soft-tone title */
-	opacity: 0.85;
-}
-
+/* 统一 HR 面包屑模板：隐藏 Frappe 原生 page-head，操作按钮仍保留在 DOM 供程序触发 */
 body.arco-employee-form .page-head,
-.page-container[data-page-route^="Form/Employee"] .page-head {
-	background: var(--hr-emp-card);
-	border-bottom: 1px solid var(--hr-emp-border);
+.page-container[data-page-route^="Form/Employee"] .page-head,
+.arco-hr-employee-form-wrapper .page-head {
+	display: none !important;
 }
 
 body.arco-employee-form .page-head .btn-primary,
@@ -107,9 +99,15 @@ body.arco-employee-form .form-tabs,
 	gap: 0;
 }
 
+body.arco-employee-form .form-tabs .nav-item,
+.page-container[data-page-route^="Form/Employee"] .form-tabs .nav-item {
+	flex: 0 0 auto;
+}
+
 body.arco-employee-form .form-tabs .nav-link,
 .page-container[data-page-route^="Form/Employee"] .form-tabs .nav-link {
 	border: none !important;
+	white-space: nowrap;
 	border-radius: 0;
 	color: var(--hr-emp-text-2);
 	font-size: 14px;
@@ -620,8 +618,13 @@ body.arco-employee-form .form-section.empty-section.hide-control,
 }
 
 /* ---------- Chrome / Overview mount ---------- */
-#employee-arco-chrome-root {
+#employee-arco-chrome-root,
+#employee-arco-overview-root {
 	margin: 0 0 12px;
+	width: 100%;
+	min-width: 0;
+	max-width: 100%;
+	box-sizing: border-box;
 }
 
 #employee-arco-overview-root {

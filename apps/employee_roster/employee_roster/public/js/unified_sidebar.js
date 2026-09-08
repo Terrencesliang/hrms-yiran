@@ -92,26 +92,10 @@ frappe.provide("employee_roster.unified_sidebar");
 				{
 					label: __("合同签署"),
 					icon: "file",
-					children: [
-						{
-							label: __("签署中"),
-							path: "/app/contract-signing-pending",
-							link_type: "Page",
-							link_to: "contract-signing-pending",
-						},
-						{
-							label: __("已签署"),
-							path: "/app/contract-signing-signed",
-							link_type: "Page",
-							link_to: "contract-signing-signed",
-						},
-						{
-							label: __("已作废"),
-							path: "/app/contract-signing-void",
-							link_type: "Page",
-							link_to: "contract-signing-void",
-						},
-					],
+					path: "/app/contract-signing-pending",
+					link_type: "Page",
+					link_to: "contract-signing-pending",
+					active_paths: ["/app/contract-signing-signed", "/app/contract-signing-void"],
 				},
 				{
 					label: __("合同档案库"),
@@ -123,26 +107,10 @@ frappe.provide("employee_roster.unified_sidebar");
 				{
 					label: __("设置"),
 					icon: "setting",
-					children: [
-						{
-							label: __("企业印章"),
-							path: "/app/contract-seals",
-							link_type: "Page",
-							link_to: "contract-seals",
-						},
-						{
-							label: __("合同模板"),
-							path: "/app/contract-templates",
-							link_type: "Page",
-							link_to: "contract-templates",
-						},
-						{
-							label: __("合同包"),
-							path: "/app/contract-packages",
-							link_type: "Page",
-							link_to: "contract-packages",
-						},
-					],
+					path: "/app/contract-seals",
+					link_type: "Page",
+					link_to: "contract-seals",
+					active_paths: ["/app/contract-templates", "/app/contract-packages"],
 				},
 			],
 		},
@@ -1130,6 +1098,7 @@ frappe.provide("employee_roster.unified_sidebar");
 						});
 					}
 					markActive(key, path, modKey);
+					(item.active_paths || []).forEach((activePath) => markActive(key, activePath, modKey));
 					if (item.link_type === "Page" && item.link_to) {
 						markActive(key, `/app/${item.link_to}`, modKey);
 						markActive(key, item.link_to, modKey);

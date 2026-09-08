@@ -1,6 +1,8 @@
 <template>
 	<div class="arco-org-ui contract-templates">
-		<div class="ct-toolbar">
+		<ContractSectionNav group="settings" active-key="contract-templates" />
+
+		<ContractActionToolbar title="合同模板" description="维护合同类型、签署方与默认印章配置">
 			<a-input
 				v-model="keyword"
 				class="ct-search"
@@ -24,7 +26,7 @@
 				</a-button>
 				<a-button @click="onEditGroups">编辑分组</a-button>
 			</div>
-		</div>
+		</ContractActionToolbar>
 
 		<a-alert
 			v-if="testBannerVisible"
@@ -204,6 +206,8 @@ import {
 	IconThunderbolt,
 	IconUp,
 } from "@arco-design/web-vue/es/icon";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
+import ContractSectionNav from "./ContractSectionNav.vue";
 
 const TEST_TEMPLATE_ID = "test-onboarding-labor";
 
