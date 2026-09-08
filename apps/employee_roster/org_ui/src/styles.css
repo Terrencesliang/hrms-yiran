@@ -5247,7 +5247,7 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	width: min(820px, 100%);
 }
 
-.contract-initiate .ci-doc-paper.is-final .ci-doc-var.is-empty {
+.contract-initiate .ci-doc-pages.is-final .ci-doc-var.is-empty {
 	color: #00b386;
 	background: rgba(0, 179, 134, 0.06);
 	border-bottom-color: rgba(0, 179, 134, 0.45);
@@ -5279,13 +5279,37 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	max-height: calc(100vh - 260px);
 }
 
+.contract-initiate .ci-doc-pages {
+	position: relative;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 20px;
+}
+
+.contract-initiate .ci-doc-source {
+	position: absolute;
+	left: -100000px;
+	top: 0;
+	min-height: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.contract-initiate .ci-doc-flow-block {
+	display: flow-root;
+}
+
 .contract-initiate .ci-doc-paper {
 	position: relative;
+	width: min(820px, 100%);
+	box-sizing: border-box;
 	background: #fff;
 	border-radius: 4px;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-	min-height: 640px;
-	padding: 36px 40px 48px;
+	min-height: 1040px;
+	padding: 58px 58px 64px;
 	overflow: hidden;
 }
 
@@ -5312,9 +5336,68 @@ body[data-theme="dark"] .apd-palette-item:hover {
 .contract-initiate .ci-doc-body {
 	position: relative;
 	z-index: 1;
+	min-height: 918px;
 	color: #1d2129;
 	font-size: 14px;
 	line-height: 1.85;
+}
+
+.contract-initiate .ci-company-seal {
+	position: absolute;
+	z-index: 2;
+	top: 24px;
+	right: 26px;
+	width: 112px;
+	height: 112px;
+	border: 4px double rgba(225, 43, 43, 0.78);
+	border-radius: 50%;
+	color: rgba(225, 43, 43, 0.82);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	transform: rotate(-9deg);
+	background: rgba(255, 255, 255, 0.58);
+	box-shadow: inset 0 0 0 2px rgba(225, 43, 43, 0.16);
+	pointer-events: none;
+}
+
+.contract-initiate .ci-company-seal-star {
+	font-size: 23px;
+	line-height: 1;
+}
+
+.contract-initiate .ci-company-seal-name {
+	max-width: 88px;
+	font-size: 9px;
+	font-weight: 700;
+	line-height: 1.25;
+}
+
+.contract-initiate .ci-company-seal-type {
+	margin-top: 2px;
+	font-size: 10px;
+	font-weight: 700;
+}
+
+.contract-initiate .ci-company-seal small {
+	position: absolute;
+	top: 116px;
+	width: 90px;
+	font-size: 10px;
+	color: #86909c;
+	transform: rotate(9deg);
+}
+
+.contract-initiate .ci-doc-page-no {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 20px;
+	text-align: center;
+	color: #86909c;
+	font-size: 12px;
 }
 
 .contract-initiate .ci-doc-body h2 {
