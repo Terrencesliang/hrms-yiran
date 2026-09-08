@@ -12,6 +12,7 @@ import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 import NavbarApp from "./pages/navbar/NavbarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
 import EmployeeListOverview from "./components/EmployeeListOverview.vue";
+import EmployeeRosterTable from "./components/EmployeeRosterTable.vue";
 import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
 import ApprovalDesignerApp from "./pages/approvals/designer/ApprovalDesignerApp.vue";
 import ApprovalsWorkspace from "./pages/approvals/workspace/ApprovalsWorkspace.vue";
@@ -28,6 +29,7 @@ import EmployeeListDeskHeader from "./pages/employee_list/EmployeeListDeskHeader
 import EmployeeArchiveDeskHeader from "./pages/employee_archive/EmployeeArchiveDeskHeader.vue";
 import EmployeeCheckinDeskHeader from "./pages/employee_checkin/EmployeeCheckinDeskHeader.vue";
 import EmployeeCheckinOverview from "./components/EmployeeCheckinOverview.vue";
+import EmployeeCheckinTable from "./components/EmployeeCheckinTable.vue";
 import AttendanceRulesPage from "./pages/attendance_rules/AttendanceRulesPage.vue";
 import AttendanceRulesDeskHeader from "./pages/attendance_rules/AttendanceRulesDeskHeader.vue";
 
@@ -410,6 +412,42 @@ export function updateEmployeeListOverview(payload = {}) {
 	Object.assign(employeeListOverviewState, payload || {});
 }
 
+const employeeRosterTableState = reactive({
+	rows: [],
+	total: 0,
+	loading: false,
+	sortBy: "employee_name",
+	sortOrder: "asc",
+});
+
+const employeeRosterTableHandlers = {
+	onOpen: null,
+	onSort: null,
+};
+
+export function mountEmployeeRosterTable(el, payload = {}, handlers = {}) {
+	Object.assign(employeeRosterTableState, payload || {});
+	Object.assign(employeeRosterTableHandlers, handlers || {});
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(EmployeeRosterTable, {
+						state: employeeRosterTableState,
+						handlers: employeeRosterTableHandlers,
+					})
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function updateEmployeeRosterTable(payload = {}) {
+	Object.assign(employeeRosterTableState, payload || {});
+}
+
 function mountDeskHeader(el, component) {
 	const app = boot(
 		createApp({
@@ -466,6 +504,41 @@ export function mountEmployeeCheckinOverview(el, payload = {}, handlers = {}) {
 
 export function updateEmployeeCheckinOverview(payload = {}) {
 	Object.assign(employeeCheckinOverviewState, payload || {});
+}
+
+const employeeCheckinTableState = reactive({
+	rows: [],
+	total: 0,
+	loading: false,
+	sortOrder: "desc",
+});
+
+const employeeCheckinTableHandlers = {
+	onOpen: null,
+	onSort: null,
+};
+
+export function mountEmployeeCheckinTable(el, payload = {}, handlers = {}) {
+	Object.assign(employeeCheckinTableState, payload || {});
+	Object.assign(employeeCheckinTableHandlers, handlers || {});
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(EmployeeCheckinTable, {
+						state: employeeCheckinTableState,
+						handlers: employeeCheckinTableHandlers,
+					})
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function updateEmployeeCheckinTable(payload = {}) {
+	Object.assign(employeeCheckinTableState, payload || {});
 }
 
 export function mountAttendanceRules(rootEl) {

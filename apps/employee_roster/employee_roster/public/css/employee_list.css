@@ -336,6 +336,25 @@ body[data-route="List/Employee"] .layout-main-section {
 	gap: 10px;
 }
 
+.hr-employee-list-page .hr-employee-arco-table-host {
+	width: 100%;
+	min-height: 240px;
+	background: var(--hr-ck-bg);
+}
+
+/* 原生列表仅保留 Frappe 的服务端分页，数据行交给 Arco Table 渲染。 */
+.hr-employee-list-page .hr-employee-native-list .list-row-head,
+.hr-employee-list-page .hr-employee-native-list .list-row-container,
+.hr-employee-list-page .hr-employee-native-list > .result,
+.hr-employee-list-page .hr-employee-native-list > .no-result,
+.hr-employee-list-page .hr-employee-native-list > .msg-box {
+	display: none !important;
+}
+
+.hr-employee-list-page .hr-employee-native-list:has(.list-paging-area:empty) {
+	display: none;
+}
+
 .hr-employee-list-page .hr-emp-table-title {
 	font-size: 16px;
 	font-weight: 500;
