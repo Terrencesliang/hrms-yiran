@@ -146,18 +146,28 @@
 
 		<!-- Step 3: 整份合同预览并发起签署 -->
 		<div v-show="currentStep === 3" class="ci-step-body ci-final-layout">
-			<a-alert type="success" show-icon class="ci-final-alert">
-				合同已生成，请核对全文后发起签署。
+			<a-alert :type="previewUrl ? 'success' : 'warning'" show-icon class="ci-final-alert">
+				{{
+					previewUrl
+						? "已获取腾讯电子签正式预览，请核对后发起签署。"
+						: previewError || "腾讯电子签未配置，暂时无法生成正式合同预览。"
+				}}
 			</a-alert>
 			<div class="ci-doc-pane ci-doc-pane--final">
-				<ContractDocPaper
-					final
-					:form="contractForm"
-					:title="selectedTemplate?.name || ''"
-					:watermark-text="watermarkText"
-					:start-date="previewStart"
-					:end-date="previewEnd"
-				/>
+				<a-spin :loading="previewLoading" class="ci-real-preview-spin">
+					<div v-if="previewUrl" class="ci-real-preview">
+						<iframe
+							:src="previewUrl"
+							title="腾讯电子签合同预览"
+							class="ci-real-preview-frame"
+							referrerpolicy="no-referrer"
+						/>
+						<a-link :href="previewUrl" target="_blank" rel="noopener noreferrer">
+							在新窗口打开正式预览
+						</a-link>
+					</div>
+					<a-empty v-else :description="previewLoading ? '正在生成正式预览' : '未配置或预览失败'" />
+				</a-spin>
 			</div>
 		</div>
 
@@ -176,11 +186,18 @@
 				v-else-if="currentStep === 2"
 				type="primary"
 				:disabled="!canGenerate"
+				:loading="previewLoading"
 				@click="onGenerateContract"
 			>
 				生成合同
 			</a-button>
-			<a-button v-else type="primary" :disabled="!canNext" @click="onSubmit">
+			<a-button
+				v-else
+				type="primary"
+				:disabled="!canNext || !previewUrl"
+				:loading="submitting"
+				@click="onSubmit"
+			>
 				发起签署
 			</a-button>
 		</div>
@@ -359,7 +376,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from "vue";
-import { Message } from "@arco-design/web-vue";
+import { Message, Modal } from "@arco-design/web-vue";
 import {
 	IconApps,
 	IconCheckCircleFill,
@@ -368,6 +385,7 @@ import {
 	IconUserAdd,
 } from "@arco-design/web-vue/es/icon";
 import { call, getOrgTree, searchEmployees } from "../../api";
+import { createContractSigning, previewContract } from "../../api/contract.js";
 import ContractDocPaper from "./ContractDocPaper.vue";
 
 const RECENT_KEY = "contract-initiate-recent";
@@ -390,6 +408,11 @@ const selectedEmployees = ref([]);
 const selectedTemplateId = ref("");
 const templateLocked = ref(false);
 const employeeDetailLoading = ref(false);
+const previewLoading = ref(false);
+const previewUrl = ref("");
+const previewError = ref("");
+const submitting = ref(false);
+const submissionReference = ref("");
 
 const contractForm = reactive({
 	employeeName: "",
@@ -816,13 +839,61 @@ function goNext() {
 	currentStep.value += 1;
 }
 
-function onGenerateContract() {
+function contractFields() {
+	return {
+		contract_start: formatDate(contractForm.contractStart),
+		contract_end: formatDate(contractForm.contractEnd),
+		sign_time: String(contractForm.signTime || "").trim(),
+		salary: String(contractForm.salary || "").trim(),
+		number_text: String(contractForm.numberText || "").trim(),
+		join_date_text: String(contractForm.joinDateText || "").trim(),
+	};
+}
+
+function safeUrl(result) {
+	const value =
+		(typeof result === "string" ? result : "") ||
+		result?.preview_url ||
+		result?.data?.preview_url ||
+		result?.url ||
+		result?.download_url ||
+		"";
+	if (!value) return "";
+	try {
+		const url = new URL(value, window.location.origin);
+		if (!["http:", "https:"].includes(url.protocol)) return "";
+		return url.href;
+	} catch (error) {
+		return "";
+	}
+}
+
+async function onGenerateContract() {
 	if (!canGenerate.value) {
 		Message.warning("请完善右侧必填合同变量后再生成");
 		return;
 	}
-	Message.success("合同已生成，请预览并发起签署");
+	previewLoading.value = true;
+	previewUrl.value = "";
+	previewError.value = "";
+	submissionReference.value = "";
 	currentStep.value = 3;
+	try {
+		const result = await previewContract({
+			employee: selectedEmployees.value[0].id,
+			template: selectedTemplateId.value,
+			contract_fields: contractFields(),
+		});
+		previewUrl.value = safeUrl(result);
+		if (!previewUrl.value) {
+			previewError.value = "后端未返回可用的腾讯电子签预览地址";
+		}
+	} catch (error) {
+		console.warn("[contract-initiate] preview failed", error);
+		previewError.value = "腾讯电子签未配置或正式预览生成失败";
+	} finally {
+		previewLoading.value = false;
+	}
 }
 
 function onCancel() {
@@ -841,16 +912,64 @@ function goPickTemplate() {
 	}
 }
 
-function onSubmit() {
-	Message.success(
-		`已发起签署：${selectedTemplate.value?.name || "合同"} · ${selectedEmployees.value
-			.map((e) => e.name)
-			.join("、")}`
-	);
+function goPendingList() {
 	try {
-		window.frappe?.set_route?.("contract-signing-pending");
-	} catch (e) {
-		/* ignore */
+		const go = window.frappe?.set_route;
+		if (typeof go === "function") {
+			go("contract-signing-pending");
+			return;
+		}
+	} catch (error) {
+		console.warn("[contract-initiate] navigate failed", error);
 	}
+	window.location.assign("/desk/contract-signing-pending");
+}
+
+async function onSubmit() {
+	if (!previewUrl.value || submitting.value) return;
+	submitting.value = true;
+	if (!submissionReference.value) {
+		submissionReference.value =
+			globalThis.crypto?.randomUUID?.() ||
+			`${Date.now()}-${Math.random().toString(36).slice(2)}`;
+	}
+	const fields = contractFields();
+	const settled = await Promise.allSettled(
+		selectedEmployees.value.map((employee) =>
+			createContractSigning({
+				employee: employee.id,
+				template: selectedTemplateId.value,
+				contract_fields: fields,
+				trans_reference: `${submissionReference.value}-${employee.id}`,
+			}).then((result) => {
+				if (result?.ok === false) {
+					throw new Error(result.error || "电子签合同发起失败");
+				}
+				return result;
+			})
+		)
+	);
+	submitting.value = false;
+
+	const succeeded = [];
+	const failed = [];
+	settled.forEach((result, index) => {
+		const employee = selectedEmployees.value[index];
+		if (result.status === "fulfilled") succeeded.push(employee.name);
+		else failed.push(employee.name);
+	});
+
+	const content = [
+		`成功 ${succeeded.length} 人：${succeeded.join("、") || "无"}`,
+		`失败 ${failed.length} 人：${failed.join("、") || "无"}`,
+	].join("\n");
+	const options = {
+		title: failed.length ? "签署发起完成（部分失败）" : "签署发起成功",
+		content,
+		okText: succeeded.length ? "查看待签合同" : "关闭",
+		onOk: succeeded.length ? goPendingList : undefined,
+	};
+	if (succeeded.length) Modal.success(options);
+	else Modal.error(options);
 }
 </script>

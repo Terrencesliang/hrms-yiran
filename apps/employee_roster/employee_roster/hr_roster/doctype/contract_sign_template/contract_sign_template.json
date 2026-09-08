@@ -1,0 +1,107 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:template_name",
+ "doctype": "DocType",
+ "document_type": "Setup",
+ "engine": "InnoDB",
+ "field_order": [
+  "template_name",
+  "enabled",
+  "template_id",
+  "seal_id",
+  "description",
+  "configuration_section",
+  "field_mapping",
+  "actor_config",
+  "sign_config"
+ ],
+ "fields": [
+  {
+   "fieldname": "template_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "模板名称",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "启用"
+  },
+  {
+   "fieldname": "template_id",
+   "fieldtype": "Data",
+   "label": "腾讯电子签模板 ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "seal_id",
+   "fieldtype": "Data",
+   "label": "印章 ID"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "说明"
+  },
+  {
+   "fieldname": "configuration_section",
+   "fieldtype": "Section Break",
+   "label": "签署配置"
+  },
+  {
+   "fieldname": "field_mapping",
+   "fieldtype": "Code",
+   "label": "字段映射 JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "actor_config",
+   "fieldtype": "Code",
+   "label": "参与方配置 JSON",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "sign_config",
+   "fieldtype": "Code",
+   "label": "签署配置 JSON",
+   "options": "JSON"
+  }
+ ],
+ "links": [],
+ "module": "hr_roster",
+ "name": "Contract Sign Template",
+ "naming_rule": "By fieldname",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "template_name,template_id",
+ "sort_field": "template_name",
+ "sort_order": "ASC",
+ "states": [],
+ "title_field": "template_name",
+ "track_changes": 1
+}

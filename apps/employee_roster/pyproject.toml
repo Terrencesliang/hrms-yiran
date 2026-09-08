@@ -10,6 +10,9 @@ dynamic = ["version"]
 dependencies = [
     # "frappe~=16.0.0" # Installed and managed by bench.
     "cos-python-sdk-v5>=1.9.44,<2",
+    "cryptography>=43,<47",
+    "tencentcloud-sdk-python-common>=3.1.157,<4",
+    "tencentcloud-sdk-python-ess>=3.1.157,<4",
 ]
 
 [build-system]

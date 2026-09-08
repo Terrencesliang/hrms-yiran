@@ -1,0 +1,216 @@
+{
+ "actions": [],
+ "autoname": "naming_series:",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "employee",
+  "employee_name",
+  "sign_template",
+  "trans_reference",
+  "status",
+  "vendor_status",
+  "vendor_section",
+  "flow_id",
+  "document_id",
+  "date_section",
+  "requested_on",
+  "requested_by",
+  "started_on",
+  "completed_on",
+  "cancelled_on",
+  "last_synced_on",
+  "result_section",
+  "contract_fields",
+  "signed_file",
+  "audit_file",
+  "error_status"
+ ],
+ "fields": [
+  {
+   "default": "CSIGN-.YYYY.-.#####",
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "hidden": 1,
+   "options": "CSIGN-.YYYY.-.#####",
+   "reqd": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "员工",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "员工姓名",
+   "read_only": 1
+  },
+  {
+   "fieldname": "sign_template",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "签署模板",
+   "options": "Contract Sign Template",
+   "reqd": 1
+  },
+  {
+   "fieldname": "trans_reference",
+   "fieldtype": "Data",
+   "label": "业务幂等键",
+   "read_only": 1,
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "Draft",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "状态",
+   "options": "Draft\nPending\nSigning\nCompleted\nCancelled\nRejected\nExpired\nError",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "vendor_status",
+   "fieldtype": "Data",
+   "label": "供应商状态",
+   "read_only": 1
+  },
+  {
+   "fieldname": "vendor_section",
+   "fieldtype": "Section Break",
+   "label": "腾讯电子签标识"
+  },
+  {
+   "fieldname": "flow_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Flow ID",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "document_id",
+   "fieldtype": "Data",
+   "label": "Document ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "date_section",
+   "fieldtype": "Section Break",
+   "label": "时间"
+  },
+  {
+   "fieldname": "requested_on",
+   "fieldtype": "Datetime",
+   "label": "请求时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "requested_by",
+   "fieldtype": "Link",
+   "label": "请求人",
+   "options": "User",
+   "read_only": 1
+  },
+  {
+   "fieldname": "started_on",
+   "fieldtype": "Datetime",
+   "label": "发起时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "completed_on",
+   "fieldtype": "Datetime",
+   "label": "完成时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cancelled_on",
+   "fieldtype": "Datetime",
+   "label": "撤销时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_synced_on",
+   "fieldtype": "Datetime",
+   "label": "最后同步时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "result_section",
+   "fieldtype": "Section Break",
+   "label": "签署结果"
+  },
+  {
+   "fieldname": "contract_fields",
+   "fieldtype": "Code",
+   "label": "合同变量快照",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "signed_file",
+   "fieldtype": "Attach",
+   "label": "已签文件",
+   "read_only": 1
+  },
+  {
+   "fieldname": "audit_file",
+   "fieldtype": "Attach",
+   "label": "审计文件",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error_status",
+   "fieldtype": "Long Text",
+   "label": "错误状态",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "module": "hr_roster",
+ "name": "Contract Signing",
+ "naming_rule": "By \"Naming Series\" field",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "search_fields": "employee,employee_name,flow_id,trans_reference",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "employee_name",
+ "track_changes": 1
+}

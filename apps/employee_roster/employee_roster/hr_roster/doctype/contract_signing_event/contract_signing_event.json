@@ -1,0 +1,102 @@
+{
+ "actions": [],
+ "autoname": "field:event_key",
+ "doctype": "DocType",
+ "document_type": "Document",
+ "engine": "InnoDB",
+ "field_order": [
+  "event_key",
+  "flow_id",
+  "contract_signing",
+  "event_type",
+  "processed",
+  "processed_on",
+  "payload",
+  "error"
+ ],
+ "fields": [
+  {
+   "fieldname": "event_key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "事件唯一键",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "flow_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Flow ID",
+   "reqd": 1
+  },
+  {
+   "fieldname": "contract_signing",
+   "fieldtype": "Link",
+   "label": "签署记录",
+   "options": "Contract Signing",
+   "read_only": 1
+  },
+  {
+   "fieldname": "event_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "事件类型",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "processed",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "已处理",
+   "read_only": 1
+  },
+  {
+   "fieldname": "processed_on",
+   "fieldtype": "Datetime",
+   "label": "处理时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "payload",
+   "fieldtype": "Code",
+   "label": "已验证事件 JSON",
+   "options": "JSON",
+   "read_only": 1
+  },
+  {
+   "fieldname": "error",
+   "fieldtype": "Long Text",
+   "label": "处理错误",
+   "read_only": 1
+  }
+ ],
+ "links": [],
+ "module": "hr_roster",
+ "name": "Contract Signing Event",
+ "naming_rule": "By fieldname",
+ "permissions": [
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "HR Manager",
+   "share": 1
+  },
+  {
+   "delete": 1,
+   "export": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1
+  }
+ ],
+ "search_fields": "event_key,flow_id,event_type",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

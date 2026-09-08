@@ -174,12 +174,6 @@
 			<div class="ci-doc-watermark" aria-hidden="true">
 				<span v-for="i in 24" :key="i">{{ watermarkText }}</span>
 			</div>
-			<div v-if="index === 0" class="ci-company-seal" aria-label="企业印章预盖章位置">
-				<span class="ci-company-seal-star">★</span>
-				<span class="ci-company-seal-name">深圳市依然电商科技有限公司</span>
-				<span class="ci-company-seal-type">合同专用章</span>
-				<small>预盖章位置</small>
-			</div>
 			<div class="ci-doc-body" v-html="pageHtml" />
 			<div class="ci-doc-page-no">第 {{ index + 1 }} 页 / 共 {{ pages.length }} 页</div>
 		</article>

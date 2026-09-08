@@ -49,6 +49,9 @@ def hide_hr_setup_sidebar_links():
 				row.hidden = 1
 				changed = True
 	if changed:
+		# Existing sidebar fixtures can retain links to deleted Workspaces/Pages.
+		# Hiding unrelated setup entries must not make migrations fail on those stale rows.
+		doc.flags.ignore_links = True
 		doc.save(ignore_permissions=True)
 		frappe.db.commit()
 

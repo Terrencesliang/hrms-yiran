@@ -4893,6 +4893,22 @@ body[data-theme="dark"] .contract-archive .arco-card {
 	border-radius: 4px;
 }
 
+.contract-signing .cs-error-alert {
+	margin-bottom: 16px;
+}
+
+.contract-signing .cs-detail-spin {
+	display: block;
+	width: 100%;
+	min-height: 120px;
+}
+
+.contract-signing .cs-error-text {
+	color: rgb(var(--red-6, 245, 63, 63));
+	white-space: pre-wrap;
+	word-break: break-word;
+}
+
 .contract-signing .cs-name,
 .contract-packages .cpk-name,
 .contract-archive .ca-emp {
@@ -5247,6 +5263,28 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	width: min(820px, 100%);
 }
 
+.contract-initiate .ci-real-preview-spin {
+	display: block;
+	width: 100%;
+	min-height: 520px;
+}
+
+.contract-initiate .ci-real-preview {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 12px;
+}
+
+.contract-initiate .ci-real-preview-frame {
+	width: 100%;
+	min-height: 620px;
+	border: 1px solid var(--color-border-2, #e5e6eb);
+	border-radius: 4px;
+	background: var(--color-bg-2, #fff);
+}
+
 .contract-initiate .ci-doc-pages.is-final .ci-doc-var.is-empty {
 	color: #00b386;
 	background: rgba(0, 179, 134, 0.06);
@@ -5288,7 +5326,7 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	gap: 20px;
 }
 
-.contract-initiate .ci-doc-source {
+.contract-initiate .ci-doc-body.ci-doc-source {
 	position: absolute;
 	left: -100000px;
 	top: 0;
@@ -5340,54 +5378,6 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	color: #1d2129;
 	font-size: 14px;
 	line-height: 1.85;
-}
-
-.contract-initiate .ci-company-seal {
-	position: absolute;
-	z-index: 2;
-	top: 24px;
-	right: 26px;
-	width: 112px;
-	height: 112px;
-	border: 4px double rgba(225, 43, 43, 0.78);
-	border-radius: 50%;
-	color: rgba(225, 43, 43, 0.82);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	transform: rotate(-9deg);
-	background: rgba(255, 255, 255, 0.58);
-	box-shadow: inset 0 0 0 2px rgba(225, 43, 43, 0.16);
-	pointer-events: none;
-}
-
-.contract-initiate .ci-company-seal-star {
-	font-size: 23px;
-	line-height: 1;
-}
-
-.contract-initiate .ci-company-seal-name {
-	max-width: 88px;
-	font-size: 9px;
-	font-weight: 700;
-	line-height: 1.25;
-}
-
-.contract-initiate .ci-company-seal-type {
-	margin-top: 2px;
-	font-size: 10px;
-	font-weight: 700;
-}
-
-.contract-initiate .ci-company-seal small {
-	position: absolute;
-	top: 116px;
-	width: 90px;
-	font-size: 10px;
-	color: #86909c;
-	transform: rotate(9deg);
 }
 
 .contract-initiate .ci-doc-page-no {
