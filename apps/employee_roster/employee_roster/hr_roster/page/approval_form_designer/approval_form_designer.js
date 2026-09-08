@@ -2,7 +2,7 @@
 // License: MIT
 
 let designerApp = null;
-const ORG_UI_ASSET_VER = "20260907i";
+const ORG_UI_ASSET_VER = "20260912e";
 
 function ensureOrgUiCss() {
 	const href = `/assets/employee_roster/org_ui/org_ui.css?v=${ORG_UI_ASSET_VER}`;

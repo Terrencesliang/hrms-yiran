@@ -1,6 +1,8 @@
 <template>
 	<div class="arco-org-ui contract-packages">
-		<div class="cpk-toolbar">
+		<ContractSectionNav group="settings" active-key="contract-packages" />
+
+		<ContractActionToolbar title="合同包" description="按业务场景组合多份合同并统一发起签署">
 			<a-input
 				v-model="keyword"
 				class="cpk-search"
@@ -15,7 +17,7 @@
 				<template #icon><icon-plus /></template>
 				新建合同包
 			</a-button>
-		</div>
+		</ContractActionToolbar>
 
 		<a-card :bordered="false" class="cpk-card">
 			<a-table
@@ -102,6 +104,8 @@
 import { computed, reactive, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { IconPlus, IconSearch } from "@arco-design/web-vue/es/icon";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
+import ContractSectionNav from "./ContractSectionNav.vue";
 
 const keyword = ref("");
 const drawerVisible = ref(false);

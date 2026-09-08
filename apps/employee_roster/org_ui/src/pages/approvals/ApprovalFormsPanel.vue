@@ -1,38 +1,38 @@
 <template>
 	<div class="ap-panel">
-		<div class="ap-panel-header">
-			<div>
-				<h1 class="oc-page-title" style="margin-bottom: 4px">审批表单</h1>
-				<p class="ap-hint">配置审批表单、拖拽设计字段与流程</p>
-			</div>
-			<div class="ap-actions">
+		<a-card :bordered="false" class="hr-desk-toolbar-card ap-toolbar-card">
+			<div class="ap-panel-toolbar">
 				<a-input-search
 					v-model="keyword"
 					allow-clear
 					placeholder="搜索审批表单"
-					style="width: 220px"
+					class="ap-search"
 					@search="loadForms"
 					@clear="loadForms"
 					@press-enter="loadForms"
 				/>
-				<a-button
-					status="danger"
-					:disabled="!selectedKeys.length"
-					:loading="deleting"
-					@click="batchDelete"
-				>
-					删除所选{{ selectedKeys.length ? ` (${selectedKeys.length})` : "" }}
-				</a-button>
-				<a-button @click="openGroupModal">编辑分组</a-button>
-				<a-button type="primary" @click="openCreateForm">
-					<template #icon><icon-plus /></template>
-					新建审批表单
-				</a-button>
+				<div class="ap-actions">
+					<a-button
+						status="danger"
+						:disabled="!selectedKeys.length"
+						:loading="deleting"
+						@click="batchDelete"
+					>
+						删除所选{{ selectedKeys.length ? ` (${selectedKeys.length})` : "" }}
+					</a-button>
+					<a-button @click="openGroupModal">编辑分组</a-button>
+					<a-button type="primary" @click="openCreateForm">
+						<template #icon><icon-plus /></template>
+						新建审批表单
+					</a-button>
+				</div>
 			</div>
-		</div>
+		</a-card>
 
-		<a-card :bordered="false" class="oc-table-card">
-			<a-tabs v-model:active-key="activeGroup" type="rounded" @change="onGroupChange">
+		<a-card :bordered="false" class="hr-desk-table-card ap-content-card">
+			<template #title>审批表单列表</template>
+			<template #extra><span class="ap-list-count">共 {{ forms.length }} 个表单</span></template>
+			<a-tabs v-model:active-key="activeGroup" type="rounded" class="ap-category-tabs" @change="onGroupChange">
 				<a-tab-pane
 					v-for="g in groups"
 					:key="g.name"
@@ -48,6 +48,8 @@
 				:pagination="false"
 				:row-selection="rowSelection"
 				row-key="name"
+				:bordered="false"
+				size="medium"
 			>
 				<template #formName="{ record }">
 					<div class="ap-form-name">
@@ -92,6 +94,7 @@
 						</a-dropdown>
 					</a-space>
 				</template>
+				<template #empty><a-empty description="当前分组暂无审批表单" /></template>
 			</a-table>
 		</a-card>
 

@@ -37,7 +37,7 @@
 					@menu-item-click="onMenuClick"
 				>
 					<template v-for="group in state.groups" :key="group.key || group.label">
-						<!-- Dedicated leaf entries (e.g. Contract 概览 / 合同档案库) -->
+							<!-- 模块直属入口，例如合同模块的概览、签署和设置页面。 -->
 						<a-menu-item v-if="group.type === 'item'" :key="group.key || group.label">
 							<template #icon>
 								<component :is="itemIcon(group)" />
@@ -120,7 +120,7 @@ const state = inject("sidebarState");
 const handlers = inject("sidebarHandlers");
 const openKeys = ref([]);
 
-/** Module accordion only; Contract dedicated menu keeps 合同签署 + 设置 both open. */
+/** 顶层模块使用手风琴展开，模块内页面保持统一的二级导航。 */
 const useAccordion = computed(() =>
 	(state.groups || []).every((group) => String(group?.key || "").startsWith("mod:"))
 );
@@ -159,7 +159,7 @@ watch(
 			const groupKey = group.key || group.label;
 			let groupHasActive = false;
 
-			// Root group whose items are direct leaves (Contract 合同签署 / 设置)
+				// 模块下的直属页面入口。
 			const directActive = (group.items || []).some((item) => item.key === state.activeKey);
 			if (directActive) {
 				keys.push(groupKey);

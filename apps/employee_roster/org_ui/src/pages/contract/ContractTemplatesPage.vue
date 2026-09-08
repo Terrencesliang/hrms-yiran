@@ -1,6 +1,8 @@
 <template>
 	<div class="arco-org-ui contract-templates">
-		<div class="ct-toolbar">
+		<ContractSectionNav group="settings" active-key="contract-templates" />
+
+		<ContractActionToolbar title="合同模板" description="维护合同类型、签署方与默认印章配置">
 			<a-input
 				v-model="keyword"
 				class="ct-search"
@@ -13,7 +15,7 @@
 			<div class="ct-toolbar-actions">
 				<a-button :loading="loading" @click="loadTemplates">刷新</a-button>
 			</div>
-		</div>
+		</ContractActionToolbar>
 
 		<a-alert
 			v-if="errorMessage"
@@ -110,6 +112,8 @@
 import { computed, onMounted, ref } from "vue";
 import { IconDown, IconSearch, IconSwap, IconUp } from "@arco-design/web-vue/es/icon";
 import { getTemplates } from "../../api/contract.js";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
+import ContractSectionNav from "./ContractSectionNav.vue";
 
 const keyword = ref("");
 const collapsed = ref(false);

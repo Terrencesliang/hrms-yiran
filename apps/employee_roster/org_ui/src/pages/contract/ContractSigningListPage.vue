@@ -1,18 +1,42 @@
 <template>
 	<div class="arco-org-ui contract-signing">
-		<div class="cs-toolbar">
-			<a-input v-model="keyword" class="cs-search" allow-clear placeholder="搜索合同名称 / 员工">
-				<template #prefix><icon-search /></template>
-			</a-input>
-			<a-button :loading="loading" @click="loadRows">
-				<template #icon><icon-refresh /></template>
-				刷新列表
-			</a-button>
-			<a-button type="primary" @click="onStartSign">
-				<template #icon><icon-plus /></template>
-				发起签署
-			</a-button>
-		</div>
+		<ContractSectionNav group="signing" :active-key="`contract-signing-${status}`" />
+
+		<ContractActionToolbar :title="toolbarTitle" :description="toolbarDescription">
+			<template #filters>
+				<a-input
+					v-model="keyword"
+					class="cs-search"
+					allow-clear
+					placeholder="搜索合同名称 / 员工"
+					@press-enter="applyFilter"
+					@clear="applyFilter"
+				>
+					<template #prefix><icon-search /></template>
+				</a-input>
+				<a-select
+					v-model="department"
+					class="cs-filter"
+					allow-clear
+					placeholder="部门"
+					:options="deptOptions"
+				/>
+				<a-select
+					v-model="contractType"
+					class="cs-filter"
+					allow-clear
+					placeholder="合同类型"
+					:options="typeOptions"
+				/>
+				<a-range-picker v-model="dateRange" class="cs-range" />
+			</template>
+			<template #actions>
+				<a-button type="primary" @click="onStartSign">
+					<template #icon><icon-plus /></template>
+					发起签署
+				</a-button>
+			</template>
+		</ContractActionToolbar>
 
 		<a-alert v-if="errorMessage" type="error" show-icon class="cs-error-alert">
 			{{ errorMessage }}
@@ -38,6 +62,9 @@
 				<template #name="{ record }">
 					<div class="cs-name">{{ record.name }}</div>
 					<div class="cs-sub">{{ record.type }}</div>
+				</template>
+				<template #progress="{ record }">
+					<a-progress :percent="record.progress / 100" size="small" :show-text="true" />
 				</template>
 				<template #status="{ record }">
 					<a-tag :color="tagColor(record.status)">{{ record.statusLabel }}</a-tag>
@@ -81,7 +108,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { Message, Modal } from "@arco-design/web-vue";
-import { IconPlus, IconRefresh, IconSearch } from "@arco-design/web-vue/es/icon";
+import { IconPlus, IconSearch } from "@arco-design/web-vue/es/icon";
 import {
 	cancelContract,
 	downloadSignedContract,
@@ -91,6 +118,8 @@ import {
 	syncContractStatus,
 	urgeContract,
 } from "../../api/contract.js";
+import ContractSectionNav from "./ContractSectionNav.vue";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
 
 const props = defineProps({
 	status: {
@@ -101,6 +130,9 @@ const props = defineProps({
 });
 
 const keyword = ref("");
+const department = ref("");
+const contractType = ref("");
+const dateRange = ref([]);
 const rows = ref([]);
 const loading = ref(false);
 const errorMessage = ref("");
@@ -115,25 +147,209 @@ const pageTitle = computed(() => {
 	return "签署中合同";
 });
 
-const columns = computed(() => [
-	{ title: "合同", slotName: "name", width: 240 },
-	{ title: "员工", dataIndex: "employee", width: 120 },
-	{ title: "部门", dataIndex: "department", width: 140 },
-	{ title: "Flow ID", dataIndex: "flowId", width: 180 },
-	{ title: "状态", slotName: "status", width: 120 },
-	{ title: "发起时间", dataIndex: "createdAt", width: 160 },
-	{ title: "操作", slotName: "ops", width: 260, fixed: "right" },
-]);
+const deptOptions = computed(() =>
+	[...new Set(rows.value.map((row) => row.department).filter((value) => value && value !== "—"))].map(
+		(value) => ({ label: value, value })
+	)
+);
+
+const typeOptions = computed(() =>
+	[...new Set(rows.value.map((row) => row.type).filter((value) => value && value !== "—"))].map(
+		(value) => ({ label: value, value })
+	)
+);
+
+const toolbarTitle = computed(() => pageTitle.value);
+
+const toolbarDescription = computed(() => {
+	if (props.status === "signed") return "检索已完成的签署记录，支持下载与归档";
+	if (props.status === "void") return "查看已作废合同及作废原因";
+	return "筛选签署任务，按部门、类型与日期跟踪进度";
+});
+
+const statusLabel = computed(() => {
+	if (props.status === "signed") return "已签署";
+	if (props.status === "void") return "已作废";
+	return "签署中";
+});
+
+const statusTagColor = computed(() => {
+	if (props.status === "signed") return "green";
+	if (props.status === "void") return "red";
+	return "arcoblue";
+});
+
+const pendingStats = [
+	{ key: "mine", label: "待我签署", value: 2, alert: true },
+	{ key: "peer", label: "待对方签署", value: 5, alert: false },
+	{ key: "expiring", label: "即将超时", value: 1, alert: true },
+];
+
+const allRows = {
+	pending: [
+		{
+			id: "p1",
+			name: "依然集团-劳动合同",
+			type: "劳动合同",
+			employee: "张三",
+			department: "技术中心",
+			initiator: "李人事",
+			createdAt: "2026-09-05 10:20",
+			node: "待员工签署",
+			progress: 50,
+			remain: "2天",
+			bucket: "peer",
+			timeline: [
+				{ id: 1, title: "发起签署", meta: "李人事 · 2026-09-05 10:20", color: "#00b386" },
+				{ id: 2, title: "企业已盖章", meta: "公章 · 2026-09-05 11:00", color: "#00b386" },
+				{ id: 3, title: "待员工签署", meta: "张三 · 进行中", color: "#165dff" },
+			],
+		},
+		{
+			id: "p2",
+			name: "依然集团-保密协议",
+			type: "保密协议",
+			employee: "王五",
+			department: "电商运营部",
+			initiator: "李人事",
+			createdAt: "2026-09-06 09:10",
+			node: "待我盖章",
+			progress: 30,
+			remain: "1天",
+			bucket: "mine",
+			timeline: [
+				{ id: 1, title: "发起签署", meta: "李人事 · 2026-09-06 09:10", color: "#00b386" },
+				{ id: 2, title: "员工已签署", meta: "王五 · 2026-09-06 14:00", color: "#00b386" },
+				{ id: 3, title: "待企业盖章", meta: "人事 · 进行中", color: "#165dff" },
+			],
+		},
+		{
+			id: "p3",
+			name: "依然杭州-劳动合同",
+			type: "劳动合同",
+			employee: "赵六",
+			department: "人事行政部",
+			initiator: "周主管",
+			createdAt: "2026-09-01 16:40",
+			node: "待员工签署",
+			progress: 40,
+			remain: "6小时",
+			bucket: "expiring",
+			timeline: [
+				{ id: 1, title: "发起签署", meta: "周主管 · 2026-09-01 16:40", color: "#00b386" },
+				{ id: 2, title: "待员工签署", meta: "赵六 · 即将超时", color: "#f53f3f" },
+			],
+		},
+	],
+	signed: [
+		{
+			id: "s1",
+			name: "依然集团-劳动合同",
+			type: "劳动合同",
+			employee: "陈七",
+			department: "技术中心",
+			initiator: "李人事",
+			createdAt: "2026-08-10 11:00",
+			finishedAt: "2026-08-12 15:30",
+			validUntil: "2029-08-11",
+			timeline: [
+				{ id: 1, title: "发起签署", meta: "李人事 · 2026-08-10", color: "#00b386" },
+				{ id: 2, title: "双方签署完成", meta: "2026-08-12 15:30", color: "#00b386" },
+			],
+		},
+		{
+			id: "s2",
+			name: "依然集团-实习协议",
+			type: "实习协议",
+			employee: "孙八",
+			department: "电商运营部",
+			initiator: "周主管",
+			createdAt: "2026-07-20 09:00",
+			finishedAt: "2026-07-21 10:10",
+			validUntil: "2026-12-31",
+			timeline: [
+				{ id: 1, title: "发起签署", meta: "周主管 · 2026-07-20", color: "#00b386" },
+				{ id: 2, title: "双方签署完成", meta: "2026-07-21 10:10", color: "#00b386" },
+			],
+		},
+	],
+	void: [
+		{
+			id: "v1",
+			name: "依然集团-保密协议",
+			type: "保密协议",
+			employee: "钱九",
+			department: "人事行政部",
+			initiator: "李人事",
+			createdAt: "2026-06-01 14:00",
+			voidAt: "2026-06-03 09:20",
+			voidReason: "员工信息填写错误，重新发起",
+			timeline: [
+				{ id: 1, title: "发起签署", meta: "李人事 · 2026-06-01", color: "#86909c" },
+				{ id: 2, title: "已作废", meta: "2026-06-03 09:20", color: "#f53f3f" },
+			],
+		},
+	],
+};
+
+const columns = computed(() => {
+	const base = [
+		{ title: "合同", slotName: "name", width: 240 },
+		{ title: "员工", dataIndex: "employee", width: 100 },
+		{ title: "部门", dataIndex: "department", width: 120 },
+		{ title: "发起人", dataIndex: "initiator", width: 100 },
+		{ title: "发起时间", dataIndex: "createdAt", width: 160 },
+	];
+	if (props.status === "pending") {
+		return [
+			...base,
+			{ title: "当前节点", slotName: "status", width: 120 },
+			{ title: "进度", slotName: "progress", width: 140 },
+			{ title: "剩余时效", dataIndex: "remain", width: 100 },
+			{ title: "操作", slotName: "ops", width: 180, fixed: "right" },
+		];
+	}
+	if (props.status === "signed") {
+		return [
+			...base,
+			{ title: "完成时间", dataIndex: "finishedAt", width: 160 },
+			{ title: "有效期至", dataIndex: "validUntil", width: 120 },
+			{ title: "操作", slotName: "ops", width: 180, fixed: "right" },
+		];
+	}
+	return [
+		...base,
+		{ title: "作废时间", dataIndex: "voidAt", width: 160 },
+		{ title: "原因", dataIndex: "voidReason", width: 220 },
+		{ title: "操作", slotName: "ops", width: 100, fixed: "right" },
+	];
+});
 
 const filteredRows = computed(() => {
 	const query = keyword.value.trim().toLowerCase();
-	if (!query) return rows.value;
-	return rows.value.filter((row) =>
-		[row.name, row.type, row.employee, row.flowId]
+	let list = rows.value;
+	if (query) {
+		list = list.filter((row) =>
+			[row.name, row.type, row.employee, row.flowId]
 			.map((value) => String(value || "").toLowerCase())
 			.some((value) => value.includes(query))
-	);
+		);
+	}
+	if (department.value) list = list.filter((row) => row.department === department.value);
+	if (contractType.value) list = list.filter((row) => row.type === contractType.value);
+	if (dateRange.value?.length === 2) {
+		const [start, end] = dateRange.value.map((value) => new Date(value).getTime());
+		list = list.filter((row) => {
+			const timestamp = new Date(row.createdAt).getTime();
+			return Number.isFinite(timestamp) && timestamp >= start && timestamp <= end;
+		});
+	}
+	return list;
 });
+
+function applyFilter() {
+	/* Filters are computed from the current controls. */
+}
 
 function statusText(value) {
 	const map = {
@@ -158,12 +374,19 @@ function normalizeRow(row, index) {
 		type: row?.template_name || row?.contract_type || row?.template || "—",
 		employee: row?.employee_name || row?.employee || "—",
 		department: row?.department || "—",
+		initiator: row?.requested_by || row?.initiator || "—",
 		flowId: row?.flow_id || row?.flowId || "",
 		status: rawStatus,
 		statusLabel: statusText(rawStatus),
+		progress: ["completed", "signed"].includes(String(rawStatus).toLowerCase()) ? 100 : 50,
+		remain: row?.remain || "—",
 		createdAt: row?.requested_on || row?.creation || row?.created_at || row?.createdAt || "",
+		finishedAt: row?.completed_on || row?.finishedAt || "",
+		validUntil: row?.valid_until || row?.validUntil || "—",
+		voidAt: row?.cancelled_on || row?.voidAt || "",
+		voidReason: row?.error_status || row?.voidReason || "—",
 		updatedAt: row?.modified || row?.updated_at || row?.updatedAt || "",
-		error: row?.error || row?.error_message || row?.last_error || "",
+		error: row?.error_status || row?.error || row?.error_message || row?.last_error || "",
 	};
 }
 

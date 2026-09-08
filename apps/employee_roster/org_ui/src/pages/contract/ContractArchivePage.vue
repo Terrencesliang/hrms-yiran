@@ -1,39 +1,41 @@
 <template>
 	<div class="arco-org-ui contract-archive">
-		<div class="ca-toolbar">
-			<a-input
-				v-model="keyword"
-				class="ca-search"
-				allow-clear
-				placeholder="搜索员工 / 合同类型"
-				@press-enter="applyFilter"
-				@clear="applyFilter"
-			>
-				<template #prefix><icon-search /></template>
-			</a-input>
-			<a-select
-				v-model="department"
-				class="ca-filter"
-				allow-clear
-				placeholder="部门"
-				:options="deptOptions"
-			/>
-			<a-select
-				v-model="contractType"
-				class="ca-filter"
-				allow-clear
-				placeholder="合同类型"
-				:options="typeOptions"
-			/>
-			<a-select
-				v-model="archiveStatus"
-				class="ca-filter"
-				allow-clear
-				placeholder="归档状态"
-				:options="statusOptions"
-			/>
-			<a-range-picker v-model="expireRange" class="ca-range" />
-		</div>
+		<ContractActionToolbar title="合同档案库" description="查询与管理员工合同归档记录，支持到期预警与续签跟踪">
+			<template #filters>
+				<a-input
+					v-model="keyword"
+					class="ca-search"
+					allow-clear
+					placeholder="搜索员工 / 合同类型"
+					@press-enter="applyFilter"
+					@clear="applyFilter"
+				>
+					<template #prefix><icon-search /></template>
+				</a-input>
+				<a-select
+					v-model="department"
+					class="ca-filter"
+					allow-clear
+					placeholder="部门"
+					:options="deptOptions"
+				/>
+				<a-select
+					v-model="contractType"
+					class="ca-filter"
+					allow-clear
+					placeholder="合同类型"
+					:options="typeOptions"
+				/>
+				<a-select
+					v-model="archiveStatus"
+					class="ca-filter"
+					allow-clear
+					placeholder="归档状态"
+					:options="statusOptions"
+				/>
+				<a-range-picker v-model="expireRange" class="ca-range" />
+			</template>
+		</ContractActionToolbar>
 
 		<a-card :bordered="false" class="ca-stats-card">
 			<a-row :gutter="16">
@@ -118,6 +120,7 @@
 import { computed, ref } from "vue";
 import { Message } from "@arco-design/web-vue";
 import { IconSearch } from "@arco-design/web-vue/es/icon";
+import ContractActionToolbar from "./ContractActionToolbar.vue";
 
 const keyword = ref("");
 const department = ref("");

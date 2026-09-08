@@ -14,8 +14,17 @@ html body {
 .arco-hr-roster-wrapper,
 .arco-employee-archive-wrapper,
 .arco-hr-employee-list-wrapper,
+.arco-hr-employee-form-wrapper,
 .arco-hr-checkin-list-wrapper,
-.arco-hr-attendance-rules-wrapper {
+.arco-hr-attendance-rules-wrapper,
+.arco-approvals-wrapper,
+.arco-contract-overview-wrapper,
+.arco-contract-templates-wrapper,
+.arco-contract-signing-wrapper,
+.arco-contract-seals-wrapper,
+.arco-contract-packages-wrapper,
+.arco-contract-archive-wrapper,
+.arco-contract-initiate-wrapper {
 	--hr-desk-gap: 16px;
 }
 
@@ -27,7 +36,8 @@ html body {
 .arco-employee-archive-wrapper .page-head,
 .arco-hr-employee-list-wrapper .page-head,
 .arco-hr-checkin-list-wrapper .page-head,
-.arco-hr-attendance-rules-wrapper .page-head {
+.arco-hr-attendance-rules-wrapper .page-head,
+.arco-hr-employee-form-wrapper .page-head {
 	display: none !important;
 }
 
@@ -38,6 +48,7 @@ html body {
 .arco-hr-roster-wrapper .layout-main-section,
 .arco-employee-archive-wrapper .layout-main-section,
 .arco-hr-employee-list-wrapper .layout-main-section,
+.arco-hr-employee-form-wrapper .layout-main-section,
 .arco-hr-checkin-list-wrapper .layout-main-section,
 .arco-hr-attendance-rules-wrapper .layout-main-section {
 	border: none !important;
@@ -53,8 +64,17 @@ body.hr-unified-sidebar-active .arco-orgdiagram-wrapper .layout-main-section,
 body.hr-unified-sidebar-active .arco-hr-roster-wrapper .layout-main-section,
 body.hr-unified-sidebar-active .arco-employee-archive-wrapper .layout-main-section,
 body.hr-unified-sidebar-active .arco-hr-employee-list-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-hr-employee-form-wrapper .layout-main-section,
 body.hr-unified-sidebar-active .arco-hr-checkin-list-wrapper .layout-main-section,
-body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .layout-main-section {
+body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-approvals-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-overview-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-templates-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-signing-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-seals-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-packages-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-archive-wrapper .layout-main-section,
+body.hr-unified-sidebar-active .arco-contract-initiate-wrapper .layout-main-section {
 	padding: 0 !important;
 }
 
@@ -160,6 +180,7 @@ body.hr-unified-sidebar-active .main-section:has(.arco-employee-archive-wrapper)
 
 body.hr-unified-sidebar-active .arco-employee-archive-wrapper .layout-main-section.hr-desk-content-stack,
 body.hr-unified-sidebar-active .arco-hr-employee-list-wrapper .layout-main-section.hr-desk-content-stack,
+body.hr-unified-sidebar-active .arco-hr-employee-form-wrapper .layout-main-section.hr-desk-content-stack,
 body.hr-unified-sidebar-active .arco-hr-checkin-list-wrapper .layout-main-section.hr-desk-content-stack,
 body.hr-unified-sidebar-active .arco-hr-attendance-rules-wrapper .hr-attendance-rules-page.hr-desk-content-stack,
 body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
@@ -1358,6 +1379,7 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 
 .arco-emp-info-grid {
 	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 10px 20px;
 }
 
@@ -1379,7 +1401,8 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 	font-size: 13px;
 	font-weight: 500;
 	color: #1d2129;
-	word-break: break-all;
+	word-break: break-word;
+	overflow-wrap: anywhere;
 }
 
 .arco-emp-bio-text {
@@ -1929,7 +1952,8 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 .arco-emp-role-line,
-.arco-emp-company-line {
+.arco-emp-company-line,
+.arco-emp-contact-line {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
@@ -1940,14 +1964,16 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 .arco-emp-role-line > *,
-.arco-emp-company-line > * {
+.arco-emp-company-line > *,
+.arco-emp-contact-line > * {
 	display: inline-flex;
 	align-items: center;
 	min-width: 0;
 }
 
 .arco-emp-role-line > * + *,
-.arco-emp-company-line > * + * {
+.arco-emp-company-line > * + *,
+.arco-emp-contact-line > * + * {
 	margin-left: 12px;
 	padding-left: 12px;
 	border-left: 1px solid #c9cdd4;
@@ -1959,6 +1985,12 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 
 .arco-emp-company-line {
 	margin-top: 10px;
+	color: var(--emp-text-3);
+	font-size: 12px;
+}
+
+.arco-emp-contact-line {
+	margin-top: 8px;
 	color: var(--emp-text-3);
 	font-size: 12px;
 }
@@ -2335,6 +2367,75 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 	font-size: 12px;
 }
 
+.arco-emp-profile-summary {
+	display: grid;
+	gap: 10px;
+}
+
+.arco-emp-profile-row {
+	display: grid;
+	grid-template-columns: 72px minmax(0, 1fr);
+	gap: 12px;
+	align-items: baseline;
+	font-size: 13px;
+}
+
+.arco-emp-profile-label {
+	color: var(--emp-text-3, #86909c);
+}
+
+.arco-emp-profile-row strong {
+	color: var(--emp-text, #1d2129);
+	font-weight: 500;
+	line-height: 1.5;
+	word-break: break-word;
+}
+
+.arco-emp-attendance-panel {
+	display: grid;
+	grid-template-columns: 160px minmax(0, 1fr);
+	gap: 16px;
+	align-items: center;
+}
+
+.arco-emp-attendance-main {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-right: 16px;
+	border-right: 1px solid var(--emp-border, #e5e6eb);
+}
+
+.arco-emp-attendance-main strong {
+	font-size: 28px;
+	line-height: 1.1;
+	color: var(--emp-text, #1d2129);
+}
+
+.arco-emp-attendance-main span {
+	font-size: 12px;
+	color: var(--emp-text-3, #86909c);
+}
+
+.arco-emp-attendance-stats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 10px;
+}
+
+.arco-emp-attendance-stats > div {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 12px;
+	color: var(--emp-text-3, #86909c);
+}
+
+.arco-emp-attendance-stats strong {
+	font-size: 14px;
+	color: var(--emp-text, #1d2129);
+}
+
 .arco-emp-journey {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2562,14 +2663,16 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 	}
 
 	.arco-emp-role-line,
-	.arco-emp-company-line {
+	.arco-emp-company-line,
+	.arco-emp-contact-line {
 		align-items: flex-start;
 		flex-direction: column;
 		gap: 5px;
 	}
 
 	.arco-emp-role-line > * + *,
-	.arco-emp-company-line > * + * {
+	.arco-emp-company-line > * + *,
+	.arco-emp-contact-line > * + * {
 		margin-left: 0;
 		padding-left: 0;
 		border-left: 0;
@@ -2616,6 +2719,392 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 		width: 1px;
 		height: auto;
 	}
+
+	.arco-emp-attendance-panel {
+		grid-template-columns: 1fr;
+	}
+
+	.arco-emp-attendance-main {
+		padding-right: 0;
+		padding-bottom: 12px;
+		border-right: 0;
+		border-bottom: 1px solid var(--emp-border, #e5e6eb);
+	}
+}
+
+/* —— Employee detail v3: compact header + overview cards —— */
+.arco-emp-form-chrome {
+	--emp-page-bg: #f7f8fa;
+	--emp-card-bg: #ffffff;
+	--emp-border: var(--color-border-2, #e5e6eb);
+	margin-bottom: 12px;
+}
+
+.arco-emp-header-card {
+	border: 1px solid var(--emp-border) !important;
+	border-radius: 10px !important;
+	background: var(--emp-card-bg) !important;
+	box-shadow: none !important;
+}
+
+.arco-emp-header-card > .arco-card-body {
+	padding: 18px 22px !important;
+}
+
+.arco-emp-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	min-height: 88px;
+}
+
+.arco-emp-header-main {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	min-width: 0;
+	flex: 1;
+}
+
+.arco-emp-header-main .arco-avatar {
+	flex: 0 0 auto;
+	box-shadow: 0 0 0 3px var(--color-primary-light-1, #e8f3ff);
+}
+
+.arco-emp-header-copy {
+	min-width: 0;
+}
+
+.arco-emp-header-title {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-bottom: 8px;
+}
+
+.arco-emp-header-title .arco-emp-name {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 600;
+	line-height: 1.3;
+	color: var(--color-text-1, #1d2129);
+}
+
+.arco-emp-header-meta {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px 14px;
+	margin: 0 0 6px;
+	font-size: 13px;
+	color: var(--color-text-2, #4e5969);
+}
+
+.arco-emp-header-meta.is-muted {
+	margin-bottom: 0;
+	font-size: 12px;
+	color: var(--color-text-3, #86909c);
+}
+
+.arco-emp-header-meta.is-muted .arco-icon {
+	margin-right: 4px;
+}
+
+.arco-emp-header-actions {
+	flex: 0 0 auto;
+}
+
+.arco-emp-detail-card {
+	border: 1px solid var(--emp-border) !important;
+	border-radius: 10px !important;
+	background: var(--emp-card-bg) !important;
+	box-shadow: none !important;
+	height: 100%;
+}
+
+.arco-emp-detail-card {
+	transition: border-color 0.15s ease;
+}
+
+.arco-emp-detail-card:hover {
+	border-color: var(--color-neutral-4, #c9cdd4) !important;
+}
+
+.arco-emp-detail-card > .arco-card-body {
+	padding: 18px 20px !important;
+}
+
+.arco-emp-detail-card-title {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 15px;
+	font-weight: 600;
+	color: var(--color-text-1, #1d2129);
+}
+
+.arco-emp-detail-card-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	background: var(--color-primary-light-1, #e8f3ff);
+	color: rgb(var(--primary-6, 22, 93, 255));
+	font-size: 15px;
+}
+
+.arco-emp-info-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px 24px;
+}
+
+.arco-emp-info-item {
+	display: grid;
+	gap: 3px;
+	min-width: 0;
+}
+
+.arco-emp-info-label {
+	font-size: 12.5px;
+	color: var(--color-text-3, #86909c);
+	line-height: 1.4;
+}
+
+.arco-emp-info-value {
+	font-size: 13.5px;
+	font-weight: 500;
+	color: var(--color-text-1, #1d2129);
+	line-height: 1.5;
+	word-break: break-word;
+}
+
+.arco-emp-overview-grid {
+	margin-bottom: 0;
+}
+
+.arco-emp-detail-grid {
+	width: 100%;
+	min-width: 0;
+}
+
+.arco-emp-detail-cell {
+	min-width: 0;
+}
+
+.arco-emp-detail-cell.span-3 { grid-column: span 3; }
+.arco-emp-detail-cell.span-4 { grid-column: span 4; }
+.arco-emp-detail-cell.span-5 { grid-column: span 5; }
+.arco-emp-detail-cell.span-12 { grid-column: span 12; }
+
+.arco-emp-detail-cell > .arco-emp-detail-card,
+.arco-emp-detail-cell > .arco-card {
+	height: 100%;
+}
+
+.arco-emp-overview-middle {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.arco-emp-attendance-stats-row {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.arco-emp-attendance-stat {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+	padding: 10px 12px;
+	border: none;
+	border-radius: 8px;
+	background: var(--color-fill-1, #f7f8fa);
+	transition: background 0.15s ease;
+}
+
+.arco-emp-attendance-stat:hover {
+	background: var(--color-fill-2, #f2f3f5);
+}
+
+.arco-emp-attendance-stat-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.arco-emp-attendance-stat-copy > span {
+	font-size: 12px;
+	color: var(--color-text-3, #86909c);
+}
+
+.arco-emp-attendance-stat-copy > strong {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--color-text-1, #1d2129);
+	line-height: 1.2;
+}
+
+.arco-emp-attendance-stat-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border-radius: 8px;
+	font-size: 16px;
+}
+
+.arco-emp-attendance-stat-icon.is-attendance {
+	background: #e8f3ff;
+	color: #165dff;
+}
+
+.arco-emp-attendance-stat-icon.is-leave {
+	background: #e8ffea;
+	color: #00b42a;
+}
+
+.arco-emp-attendance-stat-icon.is-late {
+	background: #fff7e8;
+	color: #ff7d00;
+}
+
+.arco-emp-attendance-stat-icon.is-overtime {
+	background: #f5e8ff;
+	color: #722ed1;
+}
+
+.arco-emp-completeness-body {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+}
+
+.arco-emp-completeness-percent {
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--color-text-1, #1d2129);
+}
+
+.arco-emp-completeness-percent small {
+	font-size: 12px;
+	font-weight: 500;
+}
+
+.arco-emp-completeness-side {
+	flex: 1;
+	min-width: 0;
+}
+
+.arco-emp-missing-list.is-compact button {
+	padding: 6px 0;
+	font-size: 12px;
+}
+
+@media (max-width: 992px) {
+	.arco-emp-header {
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	.arco-emp-info-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.arco-emp-completeness-body {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.arco-emp-detail-cell.span-3,
+	.arco-emp-detail-cell.span-4,
+	.arco-emp-detail-cell.span-5,
+	.arco-emp-detail-cell.span-12 {
+		grid-column: span 12;
+	}
+}
+
+/* —— Employee detail v3 dark mode —— */
+html[data-theme="dark"] .arco-emp-header-card,
+html[arco-theme="dark"] .arco-emp-header-card,
+html[data-theme="dark"] .arco-emp-detail-card,
+html[arco-theme="dark"] .arco-emp-detail-card {
+	background: var(--hr-desk-surface, #232324) !important;
+	border-color: var(--hr-desk-border, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html[data-theme="dark"] .arco-emp-header-card .arco-card-body,
+html[arco-theme="dark"] .arco-emp-header-card .arco-card-body,
+html[data-theme="dark"] .arco-emp-detail-card .arco-card-body,
+html[arco-theme="dark"] .arco-emp-detail-card .arco-card-body,
+html[data-theme="dark"] .arco-emp-detail-card .arco-card-header,
+html[arco-theme="dark"] .arco-emp-detail-card .arco-card-header {
+	background: transparent !important;
+	border-color: var(--hr-desk-border, rgba(255, 255, 255, 0.08)) !important;
+}
+
+html[data-theme="dark"] .arco-emp-header-title .arco-emp-name,
+html[arco-theme="dark"] .arco-emp-header-title .arco-emp-name,
+html[data-theme="dark"] .arco-emp-detail-card-title,
+html[arco-theme="dark"] .arco-emp-detail-card-title,
+html[data-theme="dark"] .arco-emp-attendance-stat-copy > strong,
+html[arco-theme="dark"] .arco-emp-attendance-stat-copy > strong,
+html[data-theme="dark"] .arco-emp-completeness-percent,
+html[arco-theme="dark"] .arco-emp-completeness-percent {
+	color: var(--hr-desk-text, rgba(255, 255, 255, 0.9));
+}
+
+html[data-theme="dark"] .arco-emp-header-meta,
+html[arco-theme="dark"] .arco-emp-header-meta,
+html[data-theme="dark"] .arco-emp-header-meta.is-muted,
+html[arco-theme="dark"] .arco-emp-header-meta.is-muted,
+html[data-theme="dark"] .arco-emp-attendance-stat-copy > span,
+html[arco-theme="dark"] .arco-emp-attendance-stat-copy > span {
+	color: var(--hr-desk-text-3, rgba(255, 255, 255, 0.45));
+}
+
+html[data-theme="dark"] .arco-emp-attendance-stat,
+html[arco-theme="dark"] .arco-emp-attendance-stat {
+	background: var(--hr-desk-surface-2, rgba(255, 255, 255, 0.06));
+}
+
+html[data-theme="dark"] .arco-emp-header-main .arco-avatar,
+html[arco-theme="dark"] .arco-emp-header-main .arco-avatar {
+	box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.2);
+}
+
+html[data-theme="dark"] .arco-emp-detail-card-icon,
+html[arco-theme="dark"] .arco-emp-detail-card-icon {
+	background: rgba(22, 93, 255, 0.18);
+}
+
+html[data-theme="dark"] .arco-emp-attendance-stat-icon.is-attendance,
+html[arco-theme="dark"] .arco-emp-attendance-stat-icon.is-attendance {
+	background: rgba(22, 93, 255, 0.18);
+}
+
+html[data-theme="dark"] .arco-emp-attendance-stat-icon.is-leave,
+html[arco-theme="dark"] .arco-emp-attendance-stat-icon.is-leave {
+	background: rgba(0, 180, 42, 0.18);
+}
+
+html[data-theme="dark"] .arco-emp-attendance-stat-icon.is-late,
+html[arco-theme="dark"] .arco-emp-attendance-stat-icon.is-late {
+	background: rgba(255, 125, 0, 0.18);
+}
+
+html[data-theme="dark"] .arco-emp-attendance-stat-icon.is-overtime,
+html[arco-theme="dark"] .arco-emp-attendance-stat-icon.is-overtime {
+	background: rgba(114, 46, 209, 0.2);
 }
 
 /* —— Approvals admin —— */
@@ -2690,16 +3179,56 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 	padding: 16px 20px 28px;
 }
 
-.ap-root--flat .ap-main {
-	padding-top: 8px;
+.approval-admin .ap-main {
+	padding: 0;
 }
 
-.ap-panel-header {
+.ap-panel {
 	display: flex;
-	align-items: flex-start;
+	flex-direction: column;
+	gap: var(--hr-section-gap, 16px);
+	min-width: 0;
+}
+
+.ap-panel-toolbar,
+.apw-toolbar {
+	display: flex;
+	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
+	min-width: 0;
+}
+
+.ap-search {
+	width: 280px;
+	max-width: 100%;
+}
+
+.ap-toolbar-hint,
+.ap-list-count {
+	color: var(--color-text-3, #86909c);
+	font-size: 13px;
+}
+
+.ap-content-card .arco-card-body {
+	padding-top: 0;
+}
+
+.ap-category-tabs {
+	margin-bottom: 4px;
+}
+
+.ap-category-tabs .arco-tabs-header {
 	margin-bottom: 12px;
+}
+
+.ap-content-card .arco-table-th {
+	height: 44px;
+	background: var(--color-fill-1, #f7f8fa);
+}
+
+.ap-content-card .arco-table-td {
+	height: 60px;
 }
 
 .ap-hint {
@@ -2789,8 +3318,18 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 		margin-bottom: 8px;
 	}
 
-	.ap-panel-header {
+	.ap-panel-toolbar,
+	.apw-toolbar {
+		align-items: stretch;
 		flex-direction: column;
+	}
+
+	.ap-search {
+		width: 100%;
+	}
+
+	.ap-actions {
+		justify-content: flex-end;
 	}
 }
 
@@ -3752,91 +4291,43 @@ html[arco-theme="dark"] .hr-wp-date-card {
 	width: 100%;
 }
 
-/* 鈥斺€?Approval workspace (PC) 鈥斺€?*/
+/* —— Approval workspace (PC) —— */
 .ap-workspace {
-	display: block;
-	padding: 16px 20px 28px;
-	min-height: calc(100dvh - 52px);
-	background: var(--color-fill-2, #f2f3f5);
-}
-
-.apw-header {
-	display: flex;
-	align-items: flex-start;
-	justify-content: space-between;
-	gap: 16px;
-	margin-bottom: 16px;
-}
-
-.apw-header-text .oc-page-title {
-	margin-bottom: 4px;
+	min-height: 0;
+	background: var(--hr-page-bg, var(--color-fill-2, #f2f3f5));
 }
 
 .apw-nav-card {
-	margin-bottom: 16px;
-	border-radius: 4px;
+	border-radius: var(--hr-radius-sm, 8px);
 }
 
 .apw-nav-card .arco-card-body {
-	padding: 12px 16px;
+	padding: 8px 16px;
 }
 
-.apw-nav-card .arco-radio-group {
-	flex-wrap: wrap;
-	gap: 8px;
+.apw-nav-tabs {
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
-.apw-nav-card .arco-radio-button {
-	padding: 0 18px;
-	height: 36px;
-	line-height: 36px;
-}
-
-.apw-nav-card .arco-badge {
-	margin-left: 6px;
-}
-
-.apw-stats {
-	margin-bottom: 16px;
-}
-
-.apw-stat {
-	cursor: pointer;
-	border-radius: 4px;
-	transition: box-shadow 0.15s ease, outline-color 0.15s ease;
-}
-
-.apw-stat:hover {
-	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.apw-stat--active {
-	outline: 1px solid #00b386;
-}
-
-.apw-stat-dot {
-	display: inline-block;
-	width: 8px;
-	height: 8px;
-	border-radius: 50%;
-	margin-right: 6px;
+.apw-nav-tabs .arco-tabs-header {
+	margin: 0;
 }
 
 .apw-filter-card {
-	margin-bottom: 16px;
-	border-radius: 4px;
+	border-radius: var(--hr-radius-sm, 8px);
 }
 
 .apw-filter-card .arco-card-body {
-	padding: 12px 16px 4px;
+	padding: 8px 16px;
 }
 
 .apw-filter-form .arco-form-item {
-	margin-bottom: 12px;
+	margin: 4px 16px 4px 0;
 }
 
 .apw-content-card {
-	border-radius: 4px;
+	border-radius: var(--hr-radius-sm, 8px);
 }
 
 .apw-card-sub {
@@ -3858,15 +4349,19 @@ html[arco-theme="dark"] .hr-wp-date-card {
 	gap: 12px;
 	padding: 16px;
 	border: 1px solid var(--color-border-2, #e5e6eb);
-	border-radius: 4px;
+	border-radius: var(--hr-radius-sm, 8px);
 	background: var(--color-bg-2, #fff);
 	cursor: pointer;
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	transition:
+		border-color var(--hr-motion-fast, 180ms) ease,
+		box-shadow var(--hr-motion-fast, 180ms) ease,
+		transform var(--hr-motion-fast, 180ms) ease;
 }
 
 .apw-start-item:hover {
-	border-color: var(--hr-brand, #00b386);
-	box-shadow: 0 2px 10px rgba(0, 179, 134, 0.08);
+	border-color: rgb(var(--arcoblue-5, 64, 128, 255));
+	box-shadow: var(--hr-shadow-hover, 0 8px 24px rgba(29, 33, 41, 0.09));
+	transform: translateY(-1px);
 }
 
 .apw-start-icon {
@@ -3899,7 +4394,7 @@ html[arco-theme="dark"] .hr-wp-date-card {
 }
 
 .apw-title-cell:hover .ap-form-title {
-	color: #00b386;
+	color: rgb(var(--arcoblue-6, 22, 93, 255));
 }
 
 .apw-detail .apw-section-title {
@@ -3910,7 +4405,7 @@ html[arco-theme="dark"] .hr-wp-date-card {
 }
 
 .apw-form-card {
-	border-radius: 4px;
+	border-radius: var(--hr-radius-sm, 8px);
 }
 
 .apw-form-card .arco-card-body {
@@ -4155,51 +4650,133 @@ html[arco-theme="dark"] .hr-wp-date-card {
 	padding: 4px 0 24px;
 }
 
-.contract-overview .co-toolbar {
+.contract-action-toolbar-card {
+	margin-bottom: 16px;
+}
+
+.contract-overview .contract-action-toolbar-card,
+.contract-templates .contract-action-toolbar-card,
+.contract-signing .contract-action-toolbar-card,
+.contract-archive .contract-action-toolbar-card {
+	margin-bottom: 0;
+}
+
+.contract-action-toolbar {
 	display: flex;
 	align-items: center;
-	justify-content: center;
-	gap: 12px;
+	justify-content: space-between;
+	gap: 20px;
 	flex-wrap: wrap;
 }
 
-.contract-overview .co-search {
+.contract-action-toolbar.is-stacked {
+	flex-direction: column;
+	align-items: stretch;
+	gap: 14px;
+}
+
+.contract-action-toolbar-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	width: 100%;
+	min-width: 0;
+}
+
+.contract-action-toolbar.is-stacked .contract-action-toolbar-head {
+	flex-wrap: nowrap;
+}
+
+.contract-action-toolbar-meta {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	min-width: 0;
 	flex: 1 1 auto;
-	max-width: 560px;
+}
+
+.contract-action-toolbar:not(.is-stacked) .contract-action-toolbar-meta {
 	min-width: 220px;
 }
 
+.contract-action-toolbar-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	flex: 0 0 40px;
+	border-radius: 10px;
+	background: var(--color-primary-light-1, #e8f3ff);
+	color: rgb(var(--primary-6, 22, 93, 255));
+	font-size: 20px;
+}
+
+.contract-action-toolbar-title {
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 22px;
+	color: var(--color-text-1, #1d2129);
+}
+
+.contract-action-toolbar-description {
+	margin-top: 2px;
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--color-text-3, #86909c);
+}
+
+.contract-action-toolbar-actions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 12px;
+	flex: 0 0 auto;
+	flex-wrap: wrap;
+}
+
+.contract-action-toolbar:not(.is-stacked) .contract-action-toolbar-actions {
+	flex: 1 1 520px;
+	min-width: 0;
+}
+
+.contract-action-toolbar-filters {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 12px;
+	width: 100%;
+	padding-top: 2px;
+	border-top: 1px solid var(--color-border-2, #e5e6eb);
+}
+
+.contract-action-toolbar.is-stacked .contract-action-toolbar-meta > div:last-child {
+	min-width: 0;
+}
+
+.contract-action-toolbar-description {
+	word-break: break-word;
+}
+
+.contract-overview .co-search {
+	width: 320px;
+	max-width: 100%;
+}
+
 .contract-overview .co-search .arco-input-wrapper {
-	border-radius: 999px;
-	background: var(--color-bg-2, #fff);
-	border-color: rgba(0, 179, 134, 0.35);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+	border-radius: 6px;
+	background: var(--color-fill-1, #f7f8fa);
 }
 
 .contract-overview .co-search .arco-input-wrapper:focus-within,
 .contract-overview .co-search .arco-input-wrapper.arco-input-focus {
-	border-color: #00b386;
-	box-shadow: 0 0 0 2px rgba(0, 179, 134, 0.12);
-}
-
-.contract-overview .co-search-btn {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	padding: 0;
-	border: 0;
-	background: transparent;
-	color: var(--color-text-3, #86909c);
-	cursor: pointer;
-}
-
-.contract-overview .co-search-btn:hover {
-	color: #00b386;
+	border-color: rgb(var(--primary-6, 22, 93, 255));
+	box-shadow: 0 0 0 2px var(--color-primary-light-2, #dbe8ff);
 }
 
 .contract-overview .co-quick-sign {
-	border-radius: 999px;
-	padding: 0 20px;
+	border-radius: 6px;
 	font-weight: 500;
 }
 
@@ -4721,9 +5298,30 @@ body[data-theme="dark"] .contract-overview .co-template-card:hover {
 body[arco-theme="dark"] .contract-overview .co-search .arco-input-wrapper,
 body[data-theme="dark"] .contract-overview .co-search .arco-input-wrapper,
 body[arco-theme="dark"] .contract-templates .ct-search .arco-input-wrapper,
-body[data-theme="dark"] .contract-templates .ct-search .arco-input-wrapper {
+body[data-theme="dark"] .contract-templates .ct-search .arco-input-wrapper,
+body[arco-theme="dark"] .contract-signing .cs-search .arco-input-wrapper,
+body[data-theme="dark"] .contract-signing .cs-search .arco-input-wrapper,
+body[arco-theme="dark"] .contract-archive .ca-search .arco-input-wrapper,
+body[data-theme="dark"] .contract-archive .ca-search .arco-input-wrapper {
 	background: var(--color-bg-2, #232324);
 	box-shadow: none;
+}
+
+body[arco-theme="dark"] .contract-signing .contract-action-toolbar-filters .arco-select-view-single,
+body[data-theme="dark"] .contract-signing .contract-action-toolbar-filters .arco-select-view-single,
+body[arco-theme="dark"] .contract-signing .contract-action-toolbar-filters .arco-picker,
+body[data-theme="dark"] .contract-signing .contract-action-toolbar-filters .arco-picker,
+body[arco-theme="dark"] .contract-archive .contract-action-toolbar-filters .arco-select-view-single,
+body[data-theme="dark"] .contract-archive .contract-action-toolbar-filters .arco-select-view-single,
+body[arco-theme="dark"] .contract-archive .contract-action-toolbar-filters .arco-picker,
+body[data-theme="dark"] .contract-archive .contract-action-toolbar-filters .arco-picker {
+	background: var(--color-bg-2, #232324);
+	border-color: var(--color-border-2, rgba(255, 255, 255, 0.12));
+}
+
+body[arco-theme="dark"] .contract-action-toolbar-filters,
+body[data-theme="dark"] .contract-action-toolbar-filters {
+	border-top-color: var(--color-border-2, rgba(255, 255, 255, 0.12));
 }
 
 body[arco-theme="dark"] .contract-overview .co-stat:hover,
@@ -4815,36 +5413,45 @@ body[data-theme="dark"] .contract-archive .arco-card {
 	color: var(--color-text-1, #1d2129);
 }
 
-.contract-signing .cs-toolbar,
-.contract-seals .cse-toolbar,
-.contract-packages .cpk-toolbar,
-.contract-archive .ca-toolbar {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 12px;
-	align-items: center;
-	margin-bottom: 16px;
-}
-
 .contract-signing .cs-search,
 .contract-seals .cse-search,
 .contract-packages .cpk-search,
 .contract-archive .ca-search {
-	width: min(320px, 100%);
+	flex: 1 1 220px;
+	width: auto;
+	min-width: 200px;
+	max-width: 320px;
+}
+
+.contract-signing .cs-search .arco-input-wrapper,
+.contract-archive .ca-search .arco-input-wrapper {
+	background: var(--color-bg-2, #fff);
+	border-radius: 4px;
 }
 
 .contract-signing .cs-filter,
 .contract-archive .ca-filter {
+	flex: 0 0 140px;
 	width: 140px;
 }
 
 .contract-signing .cs-range,
 .contract-archive .ca-range {
-	width: 240px;
+	flex: 0 0 260px;
+	width: 260px;
+}
+
+.contract-signing .contract-action-toolbar-filters .arco-select-view-single,
+.contract-signing .contract-action-toolbar-filters .arco-picker,
+.contract-archive .contract-action-toolbar-filters .arco-select-view-single,
+.contract-archive .contract-action-toolbar-filters .arco-picker {
+	background: var(--color-bg-2, #fff);
+	border-radius: 4px;
 }
 
 .contract-signing .cs-stats-card,
 .contract-archive .ca-stats-card {
+	margin-top: 16px;
 	margin-bottom: 16px;
 }
 
@@ -5084,6 +5691,64 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	gap: 16px;
 	padding: 4px 0 24px;
 	min-height: 520px;
+}
+
+/* 合同模块统一由页面根节点提供标准间距，避免与 Frappe 壳层重复叠加。 */
+.contract-overview,
+.contract-templates,
+.contract-signing,
+.contract-seals,
+.contract-packages,
+.contract-archive,
+.contract-initiate {
+	box-sizing: border-box;
+	padding: var(--hr-desk-gap, 16px) var(--hr-desk-gap, 16px) 28px;
+}
+
+/* 合同三级功能收进页面导航，交互和间距与考勤规则保持一致。 */
+.contract-section-nav-card {
+	flex: 0 0 auto;
+	margin-bottom: 16px;
+}
+
+.contract-templates .contract-section-nav-card {
+	margin-bottom: 0;
+}
+
+.contract-section-nav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	min-width: 0;
+}
+
+.contract-section-tabs {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.contract-section-tabs .arco-tabs-header {
+	margin: 0;
+}
+
+.contract-section-hint {
+	flex: 0 0 auto;
+	font-size: 13px;
+	color: var(--color-text-3, #86909c);
+	white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+	.contract-section-nav {
+		align-items: stretch;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.contract-section-hint {
+		display: none;
+	}
 }
 
 .contract-initiate .ci-steps-card,
