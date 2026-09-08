@@ -126,6 +126,19 @@ body[data-route="List/Employee Checkin"] .layout-main-section,
 	color: var(--hr-ck-text-3);
 }
 
+.hr-checkin-list-page .hr-checkin-arco-table-host {
+	min-height: 180px;
+	background: var(--hr-ck-bg);
+}
+
+/* 数据仍由 Frappe List 负责查询、权限、筛选与分页，行展示交给 Arco Table。 */
+.hr-checkin-list-page .hr-checkin-native-list .list-row-head,
+.hr-checkin-list-page .hr-checkin-native-list .list-row-container,
+.hr-checkin-list-page .hr-checkin-native-list .result,
+.hr-checkin-list-page .hr-checkin-native-list .msg-box.no-result {
+	display: none !important;
+}
+
 .hr-checkin-list-page .frappe-list .list-row-head,
 .hr-checkin-list-page .frappe-list .list-row-container {
 	border-color: var(--hr-ck-border);

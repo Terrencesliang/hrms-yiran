@@ -10,20 +10,46 @@
 	const prev = frappe.listview_settings[DOCTYPE] || {};
 	const prev_onload = prev.onload;
 	const prev_refresh = prev.refresh;
+	const prev_before_render = prev.before_render;
 	const prev_formatters = prev.formatters || {};
 
 	frappe.listview_settings[DOCTYPE] = Object.assign({}, prev, {
 		add_fields: Array.from(
-			new Set([...(prev.add_fields || []), "status", "employment_type", "designation", "department"]),
+			new Set([
+				...(prev.add_fields || []),
+				"employee_name",
+				"image",
+				"status",
+				"employment_type",
+				"designation",
+				"department",
+				"group_name",
+				"branch",
+				"date_of_joining",
+				"cell_number",
+				"company_email",
+			]),
 		),
 
 		onload(listview) {
 			if (typeof prev_onload === "function") {
 				prev_onload(listview);
 			}
+			set_default_sort(listview);
 			enhance_list_shell(listview);
 			inject_stat_board(listview);
 			refresh_stat_board(listview);
+			queue_employee_table_sync(listview);
+		},
+
+		before_render() {
+			if (typeof prev_before_render === "function") {
+				prev_before_render();
+			}
+			const listview = cur_list;
+			if (listview && listview.doctype === DOCTYPE) {
+				queue_employee_table_sync(listview);
+			}
 		},
 
 		refresh(listview) {
@@ -40,6 +66,7 @@
 			}
 			refresh_stat_board(listview);
 			sync_list_toolbar(listview);
+			queue_employee_table_sync(listview);
 		},
 
 		formatters: Object.assign({}, prev_formatters, {
@@ -90,6 +117,12 @@
 		const $form = $section.find(".page-form").first();
 		if ($form.length) {
 			$form.addClass("hr-emp-filter-card");
+			$form
+				.find('[aria-label="Clear all filters"], [title="Clear all filters"]')
+				.attr({ "aria-label": __("清除全部筛选"), title: __("清除全部筛选") });
+			$form
+				.find('[data-fieldname="employee_name"] input')
+				.attr({ placeholder: __("姓名"), "aria-label": __("姓名") });
 		}
 
 		const $list = $section.find(".frappe-list").first();
@@ -109,7 +142,84 @@
 			`);
 		}
 		listview.$hr_emp_table = $list.closest(".hr-emp-table-card");
+		$list.addClass("hr-employee-native-list");
+		mount_employee_table(listview, $list);
 		sync_list_toolbar(listview);
+	}
+
+	function set_default_sort(listview) {
+		if (listview._hr_employee_sort_initialized) return;
+		listview._hr_employee_sort_initialized = true;
+		listview.sort_by = "employee_name";
+		listview.sort_order = "asc";
+		listview.sort_selector?.set_value?.("employee_name", "asc");
+	}
+
+	function mount_employee_table(listview, $list) {
+		const $card = $list.closest(".hr-emp-table-card");
+		if (!$card.length || $card.find(".hr-employee-arco-table-host").length) return;
+
+		const $host = $('<div class="hr-employee-arco-table-host"></div>');
+		$card.find(".hr-emp-table-toolbar").after($host);
+		if (!window.OrgUI?.mountEmployeeRosterTable) return;
+
+		listview.$hr_employee_table_app = window.OrgUI.mountEmployeeRosterTable(
+			$host.get(0),
+			{},
+			{
+				onOpen(record) {
+					if (record?.name) frappe.set_route("Form", DOCTYPE, record.name);
+				},
+				onSort(field, order) {
+					const nextField = field === "date_of_joining" ? "date_of_joining" : "employee_name";
+					const nextOrder = order === "desc" ? "desc" : "asc";
+					listview.sort_by = nextField;
+					listview.sort_order = nextOrder;
+					listview.sort_selector?.set_value?.(nextField, nextOrder);
+					if (typeof listview.on_sort_change === "function") {
+						listview.on_sort_change(nextField, nextOrder);
+					} else {
+						listview.refresh?.();
+					}
+				},
+			},
+		);
+	}
+
+	function sync_employee_table(listview) {
+		if (!window.OrgUI?.updateEmployeeRosterTable) return;
+		const sortBy = ["employee_name", "date_of_joining"].includes(listview.sort_by)
+			? listview.sort_by
+			: "employee_name";
+		window.OrgUI.updateEmployeeRosterTable({
+			rows: listview.data || [],
+			total: listview.total_count ?? (listview.data || []).length,
+			loading: false,
+			sortBy,
+			sortOrder: listview.sort_order === "desc" ? "desc" : "asc",
+		});
+	}
+
+	function queue_employee_table_sync(listview) {
+		window.clearTimeout(listview._hr_employee_table_sync_timer);
+		window.clearTimeout(listview._hr_employee_table_count_timer);
+		listview._hr_employee_table_sync_timer = window.setTimeout(() => {
+			sync_employee_table(listview);
+			sync_list_toolbar(listview);
+		}, 0);
+		listview._hr_employee_table_count_timer = window.setTimeout(() => {
+			sync_employee_table(listview);
+			sync_list_toolbar(listview);
+			localize_paging_controls(listview);
+		}, 600);
+	}
+
+	function localize_paging_controls(listview) {
+		const $card = listview.$hr_emp_table;
+		if (!$card?.length) return;
+		$card
+			.find('.list-paging-area [role="radiogroup"]')
+			.attr("aria-label", __("每页条数"));
 	}
 
 	function sync_list_toolbar(listview) {
@@ -117,10 +227,7 @@
 		if (!$card || !$card.length) {
 			return;
 		}
-		const total =
-			(listview.total_count != null && listview.total_count) ||
-			(listview.data && listview.data.length) ||
-			0;
+		const total = listview.total_count ?? (listview.data && listview.data.length) ?? 0;
 		$card.find(".hr-emp-table-count").text(`${__("共")} ${total} ${__("人")}`);
 	}
 

@@ -22,7 +22,19 @@
 
 	frappe.listview_settings[DOCTYPE] = Object.assign({}, prev, {
 		add_fields: Array.from(
-			new Set([...(prev.add_fields || []), "employee", "time", "log_type", "shift", "shift_start"]),
+			new Set([
+				...(prev.add_fields || []),
+				"employee",
+				"employee_name",
+				"time",
+				"log_type",
+				"checkin_type",
+				"device_id",
+				"latitude",
+				"longitude",
+				"shift",
+				"shift_start",
+			]),
 		),
 
 		onload(listview) {
@@ -32,6 +44,9 @@
 			listview._checkin_day_map = listview._checkin_day_map || {};
 			listview._checkin_dashboard = listview._checkin_dashboard || null;
 			listview._checkin_result_filter = listview._checkin_result_filter || null;
+			listview.sort_by = "time";
+			listview.sort_order = "desc";
+			listview.sort_selector?.set_value?.("time", "desc");
 
 			patch_empty_state(listview);
 			init_default_today_filter(listview);
@@ -53,6 +68,7 @@
 				bind_stat_board(listview);
 			}
 			refresh_dashboard(listview);
+			sync_arco_table(listview);
 			sync_list_toolbar(listview);
 			refresh_empty_state(listview);
 		},
@@ -64,6 +80,7 @@
 			const listview = cur_list;
 			if (listview && listview.doctype === DOCTYPE) {
 				apply_summary_to_rows(listview);
+				sync_arco_table(listview);
 			}
 		},
 
@@ -245,6 +262,7 @@
 
 	function set_loading(listview, on) {
 		window.OrgUI?.updateEmployeeCheckinOverview?.({ loading: !!on });
+		window.OrgUI?.updateEmployeeCheckinTable?.({ loading: !!on });
 	}
 
 	function lookup_summary(listview, doc) {
@@ -362,7 +380,53 @@
 			`);
 		}
 		listview.$hr_checkin_table = $list.closest(".hr-emp-table-card");
+		mount_arco_table(listview, $list);
 		sync_list_toolbar(listview);
+	}
+
+	function mount_arco_table(listview, $list) {
+		const $card = $list.closest(".hr-emp-table-card");
+		let $host = $card.find(".hr-checkin-arco-table-host").first();
+		if (!$host.length) {
+			$host = $('<div class="hr-checkin-arco-table-host"></div>');
+			$list.before($host);
+		}
+		$list.addClass("hr-checkin-native-list");
+		if (listview.$hr_checkin_table_app || !window.OrgUI?.mountEmployeeCheckinTable) {
+			return;
+		}
+		listview.$hr_checkin_table_app = window.OrgUI.mountEmployeeCheckinTable(
+			$host.get(0),
+			{},
+			{
+				onOpen(row) {
+					if (row?.name) frappe.set_route("Form", DOCTYPE, row.name);
+				},
+				onSort(order) {
+					const nextOrder = order === "asc" ? "asc" : "desc";
+					listview.sort_selector?.set_value?.("time", nextOrder);
+					window.OrgUI?.updateEmployeeCheckinTable?.({ sortOrder: nextOrder });
+					if (typeof listview.on_sort_change === "function") {
+						listview.on_sort_change("time", nextOrder);
+					} else {
+						listview.sort_by = "time";
+						listview.sort_order = nextOrder;
+						listview.refresh();
+					}
+				},
+			}
+		);
+		sync_arco_table(listview);
+	}
+
+	function sync_arco_table(listview) {
+		if (!window.OrgUI?.updateEmployeeCheckinTable) return;
+		window.OrgUI.updateEmployeeCheckinTable({
+			rows: Array.isArray(listview?.data) ? listview.data.slice() : [],
+			total: Number(listview?.total_count || listview?.data?.length || 0),
+			loading: false,
+			sortOrder: listview?.sort_order === "asc" ? "asc" : "desc",
+		});
 	}
 
 	function sync_list_toolbar(listview) {
