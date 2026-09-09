@@ -6,9 +6,12 @@
  "engine": "InnoDB",
  "field_order": [
   "event_key",
+  "provider",
+  "sign_task_id",
   "flow_id",
   "contract_signing",
   "event_type",
+  "event_time",
   "processed",
   "processed_on",
   "payload",
@@ -24,11 +27,27 @@
    "unique": 1
   },
   {
+   "default": "Fadada",
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "电子签供应商",
+   "options": "Fadada\nTencent",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "sign_task_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "供应商签署任务 ID",
+   "read_only": 1
+  },
+  {
    "fieldname": "flow_id",
    "fieldtype": "Data",
    "in_list_view": 1,
-   "label": "Flow ID",
-   "reqd": 1
+   "label": "旧 Flow ID（兼容）"
   },
   {
    "fieldname": "contract_signing",
@@ -43,6 +62,12 @@
    "in_list_view": 1,
    "label": "事件类型",
    "reqd": 1
+  },
+  {
+   "fieldname": "event_time",
+   "fieldtype": "Datetime",
+   "label": "供应商事件时间",
+   "read_only": 1
   },
   {
    "default": "0",
@@ -63,6 +88,7 @@
    "fieldtype": "Code",
    "label": "已验证事件 JSON",
    "options": "JSON",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -78,23 +104,22 @@
  "naming_rule": "By fieldname",
  "permissions": [
   {
-   "delete": 1,
-   "export": 1,
+   "permlevel": 1,
    "read": 1,
-   "report": 1,
-   "role": "HR Manager",
-   "share": 1
+   "role": "System Manager"
   },
   {
-   "delete": 1,
-   "export": 1,
    "read": 1,
    "report": 1,
-   "role": "System Manager",
-   "share": 1
+   "role": "HR Manager"
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
   }
  ],
- "search_fields": "event_key,flow_id,event_type",
+ "search_fields": "event_key,sign_task_id,flow_id,event_type",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

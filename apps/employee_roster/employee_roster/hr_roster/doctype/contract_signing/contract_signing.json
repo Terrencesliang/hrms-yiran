@@ -12,7 +12,17 @@
   "trans_reference",
   "status",
   "vendor_status",
+  "stage",
   "vendor_section",
+  "provider",
+  "sign_task_id",
+  "provider_file_id",
+  "provider_actor_id",
+  "company_actor_id",
+  "actor_status",
+  "employee_sign_status",
+  "company_fill_status",
+  "company_sign_status",
   "flow_id",
   "document_id",
   "date_section",
@@ -22,10 +32,23 @@
   "completed_on",
   "cancelled_on",
   "last_synced_on",
+  "last_event_time",
+  "employee_signed_on",
+  "company_signed_on",
   "result_section",
   "contract_fields",
+  "preview_file",
   "signed_file",
   "audit_file",
+  "archive_status",
+  "archived_on",
+  "retry_count",
+  "last_retry_on",
+  "next_retry_on",
+  "archive_retry_count",
+  "archive_error",
+  "is_preview",
+  "preview_expires_on",
   "error_status"
  ],
  "fields": [
@@ -88,9 +111,77 @@
    "read_only": 1
   },
   {
+   "fieldname": "stage",
+   "fieldtype": "Data",
+   "label": "处理阶段",
+   "read_only": 1
+  },
+  {
    "fieldname": "vendor_section",
    "fieldtype": "Section Break",
-   "label": "腾讯电子签标识"
+   "label": "电子签供应商标识"
+  },
+  {
+   "default": "Fadada",
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "电子签供应商",
+   "options": "Fadada\nTencent",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "sign_task_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "供应商签署任务 ID",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "provider_file_id",
+   "fieldtype": "Data",
+   "label": "供应商文件 ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "provider_actor_id",
+   "fieldtype": "Data",
+   "label": "员工参与方 Actor ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company_actor_id",
+   "fieldtype": "Data",
+   "label": "企业参与方 Actor ID",
+   "read_only": 1
+  },
+  {
+   "fieldname": "actor_status",
+   "fieldtype": "Code",
+   "label": "参与方状态 JSON",
+   "options": "JSON",
+   "permlevel": 1,
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_sign_status",
+   "fieldtype": "Data",
+   "label": "员工签署状态",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company_sign_status",
+   "fieldtype": "Data",
+   "label": "企业签署状态",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company_fill_status",
+   "fieldtype": "Data",
+   "label": "企业填写状态",
+   "read_only": 1
   },
   {
    "fieldname": "flow_id",
@@ -149,6 +240,24 @@
    "read_only": 1
   },
   {
+   "fieldname": "last_event_time",
+   "fieldtype": "Datetime",
+   "label": "最后供应商事件时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "employee_signed_on",
+   "fieldtype": "Datetime",
+   "label": "员工签署时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "company_signed_on",
+   "fieldtype": "Datetime",
+   "label": "企业盖章时间",
+   "read_only": 1
+  },
+  {
    "fieldname": "result_section",
    "fieldtype": "Section Break",
    "label": "签署结果"
@@ -158,6 +267,7 @@
    "fieldtype": "Code",
    "label": "合同变量快照",
    "options": "JSON",
+   "permlevel": 1,
    "read_only": 1
   },
   {
@@ -167,15 +277,81 @@
    "read_only": 1
   },
   {
+   "fieldname": "preview_file",
+   "fieldtype": "Attach",
+   "label": "已填字段预览",
+   "read_only": 1
+  },
+  {
    "fieldname": "audit_file",
    "fieldtype": "Attach",
    "label": "审计文件",
    "read_only": 1
   },
   {
+   "default": "Pending",
+   "fieldname": "archive_status",
+   "fieldtype": "Select",
+   "label": "归档状态",
+   "options": "Pending\nArchiving\nArchived\nFailed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "archived_on",
+   "fieldtype": "Datetime",
+   "label": "归档时间",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "retry_count",
+   "fieldtype": "Int",
+   "label": "流程重试次数",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_retry_on",
+   "fieldtype": "Datetime",
+   "label": "最后重试时间",
+   "read_only": 1
+  },
+  {
+   "fieldname": "next_retry_on",
+   "fieldtype": "Datetime",
+   "label": "下次重试时间",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "archive_retry_count",
+   "fieldtype": "Int",
+   "label": "归档重试次数",
+   "read_only": 1
+  },
+  {
+   "fieldname": "archive_error",
+   "fieldtype": "Long Text",
+   "label": "归档错误",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_preview",
+   "fieldtype": "Check",
+   "label": "预览草稿",
+   "read_only": 1
+  },
+  {
+   "fieldname": "preview_expires_on",
+   "fieldtype": "Datetime",
+   "label": "预览过期时间",
+   "read_only": 1
+  },
+  {
    "fieldname": "error_status",
    "fieldtype": "Long Text",
    "label": "错误状态",
+   "permlevel": 1,
    "read_only": 1
   }
  ],
@@ -186,14 +362,16 @@
  "permissions": [
   {
    "create": 1,
-   "delete": 1,
-   "export": 1,
    "print": 1,
    "read": 1,
    "report": 1,
    "role": "HR Manager",
-   "share": 1,
    "write": 1
+  },
+  {
+   "permlevel": 1,
+   "read": 1,
+   "role": "System Manager"
   },
   {
    "create": 1,
@@ -207,7 +385,7 @@
    "write": 1
   }
  ],
- "search_fields": "employee,employee_name,flow_id,trans_reference",
+ "search_fields": "employee,employee_name,sign_task_id,flow_id,trans_reference",
  "sort_field": "modified",
  "sort_order": "DESC",
  "states": [],

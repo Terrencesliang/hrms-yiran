@@ -184,6 +184,7 @@ def create_contract_signing(
 	signing = frappe.get_doc(
 		{
 			"doctype": "Contract Signing",
+			"provider": "Tencent",
 			"employee": employee.name,
 			"sign_template": template.name,
 			"trans_reference": trans_reference,

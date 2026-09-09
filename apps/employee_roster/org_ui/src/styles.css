@@ -5516,6 +5516,15 @@ body[data-theme="dark"] .contract-archive .arco-card {
 	word-break: break-word;
 }
 
+.contract-signing .cs-actor-status {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	font-size: 12px;
+	line-height: 1.45;
+	color: var(--color-text-2, #4e5969);
+}
+
 .contract-signing .cs-name,
 .contract-packages .cpk-name,
 .contract-archive .ca-emp {
@@ -5580,6 +5589,19 @@ body[data-theme="dark"] .contract-archive .arco-card {
 	opacity: 0.45;
 }
 
+.contract-seals .cse-image {
+	width: 100%;
+	height: 100%;
+	padding: 12px;
+	box-sizing: border-box;
+}
+
+.contract-seals .cse-image img {
+	max-width: 100%;
+	max-height: 96px;
+	object-fit: contain;
+}
+
 .contract-seals .cse-stamp {
 	width: 72px;
 	height: 72px;
@@ -5615,6 +5637,22 @@ body[data-theme="dark"] .contract-archive .arco-card {
 	gap: 12px;
 	margin-top: 12px;
 	flex-wrap: wrap;
+}
+
+.contract-seals .cse-modal-alert {
+	margin-bottom: 16px;
+}
+
+.contract-seals .cse-detail-json {
+	margin-top: 16px;
+	padding: 12px;
+	overflow: auto;
+	border-radius: 4px;
+	background: var(--color-fill-2, #f2f3f5);
+	color: var(--color-text-2, #4e5969);
+	font-size: 12px;
+	white-space: pre-wrap;
+	word-break: break-all;
 }
 
 body[arco-theme="dark"] .arco-contract-signing-wrapper .page-content,
@@ -5918,10 +5956,25 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	border-radius: 8px;
 }
 
+.contract-initiate .ci-flow-summary {
+	border-radius: 8px;
+}
+
+.contract-initiate .ci-flow-summary .arco-steps {
+	max-width: 720px;
+	margin: 0 auto 20px;
+}
+
+.contract-initiate .ci-draft-tag {
+	align-self: flex-start;
+	font-weight: 600;
+}
+
 .contract-initiate .ci-doc-pane--final {
-	max-height: calc(100vh - 280px);
+	max-height: none;
 	display: flex;
 	justify-content: center;
+	overflow: visible;
 }
 
 .contract-initiate .ci-doc-pane--final .ci-doc-paper {
@@ -5942,9 +5995,55 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	gap: 12px;
 }
 
+.contract-initiate .ci-live-preview {
+	display: flex;
+	width: 100%;
+	flex-direction: column;
+	align-items: center;
+	gap: 16px;
+}
+
+.contract-initiate .ci-live-page {
+	position: relative;
+	container-type: inline-size;
+	width: min(794px, 100%);
+	overflow: hidden;
+	background: #fff;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.contract-initiate .ci-live-page > canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.contract-initiate .ci-live-field {
+	position: absolute;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	overflow: visible;
+	color: #1d2129;
+	font-family: "KaiTi", "STKaiti", "Microsoft YaHei", sans-serif;
+	line-height: 1.2;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.contract-initiate .ci-live-field.is-empty {
+	padding: 0 2px;
+	border: 1px dashed rgb(var(--primary-6));
+	border-radius: 2px;
+	background: rgba(var(--primary-1), 0.72);
+	color: rgb(var(--primary-6));
+}
+
 .contract-initiate .ci-real-preview-frame {
 	width: 100%;
-	min-height: 620px;
+	height: calc(100vh - 180px);
+	min-height: 720px;
 	border: 1px solid var(--color-border-2, #e5e6eb);
 	border-radius: 4px;
 	background: var(--color-bg-2, #fff);
@@ -5980,6 +6079,43 @@ body[data-theme="dark"] .apd-palette-item:hover {
 	padding: 16px;
 	overflow: auto;
 	max-height: calc(100vh - 260px);
+}
+
+.contract-initiate .ci-template-mapping-card {
+	max-width: 760px;
+	margin: 0 auto;
+}
+
+.contract-initiate .ci-preview-toolbar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	margin-bottom: 16px;
+	padding: 14px 16px;
+	border-radius: 4px;
+	background: var(--color-bg-2, #fff);
+}
+
+.contract-initiate .ci-preview-toolbar .ci-section-title {
+	margin-bottom: 2px;
+}
+
+.contract-initiate .ci-preview-toolbar-hint {
+	color: var(--color-text-3, #86909c);
+	font-size: 13px;
+}
+
+.contract-initiate .ci-doc-pane .ci-real-preview > .arco-alert {
+	width: 100%;
+}
+
+.contract-initiate .ci-template-mapping-card .arco-result {
+	padding: 36px 20px 28px;
+}
+
+.contract-initiate .ci-field-mapping-alert {
+	margin-bottom: 16px;
 }
 
 .contract-initiate .ci-doc-pages {

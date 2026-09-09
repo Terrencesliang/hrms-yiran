@@ -168,6 +168,7 @@ def handle_callback() -> dict[str, bool]:
 	event = frappe.get_doc(
 		{
 			"doctype": "Contract Signing Event",
+			"provider": "Tencent",
 			"event_key": event_key,
 			"flow_id": data.get("FlowId"),
 			"event_type": payload.get("MsgType"),

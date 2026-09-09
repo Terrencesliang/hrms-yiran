@@ -193,14 +193,29 @@ export function mountContractSigning(el, options = {}) {
 
 export function mountContractInitiate(el, options = {}) {
 	const templateId = options.templateId || "";
+	const providerTemplateId = options.providerTemplateId || "";
 	const templateName = options.templateName || "";
 	const mode = options.mode === "batch" ? "batch" : "single";
 	const openPicker = options.openPicker !== false;
+	const sealId = options.sealId || "";
+	const businessId = options.businessId || "";
+	const employeeActorId = options.employeeActorId || "";
+	const corpActorId = options.corpActorId || "";
 	const app = boot(
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () =>
-					h(ContractInitiatePage, { templateId, templateName, mode, openPicker })
+					h(ContractInitiatePage, {
+						templateId,
+						providerTemplateId,
+						templateName,
+						mode,
+						openPicker,
+						sealId,
+						businessId,
+						employeeActorId,
+						corpActorId,
+					})
 				);
 			},
 		})

@@ -67,14 +67,27 @@
 					<a-progress :percent="record.progress / 100" size="small" :show-text="true" />
 				</template>
 				<template #status="{ record }">
-					<a-tag :color="tagColor(record.status)">{{ record.statusLabel }}</a-tag>
+					<a-tag :color="tagColor(record.stage)">{{ record.stageLabel }}</a-tag>
+				</template>
+				<template #actorStatus="{ record }">
+					<div class="cs-actor-status">
+						<span>员工：填充 {{ record.employeeFillStatus }} / 签署 {{ record.employeeSignStatus }}</span>
+						<span>企业：填充 {{ record.corpFillStatus }} / 签署 {{ record.corpSignStatus }}</span>
+					</div>
+				</template>
+				<template #archiveStatus="{ record }">
+					<a-tag :color="archiveColor(record.archiveStatus)">{{ archiveText(record.archiveStatus) }}</a-tag>
 				</template>
 				<template #ops="{ record }">
 					<div class="cs-ops" @click.stop>
-						<a-link v-if="status === 'pending'" @click="onSign(record)">签署链接</a-link>
+						<a-link v-if="record.employeePending" @click="onSign(record)">签署链接</a-link>
+						<a-link v-if="record.companyAction" @click="onCompanySign(record)">
+							{{ record.companyAction }}
+						</a-link>
 						<a-link v-if="status === 'pending'" @click="onUrge(record)">催办</a-link>
 						<a-link v-if="status === 'pending'" status="danger" @click="onWithdraw(record)">撤销</a-link>
 						<a-link v-if="status === 'signed'" @click="onDownload(record)">下载</a-link>
+						<a-link v-if="record.retryable" status="danger" @click="onRetry(record)">重试</a-link>
 						<a-link @click="onSync(record)">同步</a-link>
 						<a-link @click="openDetail(record)">查看</a-link>
 					</div>
@@ -90,8 +103,12 @@
 		>
 			<a-spin :loading="detailLoading" class="cs-detail-spin">
 				<a-descriptions v-if="active" :column="1" size="large" bordered>
-					<a-descriptions-item label="Flow ID">{{ active.flowId || "—" }}</a-descriptions-item>
+					<a-descriptions-item label="签署任务 ID">{{ active.signTaskId || "—" }}</a-descriptions-item>
 					<a-descriptions-item label="状态">{{ active.statusLabel || "—" }}</a-descriptions-item>
+					<a-descriptions-item label="当前节点">{{ active.stageLabel || "—" }}</a-descriptions-item>
+					<a-descriptions-item label="员工状态">填充 {{ active.employeeFillStatus }} / 签署 {{ active.employeeSignStatus }}</a-descriptions-item>
+					<a-descriptions-item label="企业状态">填充 {{ active.corpFillStatus }} / 签署 {{ active.corpSignStatus }}</a-descriptions-item>
+					<a-descriptions-item label="归档状态">{{ archiveText(active.archiveStatus) }}</a-descriptions-item>
 					<a-descriptions-item label="员工">{{ active.employee || "—" }}</a-descriptions-item>
 					<a-descriptions-item label="合同模板">{{ active.type || "—" }}</a-descriptions-item>
 					<a-descriptions-item label="发起时间">{{ active.createdAt || "—" }}</a-descriptions-item>
@@ -113,8 +130,10 @@ import {
 	cancelContract,
 	downloadSignedContract,
 	getContractSigning,
+	getCompanySignUrl,
 	getSignUrl,
 	listContractSignings,
+	retryContract,
 	syncContractStatus,
 	urgeContract,
 } from "../../api/contract.js";
@@ -167,131 +186,6 @@ const toolbarDescription = computed(() => {
 	return "筛选签署任务，按部门、类型与日期跟踪进度";
 });
 
-const statusLabel = computed(() => {
-	if (props.status === "signed") return "已签署";
-	if (props.status === "void") return "已作废";
-	return "签署中";
-});
-
-const statusTagColor = computed(() => {
-	if (props.status === "signed") return "green";
-	if (props.status === "void") return "red";
-	return "arcoblue";
-});
-
-const pendingStats = [
-	{ key: "mine", label: "待我签署", value: 2, alert: true },
-	{ key: "peer", label: "待对方签署", value: 5, alert: false },
-	{ key: "expiring", label: "即将超时", value: 1, alert: true },
-];
-
-const allRows = {
-	pending: [
-		{
-			id: "p1",
-			name: "依然集团-劳动合同",
-			type: "劳动合同",
-			employee: "张三",
-			department: "技术中心",
-			initiator: "李人事",
-			createdAt: "2026-09-05 10:20",
-			node: "待员工签署",
-			progress: 50,
-			remain: "2天",
-			bucket: "peer",
-			timeline: [
-				{ id: 1, title: "发起签署", meta: "李人事 · 2026-09-05 10:20", color: "#00b386" },
-				{ id: 2, title: "企业已盖章", meta: "公章 · 2026-09-05 11:00", color: "#00b386" },
-				{ id: 3, title: "待员工签署", meta: "张三 · 进行中", color: "#165dff" },
-			],
-		},
-		{
-			id: "p2",
-			name: "依然集团-保密协议",
-			type: "保密协议",
-			employee: "王五",
-			department: "电商运营部",
-			initiator: "李人事",
-			createdAt: "2026-09-06 09:10",
-			node: "待我盖章",
-			progress: 30,
-			remain: "1天",
-			bucket: "mine",
-			timeline: [
-				{ id: 1, title: "发起签署", meta: "李人事 · 2026-09-06 09:10", color: "#00b386" },
-				{ id: 2, title: "员工已签署", meta: "王五 · 2026-09-06 14:00", color: "#00b386" },
-				{ id: 3, title: "待企业盖章", meta: "人事 · 进行中", color: "#165dff" },
-			],
-		},
-		{
-			id: "p3",
-			name: "依然杭州-劳动合同",
-			type: "劳动合同",
-			employee: "赵六",
-			department: "人事行政部",
-			initiator: "周主管",
-			createdAt: "2026-09-01 16:40",
-			node: "待员工签署",
-			progress: 40,
-			remain: "6小时",
-			bucket: "expiring",
-			timeline: [
-				{ id: 1, title: "发起签署", meta: "周主管 · 2026-09-01 16:40", color: "#00b386" },
-				{ id: 2, title: "待员工签署", meta: "赵六 · 即将超时", color: "#f53f3f" },
-			],
-		},
-	],
-	signed: [
-		{
-			id: "s1",
-			name: "依然集团-劳动合同",
-			type: "劳动合同",
-			employee: "陈七",
-			department: "技术中心",
-			initiator: "李人事",
-			createdAt: "2026-08-10 11:00",
-			finishedAt: "2026-08-12 15:30",
-			validUntil: "2029-08-11",
-			timeline: [
-				{ id: 1, title: "发起签署", meta: "李人事 · 2026-08-10", color: "#00b386" },
-				{ id: 2, title: "双方签署完成", meta: "2026-08-12 15:30", color: "#00b386" },
-			],
-		},
-		{
-			id: "s2",
-			name: "依然集团-实习协议",
-			type: "实习协议",
-			employee: "孙八",
-			department: "电商运营部",
-			initiator: "周主管",
-			createdAt: "2026-07-20 09:00",
-			finishedAt: "2026-07-21 10:10",
-			validUntil: "2026-12-31",
-			timeline: [
-				{ id: 1, title: "发起签署", meta: "周主管 · 2026-07-20", color: "#00b386" },
-				{ id: 2, title: "双方签署完成", meta: "2026-07-21 10:10", color: "#00b386" },
-			],
-		},
-	],
-	void: [
-		{
-			id: "v1",
-			name: "依然集团-保密协议",
-			type: "保密协议",
-			employee: "钱九",
-			department: "人事行政部",
-			initiator: "李人事",
-			createdAt: "2026-06-01 14:00",
-			voidAt: "2026-06-03 09:20",
-			voidReason: "员工信息填写错误，重新发起",
-			timeline: [
-				{ id: 1, title: "发起签署", meta: "李人事 · 2026-06-01", color: "#86909c" },
-				{ id: 2, title: "已作废", meta: "2026-06-03 09:20", color: "#f53f3f" },
-			],
-		},
-	],
-};
-
 const columns = computed(() => {
 	const base = [
 		{ title: "合同", slotName: "name", width: 240 },
@@ -304,15 +198,19 @@ const columns = computed(() => {
 		return [
 			...base,
 			{ title: "当前节点", slotName: "status", width: 120 },
+			{ title: "参与方状态", slotName: "actorStatus", width: 210 },
 			{ title: "进度", slotName: "progress", width: 140 },
+			{ title: "归档", slotName: "archiveStatus", width: 100 },
 			{ title: "剩余时效", dataIndex: "remain", width: 100 },
-			{ title: "操作", slotName: "ops", width: 180, fixed: "right" },
+			{ title: "操作", slotName: "ops", width: 220, fixed: "right" },
 		];
 	}
 	if (props.status === "signed") {
 		return [
 			...base,
 			{ title: "完成时间", dataIndex: "finishedAt", width: 160 },
+			{ title: "参与方状态", slotName: "actorStatus", width: 210 },
+			{ title: "归档", slotName: "archiveStatus", width: 100 },
 			{ title: "有效期至", dataIndex: "validUntil", width: 120 },
 			{ title: "操作", slotName: "ops", width: 180, fixed: "right" },
 		];
@@ -330,7 +228,7 @@ const filteredRows = computed(() => {
 	let list = rows.value;
 	if (query) {
 		list = list.filter((row) =>
-			[row.name, row.type, row.employee, row.flowId]
+			[row.name, row.type, row.employee, row.signTaskId]
 			.map((value) => String(value || "").toLowerCase())
 			.some((value) => value.includes(query))
 		);
@@ -361,24 +259,182 @@ function statusText(value) {
 		canceled: "已撤销",
 		void: "已作废",
 		failed: "失败",
+		error: "异常",
 	};
 	return map[String(value || "").toLowerCase()] || value || "未知";
 }
 
+function parseActorStatus(value) {
+	if (!value) return [];
+	let parsed = value;
+	if (typeof value === "string") {
+		try {
+			parsed = JSON.parse(value);
+		} catch {
+			return [];
+		}
+	}
+	if (Array.isArray(parsed)) return parsed;
+	if (Array.isArray(parsed?.actors)) return parsed.actors;
+	if (typeof parsed === "object") {
+		return Object.entries(parsed).map(([key, item]) =>
+			typeof item === "object" ? { actorKey: key, ...item } : { actorKey: key, signStatus: item }
+		);
+	}
+	return [];
+}
+
+function statusValue(actor, kind) {
+	const keys = kind === "fill"
+		? ["fillStatus", "fill_status", "fillTaskStatus", "fill_task_status"]
+		: ["signStatus", "sign_status", "status", "signTaskStatus", "sign_task_status"];
+	const sources = [
+		actor,
+		actor?.actor,
+		actor?.fillConfigInfo,
+		actor?.fill_config_info,
+		actor?.signConfigInfo,
+		actor?.sign_config_info,
+	];
+	for (const source of sources) {
+		for (const key of keys) {
+			if (source?.[key] !== undefined && source?.[key] !== null && source?.[key] !== "") return source[key];
+		}
+	}
+	return "";
+}
+
+function actorRole(actor) {
+	const text = [
+		actor?.actorKey,
+		actor?.actorType,
+		actor?.actor_type,
+		actor?.role,
+		actor?.actorName,
+		actor?.actor_name,
+		actor?.actor?.actorType,
+		actor?.actor?.actorName,
+		actor?.actor?.actorId,
+	].join(" ").toLowerCase();
+	if (/corp|company|enterprise|企业|公司/.test(text)) return "corp";
+	if (/employee|person|personal|员工|个人/.test(text)) return "employee";
+	if (actor?.corpName || actor?.corp_name) return "corp";
+	return "";
+}
+
+function displayActorStatus(value) {
+	if (value === "" || value === null || value === undefined) return "—";
+	const map = {
+		pending: "待处理", waiting: "待处理", not_started: "未开始",
+		wait_fill: "待填写", fill_progress: "填写中", filling: "填写中",
+		fill_completed: "已填写", filled: "已填写", wait_sign: "待签署",
+		sign_progress: "签署中", signing: "签署中", sign_completed: "已签署",
+		signed: "已签署", completed: "已完成", failed: "失败",
+	};
+	return map[String(value).toLowerCase()] || String(value);
+}
+
+function actorSummary(value, employeeActorId = "") {
+	const actors = parseActorStatus(value);
+	const actorId = (actor) => String(actor?.actorId || actor?.actor_id || actor?.actor?.actorId || "");
+	const employee =
+		actors.find((actor) => employeeActorId && actorId(actor) === String(employeeActorId)) ||
+		actors.find((actor) => actorRole(actor) === "employee") ||
+		{};
+	const corp =
+		actors.find((actor) => actor !== employee && actorRole(actor) === "corp") ||
+		actors.find((actor) => actor !== employee) ||
+		{};
+	const employeeSignRaw = statusValue(employee, "sign");
+	const companySignRaw = statusValue(corp, "sign");
+	const companyFillRaw = statusValue(corp, "fill");
+	return {
+		employeeFillStatus: displayActorStatus(statusValue(employee, "fill")),
+		employeeSignStatus: displayActorStatus(employeeSignRaw),
+		corpFillStatus: displayActorStatus(companyFillRaw),
+		corpSignStatus: displayActorStatus(companySignRaw),
+		employeePending: ["pending", "waiting", "signing", "unsigned", "待签署", "待处理"].includes(
+			String(employeeSignRaw || "").toLowerCase()
+		),
+		companyPending: ["pending", "waiting", "signing", "unsigned", "wait_sign", "待签署", "待处理"].includes(
+			String(companySignRaw || "").toLowerCase()
+		),
+		companyFillPending: ["pending", "waiting", "filling", "wait_fill", "待填写", "待处理"].includes(
+			String(companyFillRaw || "").toLowerCase()
+		),
+	};
+}
+
+function stageText(value) {
+	const map = {
+		preparing: "准备中",
+		ready: "待启动",
+		employeesigning: "员工待签",
+		companysigning: "企业待验证盖章",
+		signing: "签署中",
+		finishing: "收尾中",
+		finished: "已完成",
+		terminated: "已终止",
+		unknown: "未知",
+	};
+	return map[String(value || "unknown").toLowerCase()] || "未知";
+}
+
+function stageProgress(value) {
+	const map = { preparing: 10, ready: 25, employeesigning: 45, signing: 60, companysigning: 75, finishing: 85, finished: 100, terminated: 100, unknown: 0 };
+	return map[String(value || "unknown").toLowerCase()] ?? 0;
+}
+
 function normalizeRow(row, index) {
-	const rawStatus = row?.status || row?.flow_status || props.status;
+	const rawStatus = row?.status || row?.sign_task_status || row?.flow_status || props.status;
+	const stage = row?.stage || "Unknown";
+	const actors = actorSummary(row?.actor_status, row?.provider_actor_id);
+	if (row?.employee_sign_status) {
+		actors.employeeSignStatus = displayActorStatus(row.employee_sign_status);
+		actors.employeePending = ["wait_sign", "signing", "pending"].includes(
+			String(row.employee_sign_status).toLowerCase()
+		);
+	}
+	if (row?.company_sign_status) {
+		actors.corpSignStatus = displayActorStatus(row.company_sign_status);
+		actors.companyPending = ["wait_sign", "signing", "pending"].includes(
+			String(row.company_sign_status).toLowerCase()
+		);
+	}
+	if (row?.company_fill_status) {
+		actors.corpFillStatus = displayActorStatus(row.company_fill_status);
+		actors.companyFillPending = ["wait_fill", "filling", "pending"].includes(
+			String(row.company_fill_status).toLowerCase()
+		);
+	}
+	actors.companyPending = actors.companyPending && String(stage).toLowerCase() === "companysigning";
+	actors.companyAction =
+		String(stage).toLowerCase() === "companysigning" && actors.companyPending
+			? "企业盖章"
+			: String(stage).toLowerCase() === "preparing" && actors.companyFillPending
+				? "确认合同内容"
+				: "";
+	const archiveStatus = row?.archive_status || "";
+	const signTaskId = row?.sign_task_id || row?.signTaskId || row?.flow_id || row?.flowId || "";
 	return {
 		...row,
-		id: String(row?.name || row?.id || row?.signing_id || row?.flow_id || index),
+		...actors,
+		id: String(row?.name || row?.id || row?.signing_id || signTaskId || index),
 		name: row?.contract_name || row?.title || row?.template_name || "电子合同",
 		type: row?.template_name || row?.contract_type || row?.template || "—",
 		employee: row?.employee_name || row?.employee || "—",
 		department: row?.department || "—",
 		initiator: row?.requested_by || row?.initiator || "—",
-		flowId: row?.flow_id || row?.flowId || "",
+		signTaskId,
 		status: rawStatus,
 		statusLabel: statusText(rawStatus),
-		progress: ["completed", "signed"].includes(String(rawStatus).toLowerCase()) ? 100 : 50,
+		stage,
+		stageLabel: stageText(stage),
+		progress: stageProgress(stage),
+		archiveStatus,
+		retryable:
+			String(rawStatus).toLowerCase() === "error" ||
+			String(archiveStatus).toLowerCase() === "failed",
 		remain: row?.remain || "—",
 		createdAt: row?.requested_on || row?.creation || row?.created_at || row?.createdAt || "",
 		finishedAt: row?.completed_on || row?.finishedAt || "",
@@ -396,9 +452,21 @@ function signingKey(record) {
 
 function tagColor(status) {
 	const value = String(status || "").toLowerCase();
-	if (["completed", "signed"].includes(value)) return "green";
-	if (["failed", "cancelled", "canceled", "void"].includes(value)) return "red";
+	if (value === "finished") return "green";
+	if (value === "terminated") return "red";
 	return "arcoblue";
+}
+
+function archiveText(value) {
+	const map = { pending: "待归档", processing: "归档中", archiving: "归档中", archived: "已归档", completed: "已归档", success: "已归档", failed: "失败" };
+	return map[String(value || "").toLowerCase()] || value || "—";
+}
+
+function archiveColor(value) {
+	const key = String(value || "").toLowerCase();
+	if (["archived", "completed", "success"].includes(key)) return "green";
+	if (key === "failed") return "red";
+	return "gray";
 }
 
 function safeOpen(result) {
@@ -436,7 +504,7 @@ async function loadRows() {
 	} catch (error) {
 		console.warn("[contract-signing] list failed", error);
 		rows.value = [];
-		errorMessage.value = "无法加载腾讯电子签合同，请检查接口配置后重试。";
+		errorMessage.value = error?.message || "无法加载电子签合同，请检查服务配置后重试。";
 	} finally {
 		loading.value = false;
 	}
@@ -452,7 +520,7 @@ async function openDetail(record) {
 		if (detail) active.value = normalizeRow({ ...record, ...detail }, 0);
 	} catch (error) {
 		console.warn("[contract-signing] detail failed", error);
-		Message.error("签署详情加载失败");
+		Message.error(error?.message || "签署详情加载失败");
 	} finally {
 		detailLoading.value = false;
 	}
@@ -469,7 +537,7 @@ async function runAction(record, action, successMessage) {
 		return result;
 	} catch (error) {
 		console.warn("[contract-signing] action failed", error);
-		Message.error("操作失败，请稍后重试");
+		Message.error(error?.message || "操作失败，请稍后重试");
 		return null;
 	} finally {
 		const next = new Set(actionIds.value);
@@ -502,12 +570,25 @@ async function onSign(record) {
 		const result = await getSignUrl(signingKey(record));
 		if (!safeOpen(result)) Message.error("后端未返回安全的签署地址");
 	} catch (error) {
-		Message.error("获取签署地址失败");
+		Message.error(error?.message || "获取签署地址失败");
+	}
+}
+
+async function onCompanySign(record) {
+	try {
+		const result = await getCompanySignUrl(signingKey(record));
+		if (!safeOpen(result)) Message.error("后端未返回安全的企业盖章地址");
+	} catch (error) {
+		Message.error(error?.message || "获取企业盖章地址失败");
 	}
 }
 
 async function onSync(record) {
 	await runAction(record, syncContractStatus, "签署状态已同步");
+}
+
+async function onRetry(record) {
+	await runAction(record, retryContract, "重试请求已提交");
 }
 
 function onStartSign() {

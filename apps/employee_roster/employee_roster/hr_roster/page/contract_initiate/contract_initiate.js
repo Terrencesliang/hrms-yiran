@@ -18,6 +18,11 @@ function readInitiateOptions() {
 	const params = new URLSearchParams(window.location.search || "");
 	const templateId =
 		opts.templateId || opts.template_id || params.get("templateId") || route[1] || "";
+	const providerTemplateId =
+		opts.providerTemplateId ||
+		opts.provider_template_id ||
+		params.get("providerTemplateId") ||
+		"";
 	const templateName =
 		opts.templateName || opts.template_name || params.get("templateName") || "";
 	const modeRaw = opts.mode || params.get("mode") || "single";
@@ -26,12 +31,28 @@ function readInitiateOptions() {
 	const openPicker = openRaw === undefined || openRaw === null || openRaw === ""
 		? true
 		: !(openRaw === false || openRaw === "0" || openRaw === "false");
+	const sealId = opts.sealId || opts.seal_id || params.get("sealId") || "";
+	const businessId = opts.businessId || opts.business_id || params.get("businessId") || "";
+	const employeeActorId =
+		opts.employeeActorId || opts.employee_actor_id || params.get("employeeActorId") || "";
+	const corpActorId =
+		opts.corpActorId || opts.corp_actor_id || params.get("corpActorId") || "";
 	try {
 		if (window.frappe) window.frappe.route_options = null;
 	} catch (e) {
 		/* ignore */
 	}
-	return { templateId, templateName, mode, openPicker };
+	return {
+		templateId,
+		providerTemplateId,
+		templateName,
+		mode,
+		openPicker,
+		sealId,
+		businessId,
+		employeeActorId,
+		corpActorId,
+	};
 }
 
 function ensureMountEl(wrapper) {

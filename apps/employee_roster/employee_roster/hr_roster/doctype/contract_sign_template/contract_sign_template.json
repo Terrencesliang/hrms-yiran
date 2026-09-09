@@ -8,11 +8,18 @@
  "field_order": [
   "template_name",
   "enabled",
+  "provider",
+  "provider_template_id",
+  "source_type",
   "template_id",
   "seal_id",
+  "business_id",
+  "employee_actor_id",
+  "corp_actor_id",
   "description",
   "configuration_section",
   "field_mapping",
+  "base_pdf_file",
   "actor_config",
   "sign_config"
  ],
@@ -33,15 +40,51 @@
    "label": "启用"
   },
   {
+   "default": "Fadada",
+   "fieldname": "provider",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "电子签供应商",
+   "options": "Fadada\nTencent",
+   "reqd": 1
+  },
+  {
+   "fieldname": "provider_template_id",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "供应商模板 ID"
+  },
+  {
+   "default": "sign_template",
+   "fieldname": "source_type",
+   "fieldtype": "Select",
+   "label": "模板来源类型",
+   "options": "sign_template\napp_sign_template"
+  },
+  {
    "fieldname": "template_id",
    "fieldtype": "Data",
-   "label": "腾讯电子签模板 ID",
-   "reqd": 1
+   "label": "旧腾讯模板 ID（兼容）"
   },
   {
    "fieldname": "seal_id",
    "fieldtype": "Data",
    "label": "印章 ID"
+  },
+  {
+   "fieldname": "business_id",
+   "fieldtype": "Data",
+   "label": "业务场景 ID"
+  },
+  {
+   "fieldname": "employee_actor_id",
+   "fieldtype": "Data",
+   "label": "员工 Actor ID"
+  },
+  {
+   "fieldname": "corp_actor_id",
+   "fieldtype": "Data",
+   "label": "企业 Actor ID"
   },
   {
    "fieldname": "description",
@@ -58,6 +101,12 @@
    "fieldtype": "Code",
    "label": "字段映射 JSON",
    "options": "JSON"
+  },
+  {
+   "fieldname": "base_pdf_file",
+   "fieldtype": "Attach",
+   "label": "模板底稿 PDF",
+   "read_only": 1
   },
   {
    "fieldname": "actor_config",
@@ -98,7 +147,7 @@
    "write": 1
   }
  ],
- "search_fields": "template_name,template_id",
+ "search_fields": "template_name,provider_template_id,template_id",
  "sort_field": "template_name",
  "sort_order": "ASC",
  "states": [],
