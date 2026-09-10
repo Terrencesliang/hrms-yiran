@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import frappe
 import requests
 from frappe.utils import add_days, add_to_date, get_datetime, now_datetime
-from frappe.utils.file_manager import save_file_on_filesystem
+from frappe.utils.file_manager import save_file
 
 from .client import FadadaClient, FadadaConfig
 from .pdf_preview import (
@@ -1084,19 +1084,14 @@ def _save_private_file(
 		if separator
 		else f"{filename}-{uuid.uuid4().hex[:8]}"
 	)
-	file_data = save_file_on_filesystem(storage_name, content, is_private=1)
-	file_doc = frappe.get_doc(
-		{
-			"doctype": "File",
-			**file_data,
-			"is_private": 1,
-			"attached_to_doctype": attached_to_doctype,
-			"attached_to_name": attached_to_name,
-			"attached_to_field": attached_to_field,
-		}
+	return save_file(
+		storage_name,
+		content,
+		attached_to_doctype,
+		attached_to_name,
+		is_private=1,
+		df=attached_to_field,
 	)
-	file_doc.insert(ignore_permissions=True)
-	return file_doc
 
 
 def archive_signed_contract(signing_name: str) -> dict[str, Any]:

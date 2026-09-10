@@ -12,7 +12,10 @@ from frappe.utils import cint
 
 from employee_roster.hr_roster.approval_admin import _require_admin_permission
 from employee_roster.hr_roster.approval_engine import runtime
-from employee_roster.hr_roster.approval_engine.assignees import get_employee_for_user
+from employee_roster.hr_roster.approval_engine.assignees import (
+	build_process_preview,
+	get_employee_for_user,
+)
 from employee_roster.hr_roster.approval_engine.process_schema import (
 	DEFAULT_PROCESS,
 	normalize_process,
@@ -174,19 +177,52 @@ def list_startable_forms(keyword: str | None = None):
 
 
 @frappe.whitelist()
-def get_start_form(name: str):
+def get_start_form(name: str, form_data: str | dict | None = None):
 	_require_login()
 	if not name or not frappe.db.exists("Approval Form", name):
 		frappe.throw(_("表单不存在"))
 	doc = frappe.get_doc("Approval Form", name)
 	if not _user_can_see_form(doc):
 		frappe.throw(_("无权发起该审批"), frappe.PermissionError)
+	data = frappe.parse_json(form_data) if isinstance(form_data, str) else (form_data or {})
+	applicant_user = frappe.session.user
+	applicant_employee = get_employee_for_user(applicant_user)
+	process = normalize_process(doc.process_json or DEFAULT_PROCESS)
 	return {
 		"name": doc.name,
 		"form_name": doc.form_name,
 		"description": doc.description,
 		"form_schema": normalize_schema(doc.form_schema_json or empty_schema()),
-		"process_summary": doc.process_summary,
+		"process_summary": doc.process_summary or summarize_process(process),
+		"process_locked": True,
+		"process_preview": build_process_preview(
+			process,
+			applicant_employee=applicant_employee,
+			applicant_user=applicant_user,
+			form_data=data if isinstance(data, dict) else {},
+		),
+	}
+
+
+@frappe.whitelist()
+def preview_start_process(form_name: str, form_data: str | dict | None = None):
+	"""Refresh resolved process preview when start-form fields change."""
+	_require_login()
+	if not form_name or not frappe.db.exists("Approval Form", form_name):
+		frappe.throw(_("表单不存在"))
+	doc = frappe.get_doc("Approval Form", form_name)
+	if not _user_can_see_form(doc):
+		frappe.throw(_("无权发起该审批"), frappe.PermissionError)
+	data = frappe.parse_json(form_data) if isinstance(form_data, str) else (form_data or {})
+	applicant_user = frappe.session.user
+	return {
+		"process_locked": True,
+		"process_preview": build_process_preview(
+			normalize_process(doc.process_json or DEFAULT_PROCESS),
+			applicant_employee=get_employee_for_user(applicant_user),
+			applicant_user=applicant_user,
+			form_data=data if isinstance(data, dict) else {},
+		),
 	}
 
 

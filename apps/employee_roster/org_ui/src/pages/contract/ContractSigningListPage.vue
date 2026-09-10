@@ -202,7 +202,7 @@ const columns = computed(() => {
 			{ title: "进度", slotName: "progress", width: 140 },
 			{ title: "归档", slotName: "archiveStatus", width: 100 },
 			{ title: "剩余时效", dataIndex: "remain", width: 100 },
-			{ title: "操作", slotName: "ops", width: 220, fixed: "right" },
+			{ title: "操作", slotName: "ops", width: 220, fixed: "right", align: "left" },
 		];
 	}
 	if (props.status === "signed") {
@@ -212,14 +212,14 @@ const columns = computed(() => {
 			{ title: "参与方状态", slotName: "actorStatus", width: 210 },
 			{ title: "归档", slotName: "archiveStatus", width: 100 },
 			{ title: "有效期至", dataIndex: "validUntil", width: 120 },
-			{ title: "操作", slotName: "ops", width: 180, fixed: "right" },
+			{ title: "操作", slotName: "ops", width: 180, fixed: "right", align: "left" },
 		];
 	}
 	return [
 		...base,
 		{ title: "作废时间", dataIndex: "voidAt", width: 160 },
 		{ title: "原因", dataIndex: "voidReason", width: 220 },
-		{ title: "操作", slotName: "ops", width: 100, fixed: "right" },
+		{ title: "操作", slotName: "ops", width: 100, fixed: "right", align: "left" },
 	];
 });
 

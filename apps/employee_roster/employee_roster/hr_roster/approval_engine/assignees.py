@@ -30,6 +30,7 @@ def resolve_assignees(
 	applicant_employee: str | None,
 	applicant_user: str | None,
 	form_data: dict[str, Any] | None = None,
+	allow_fallback: bool = True,
 ) -> list[str]:
 	"""Return list of User ids."""
 	props = props or {}
@@ -108,22 +109,86 @@ def resolve_assignees(
 			if u:
 				users.append(u)
 
-	# fallback: HR Manager so flow never stalls in demo
 	users = list(dict.fromkeys([u for u in users if u]))
-	if not users:
-		fallback = frappe.get_all(
-			"Has Role",
-			filters={"role": "HR Manager", "parenttype": "User"},
-			pluck="parent",
-			limit=5,
-		)
-		users = [u for u in fallback if u and u != "Guest"]
+	if users or not allow_fallback:
+		return users
+
+	# fallback: HR Manager so flow never stalls in demo
+	fallback = frappe.get_all(
+		"Has Role",
+		filters={"role": "HR Manager", "parenttype": "User"},
+		pluck="parent",
+		limit=5,
+	)
+	users = [u for u in fallback if u and u != "Guest"]
 	if not users and applicant_user and applicant_user != "Guest":
 		# last resort: self (visible for admin testing)
 		users = [applicant_user]
 	if not users:
 		frappe.throw(_("无法解析审批人，请检查流程节点配置或组织汇报关系"))
 	return users
+
+
+def user_preview_card(user: str) -> dict[str, Any]:
+	full_name = frappe.db.get_value("User", user, "full_name") or user
+	avatar = frappe.db.get_value("User", user, "user_image") or ""
+	return {
+		"user": user,
+		"full_name": full_name,
+		"avatar": avatar,
+	}
+
+
+def build_process_preview(
+	process: dict[str, Any] | list | str | None,
+	*,
+	applicant_employee: str | None,
+	applicant_user: str | None,
+	form_data: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+	"""Resolve process nodes into UI-friendly preview steps for start modal."""
+	from employee_roster.hr_roster.approval_engine.process_schema import normalize_process
+
+	form_data = form_data or {}
+	process = normalize_process(process)
+	nodes = process.get("nodes") or []
+	expanded: list[dict[str, Any]] = []
+	for node in nodes:
+		ntype = node.get("type")
+		if ntype in ("start", "end"):
+			continue
+		if ntype == "approver" and (node.get("props") or {}).get("assignee_type") == "reports_to_chain":
+			expanded.extend(
+				build_reports_to_chain_nodes(node, applicant_employee=applicant_employee)
+			)
+			continue
+		if ntype in ("approver", "cc"):
+			expanded.append(node)
+
+	steps: list[dict[str, Any]] = []
+	for node in expanded:
+		props = node.get("props") or {}
+		users = resolve_assignees(
+			props,
+			applicant_employee=applicant_employee,
+			applicant_user=applicant_user,
+			form_data=form_data,
+			allow_fallback=False,
+		)
+		empty = not users
+		steps.append(
+			{
+				"id": node.get("id"),
+				"type": node.get("type"),
+				"label": node.get("label") or ("抄送人" if node.get("type") == "cc" else "审批人"),
+				"assignee_type": props.get("assignee_type") or "",
+				"people": [user_preview_card(u) for u in users],
+				"empty": empty,
+				"auto_approve_hint": bool(empty and node.get("type") == "approver"),
+				"locked": True,
+			}
+		)
+	return steps
 
 
 def _department_of_employee(employee: str | None) -> str | None:

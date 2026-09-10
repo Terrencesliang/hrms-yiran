@@ -238,26 +238,30 @@
 			</template>
 		</a-drawer>
 
-		<!-- 发起弹窗：更宽 -->
+		<!-- 发起弹窗：表单 + 可视化流程 -->
 		<a-modal
 			v-model:visible="startVisible"
 			:title="startMeta?.form_name || '发起审批'"
 			:ok-loading="acting"
-			:width="640"
+			:width="860"
 			ok-text="提交申请"
 			unmount-on-close
 			@ok="submitStart"
 		>
-			<a-alert
-				v-if="startMeta?.process_summary"
-				type="info"
-				:content="`审批流程：${startMeta.process_summary}`"
-				style="margin-bottom: 16px"
-			/>
 			<p v-if="startMeta?.description" class="ap-hint" style="margin-bottom: 12px">
 				{{ startMeta.description }}
 			</p>
-			<FormRenderer v-if="startMeta" v-model="startData" :schema="startMeta.form_schema" />
+			<div class="apw-start-layout">
+				<div class="apw-start-form">
+					<div class="apw-start-section-title">申请内容</div>
+					<FormRenderer v-if="startMeta" v-model="startData" :schema="startMeta.form_schema" />
+				</div>
+				<div class="apw-start-flow">
+					<a-spin :loading="previewLoading" style="width: 100%">
+						<ApprovalProcessPreview :steps="startMeta?.process_preview || []" />
+					</a-spin>
+				</div>
+			</div>
 		</a-modal>
 
 		<a-modal v-model:visible="showTransfer" title="转交待办" :width="420" @ok="doTransfer">
@@ -281,6 +285,7 @@ import { IconCheckCircle, IconClockCircle, IconFile, IconSend } from "@arco-desi
 import HrDeskStatOverview from "../../../components/HrDeskStatOverview.vue";
 import HrPage from "../../../components/HrPage.vue";
 import { APPROVAL_MODULE_LABEL, hrPageBreadcrumbs } from "../../../utils/hrBreadcrumbs.js";
+import ApprovalProcessPreview from "../shared/ApprovalProcessPreview.vue";
 import FormRenderer from "../shared/FormRenderer.vue";
 
 const props = defineProps({
@@ -301,10 +306,12 @@ const comment = ref("");
 const startVisible = ref(false);
 const startMeta = ref(null);
 const startData = ref({});
+const previewLoading = ref(false);
 const showTransfer = ref(false);
 const transferUser = ref("");
 const filters = reactive({ status: undefined });
 const breadcrumbs = hrPageBreadcrumbs("审批中心", APPROVAL_MODULE_LABEL);
+let previewTimer = null;
 
 const titleMap = {
 	start: "发起审批",
@@ -444,6 +451,38 @@ async function openStart(f) {
 		Message.error(e.message || "无法打开表单");
 	}
 }
+
+async function refreshProcessPreview() {
+	if (!startVisible.value || !startMeta.value?.name) return;
+	previewLoading.value = true;
+	try {
+		const res = await call("preview_start_process", {
+			form_name: startMeta.value.name,
+			form_data: startData.value || {},
+		});
+		if (res?.process_preview) {
+			startMeta.value = {
+				...startMeta.value,
+				process_preview: res.process_preview,
+				process_locked: res.process_locked ?? startMeta.value.process_locked,
+			};
+		}
+	} catch {
+		/* 预览失败不影响发起 */
+	} finally {
+		previewLoading.value = false;
+	}
+}
+
+watch(
+	startData,
+	() => {
+		if (!startVisible.value) return;
+		if (previewTimer) clearTimeout(previewTimer);
+		previewTimer = setTimeout(refreshProcessPreview, 400);
+	},
+	{ deep: true }
+);
 
 async function submitStart() {
 	acting.value = true;
