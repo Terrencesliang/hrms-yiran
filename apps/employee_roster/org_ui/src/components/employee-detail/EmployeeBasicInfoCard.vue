@@ -1,36 +1,50 @@
 <template>
-	<EmployeeDetailCard title="基本信息" :icon="IconUser">
-		<template #action>
+	<a-card class="arco-emp-detail-card arco-emp-overview-card" :bordered="true">
+		<template #title>
+			<div class="arco-emp-detail-card-title">
+				<span class="arco-emp-detail-card-icon"><icon-user /></span>
+				<span>基本信息</span>
+			</div>
+		</template>
+		<template #extra>
 			<a-button type="text" size="mini" class="arco-emp-link-btn" @click="$emit('navigate', 'personal')">
-				编辑 <icon-right />
+				查看详情 <icon-right />
 			</a-button>
 		</template>
-		<div class="arco-emp-info-grid">
-			<EmployeeInfoItem label="姓名" :value="state.employee_name || state.name" />
+
+		<div class="arco-emp-info-grid arco-emp-overview-basic-grid">
+			<EmployeeInfoItem label="员工姓名" :value="blank(data.employee_name)" />
+			<EmployeeInfoItem label="证件号码" :value="blank(data.hr_id_number)" />
+			<EmployeeInfoItem label="性别" :value="genderLabel(data.gender)" />
+			<EmployeeInfoItem label="岗位" :value="blank(data.designation)" />
+			<EmployeeInfoItem label="手机号码" :value="blank(data.cell_number)" />
 			<EmployeeInfoItem label="员工状态">
-				<EmployeeStatusTag :status="state.status" />
+				<EmployeeStatusTag :status="data.status" />
 			</EmployeeInfoItem>
-			<EmployeeInfoItem label="工号" :value="state.employee_number" />
-			<EmployeeInfoItem label="入职日期" :value="joinDateLine(state)" />
-			<EmployeeInfoItem label="部门" :value="state.department" />
-			<EmployeeInfoItem label="工作城市" :value="workCityLine(state)" />
-			<EmployeeInfoItem label="岗位" :value="state.designation" />
-			<EmployeeInfoItem label="员工类别" :value="state.hr_employee_identity || state.group_name" />
-			<EmployeeInfoItem label="职级" :value="state.grade" />
-			<EmployeeInfoItem label="用工形式" :value="state.employment_type_label" />
-			<EmployeeInfoItem label="汇报上级" :value="state.reports_to" />
-			<EmployeeInfoItem label="试用期" :value="probationStatusText(state)" />
+			<EmployeeInfoItem label="工号" :value="blank(data.employee_number)" />
+			<EmployeeInfoItem label="入职时间" :value="blank(joinDisplay)" />
+			<EmployeeInfoItem label="现居住地" :value="blank(data.current_address)" :span="2" />
 		</div>
-	</EmployeeDetailCard>
+	</a-card>
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { IconRight, IconUser } from "@arco-design/web-vue/es/icon";
-import { joinDateLine, probationStatusText, workCityLine } from "../../utils/employeeDetail";
-import EmployeeDetailCard from "./EmployeeDetailCard.vue";
+import { blank, formatDate, genderLabel } from "../../utils/employeeArchive";
 import EmployeeInfoItem from "./EmployeeInfoItem.vue";
 import EmployeeStatusTag from "./EmployeeStatusTag.vue";
 
-defineProps({ state: { type: Object, required: true } });
+const props = defineProps({
+	data: { type: Object, required: true },
+});
 defineEmits(["navigate"]);
+
+const joinDisplay = computed(() => {
+	const raw = formatDate(props.data?.date_of_joining);
+	if (!raw) return "";
+	const m = String(raw).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+	if (m) return `${m[1]}年${m[2]}月${m[3]}日`;
+	return raw;
+});
 </script>

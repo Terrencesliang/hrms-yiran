@@ -546,93 +546,166 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 /* ---------- Arco HR organization diagram ---------- */
+.arco-orgdiagram-wrapper.page-container,
+.arco-orgdiagram-wrapper {
+	display: flex !important;
+	flex-direction: column;
+	box-sizing: border-box;
+	height: calc(100dvh - var(--hr-arco-navbar-height, 60px));
+	min-height: calc(100dvh - var(--hr-arco-navbar-height, 60px));
+}
+
 .arco-orgdiagram-wrapper .page-head {
 	display: none !important;
 }
 
-.arco-orgdiagram-wrapper .layout-main-section,
-.arco-orgdiagram-wrapper .layout-main-section-wrapper {
-	min-height: calc(100dvh - 52px);
+.arco-orgdiagram-wrapper .page-body,
+.arco-orgdiagram-wrapper .container.page-body,
+.arco-orgdiagram-wrapper .page-wrapper,
+.arco-orgdiagram-wrapper .page-content,
+.arco-orgdiagram-wrapper .layout-main,
+.arco-orgdiagram-wrapper .layout-main-section-wrapper,
+.arco-orgdiagram-wrapper .layout-main-section {
+	display: flex !important;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0 !important;
+	height: auto !important;
+	max-width: none !important;
+	width: 100% !important;
+}
+
+.arco-orgdiagram-wrapper .layout-main.row {
+	margin: 0 !important;
+}
+
+.arco-orgdiagram-wrapper .layout-main-section-wrapper.col-md-12 {
+	padding: 0 !important;
+	float: none !important;
+}
+
+#orgdiagram-arco-root {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+	height: 100%;
 }
 
 .arco-org-ui.hr-orgdiagram {
 	display: flex;
+	width: 100%;
 	min-width: 0;
+	min-height: 0;
+	height: 100%;
 	flex: 1 1 auto;
 	flex-direction: column;
+	gap: 0;
+	box-sizing: border-box;
 }
 
-.arco-org-ui.hr-orgdiagram .hr-page-body-stack {
-	flex: 1 1 auto;
-	min-height: 0;
-}
-
+.arco-org-ui.hr-orgdiagram .hr-page-body-stack,
 .arco-org-ui.hr-orgdiagram .hr-analysis-stack {
+	display: flex;
 	flex: 1 1 auto;
+	flex-direction: column;
 	min-height: 0;
+	height: 100%;
+}
+
+.arco-org-ui.hr-orgdiagram .hr-page-header {
+	flex: 0 0 auto;
 }
 
 .arco-org-ui .od-toolbar {
 	position: relative;
 	z-index: 5;
+	flex: 0 0 auto;
 	border-radius: 8px;
 }
 
 .arco-org-ui .od-toolbar .arco-card-body {
-	padding: 12px 14px;
+	padding: 8px 12px;
 }
 
 .arco-org-ui .od-toolbar__row {
 	display: flex;
 	align-items: center;
-	justify-content: space-between;
 	gap: 12px;
+	min-width: 0;
 }
 
-.arco-org-ui .od-toolbar .arco-radio-group-button {
-	background: var(--color-fill-2);
-}
-
-.arco-org-ui .od-toolbar .arco-radio-button-content {
-	display: inline-flex;
-	align-items: center;
-	gap: 5px;
-}
-
-.arco-org-ui .od-zoom-value {
-	min-width: 58px;
-	color: var(--color-text-1) !important;
-	background: var(--color-bg-2) !important;
-	cursor: default;
-	opacity: 1 !important;
-}
-
-.arco-org-ui .od-loading {
+.arco-org-ui .od-toolbar__cluster {
 	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.arco-org-ui .od-toolbar__cluster--primary {
+	flex: 1 1 auto;
+}
+
+.arco-org-ui .od-toolbar__company {
+	width: 220px;
+	max-width: 28vw;
+	flex: 0 1 220px;
+}
+
+.arco-org-ui .od-toolbar__search {
+	min-width: 180px;
+	max-width: 360px;
+	flex: 1 1 240px;
+}
+
+.arco-org-ui .od-toolbar__depth {
+	width: 118px;
+	flex: 0 0 auto;
+}
+
+.arco-org-ui .od-toolbar__export {
+	flex: 0 0 auto;
+}
+
+.arco-org-ui .od-loading.arco-spin,
+.arco-org-ui .od-loading {
+	display: flex !important;
 	width: 100%;
 	min-width: 0;
+	min-height: 0;
+	height: 100%;
 	flex: 1 1 auto;
 }
 
 .arco-org-ui .od-loading > .arco-spin-children {
-	display: flex;
+	display: flex !important;
 	width: 100%;
 	min-width: 0;
+	min-height: 0;
+	height: 100%;
 	flex: 1 1 auto;
+	flex-direction: column;
 }
 
 .arco-org-ui .od-canvas-shell {
 	position: relative;
+	display: flex;
 	width: 100%;
 	min-width: 0;
+	min-height: 0;
+	height: 100%;
+	flex: 1 1 auto;
+	flex-direction: column;
 }
 
 .arco-org-ui .od-canvas-viewport {
 	position: relative;
+	display: block;
 	width: 100%;
 	min-width: 0;
-	height: calc(100dvh - 146px);
-	min-height: 620px;
+	min-height: 0;
+	height: 100%;
+	flex: 1 1 auto;
 	overflow: auto;
 	border: 1px solid var(--color-border-2);
 	border-radius: 8px;
@@ -640,13 +713,24 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 	overscroll-behavior: contain;
 }
 
+.arco-org-ui .od-canvas-stage {
+	box-sizing: border-box;
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	width: max-content;
+	min-width: 100%;
+	min-height: 100%;
+	padding: 28px 32px 40px;
+}
+
 .arco-org-ui .od-canvas {
 	--od-line: #b4bcc8;
 	--od-gap: 28px;
 	box-sizing: border-box;
 	width: max-content;
-	min-width: 100%;
-	padding: 34px 40px 96px;
+	flex: 0 0 auto;
+	padding: 0;
 }
 
 /* ---- 閫掑綊鏍戯細杩炵嚎鐢辨瘡涓妭鐐硅嚜宸辩敾锛岄殢鍐呭鑷姩瀵归綈 ---- */
@@ -1113,6 +1197,48 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 	font-size: 12px;
 }
 
+.arco-org-ui .od-canvas-controls {
+	position: absolute;
+	right: 14px;
+	bottom: 14px;
+	z-index: 3;
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	padding: 4px 6px;
+	border: 1px solid var(--color-border-2);
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.96);
+	box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.arco-org-ui .od-canvas-controls__zoom {
+	min-width: 40px;
+	padding: 0 2px;
+	color: var(--color-text-2);
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	line-height: 1;
+	text-align: center;
+	user-select: none;
+}
+
+.arco-org-ui .od-canvas-controls__sep {
+	width: 1px;
+	height: 14px;
+	margin: 0 4px;
+	background: var(--color-border-2);
+}
+
+.arco-org-ui .od-canvas-controls .arco-btn {
+	color: var(--color-text-2);
+}
+
+.arco-org-ui .od-canvas-controls .arco-btn:hover {
+	color: rgb(var(--arcoblue-6));
+	background: var(--color-fill-2);
+}
+
 .arco-org-ui .od-legend > span {
 	display: inline-flex;
 	align-items: center;
@@ -1131,14 +1257,27 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 .arco-org-ui .od-legend i.is-group { background: var(--color-fill-4); }
 .arco-org-ui .od-legend i.is-member { background: rgb(var(--cyan-4)); }
 
-@media (max-width: 1180px) {
+@media (max-width: 1100px) {
 	.arco-org-ui .od-toolbar__row {
-		align-items: flex-start;
-		flex-direction: column;
+		flex-wrap: wrap;
+	}
+
+	.arco-org-ui .od-toolbar__cluster--primary {
+		flex: 1 1 100%;
+	}
+
+	.arco-org-ui .od-toolbar__export {
+		margin-left: auto;
+	}
+
+	.arco-org-ui .od-toolbar__company,
+	.arco-org-ui .od-toolbar__search {
+		max-width: none;
+		flex: 1 1 180px;
 	}
 
 	.arco-org-ui .od-canvas-viewport {
-		height: calc(100dvh - 194px);
+		min-height: 0;
 	}
 }
 
@@ -2733,107 +2872,245 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 /* —— Employee detail v3: compact header + overview cards —— */
-.arco-emp-form-chrome {
+/* 变量挂在 chrome 与 overview 上：概览卡片经 Teleport 挂在 #employee-arco-overview-root，
+   不在 .arco-emp-form-chrome 子树内，必须各自定义，否则 border/background 会失效。 */
+.arco-emp-form-chrome,
+.arco-emp-overview,
+#employee-arco-overview-root {
 	--emp-page-bg: #f7f8fa;
 	--emp-card-bg: #ffffff;
-	--emp-border: var(--color-border-2, #e5e6eb);
-	margin-bottom: 12px;
+	--emp-border: #e5e6eb;
 }
 
+.arco-emp-form-chrome {
+	margin-bottom: 8px;
+}
+
+.arco-emp-header-card.arco-card,
 .arco-emp-header-card {
-	border: 1px solid var(--emp-border) !important;
+	position: relative;
+	overflow: hidden;
+	border: 1px solid #e5e6eb !important;
 	border-radius: 10px !important;
-	background: var(--emp-card-bg) !important;
-	box-shadow: none !important;
+	background:
+		radial-gradient(circle at 100% 0%, rgba(22, 93, 255, 0.07), transparent 42%),
+		linear-gradient(180deg, #ffffff 0%, #fafcff 100%) !important;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04) !important;
 }
 
 .arco-emp-header-card > .arco-card-body {
-	padding: 18px 22px !important;
+	padding: 12px 14px !important;
 }
 
-.arco-emp-header {
+.arco-emp-header-v2 {
 	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 16px;
-	min-height: 88px;
+	flex-direction: column;
+	gap: 10px;
+	min-width: 0;
 }
 
-.arco-emp-header-main {
+.arco-emp-header-v2-top {
 	display: flex;
 	align-items: center;
-	gap: 16px;
+	gap: 10px;
+	min-width: 0;
+}
+
+.arco-emp-header-v2-top .arco-avatar,
+.arco-emp-header-v2-top .arco-emp-avatar {
+	flex: 0 0 auto;
+	box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.12);
+}
+
+.arco-emp-header-v2-identity {
 	min-width: 0;
 	flex: 1;
-}
-
-.arco-emp-header-main .arco-avatar {
-	flex: 0 0 auto;
-	box-shadow: 0 0 0 3px var(--color-primary-light-1, #e8f3ff);
-}
-
-.arco-emp-header-copy {
-	min-width: 0;
 }
 
 .arco-emp-header-title {
 	display: flex;
 	align-items: center;
 	flex-wrap: wrap;
-	gap: 8px;
-	margin-bottom: 8px;
+	gap: 6px;
+	margin-bottom: 0;
 }
 
 .arco-emp-header-title .arco-emp-name {
 	margin: 0;
-	font-size: 20px;
-	font-weight: 600;
-	line-height: 1.3;
+	font-size: 17px;
+	font-weight: 650;
+	line-height: 1.25;
 	color: var(--color-text-1, #1d2129);
 }
 
-.arco-emp-header-meta {
+.arco-emp-header-subtitle {
+	margin: 2px 0 0;
+	font-size: 12px;
+	line-height: 1.4;
+	color: #86909c;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.arco-emp-header-strip {
+	display: grid;
+	grid-template-columns: minmax(72px, 0.8fr) minmax(88px, 1fr) minmax(160px, 1.6fr) minmax(64px, 0.8fr) minmax(180px, 1.8fr) minmax(110px, 1fr);
+	align-items: stretch;
+	gap: 0;
+	min-width: 0;
+	padding: 2px;
+	border: 1px solid rgba(22, 93, 255, 0.08);
+	border-radius: 10px;
+	background: rgba(255, 255, 255, 0.78);
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.arco-emp-header-strip-item {
 	display: flex;
 	align-items: center;
-	flex-wrap: wrap;
-	gap: 8px 14px;
-	margin: 0 0 6px;
-	font-size: 13px;
-	color: var(--color-text-2, #4e5969);
+	gap: 8px;
+	min-width: 0;
+	padding: 8px 10px;
+	position: relative;
 }
 
-.arco-emp-header-meta.is-muted {
-	margin-bottom: 0;
-	font-size: 12px;
-	color: var(--color-text-3, #86909c);
+.arco-emp-header-strip-item + .arco-emp-header-strip-item::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 18%;
+	bottom: 18%;
+	width: 1px;
+	background: #e5e6eb;
 }
 
-.arco-emp-header-meta.is-muted .arco-icon {
-	margin-right: 4px;
+.arco-emp-header-strip-item.is-wide {
+	min-width: 0;
+}
+
+.arco-emp-header-strip-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 8px;
+	flex: 0 0 auto;
+	font-size: 14px;
+	background: rgba(22, 93, 255, 0.1);
+	color: #165dff;
+}
+
+.arco-emp-header-strip-icon.is-employee_number {
+	background: rgba(22, 93, 255, 0.1);
+	color: #165dff;
+}
+
+.arco-emp-header-strip-icon.is-designation {
+	background: rgba(114, 46, 209, 0.1);
+	color: #722ed1;
+}
+
+.arco-emp-header-strip-icon.is-department {
+	background: rgba(0, 180, 42, 0.1);
+	color: #00b42a;
+}
+
+.arco-emp-header-strip-icon.is-location {
+	background: rgba(255, 125, 0, 0.1);
+	color: #ff7d00;
+}
+
+.arco-emp-header-strip-icon.is-company {
+	background: rgba(14, 180, 212, 0.12);
+	color: #0eb4d4;
+}
+
+.arco-emp-header-strip-icon.is-tenure {
+	background: rgba(245, 63, 63, 0.1);
+	color: #f53f3f;
+}
+
+.arco-emp-header-strip-copy {
+	display: grid;
+	gap: 1px;
+	min-width: 0;
+}
+
+.arco-emp-header-strip-copy em {
+	font-style: normal;
+	font-size: 11px;
+	color: #86909c;
+	line-height: 1.2;
+}
+
+.arco-emp-header-strip-copy strong {
+	font-size: 12.5px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.3;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.arco-emp-header-strip-copy.is-wrap strong {
+	overflow: visible;
+	text-overflow: unset;
+	white-space: normal;
+	word-break: break-word;
+}
+
+@media (max-width: 1200px) {
+	.arco-emp-header-strip {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+
+	.arco-emp-header-strip-item:nth-child(3n + 1)::before {
+		display: none;
+	}
+}
+
+@media (max-width: 720px) {
+	.arco-emp-header-strip {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.arco-emp-header-strip-item:nth-child(2n + 1)::before {
+		display: none;
+	}
 }
 
 .arco-emp-header-actions {
 	flex: 0 0 auto;
 }
 
+.arco-emp-detail-card.arco-card,
 .arco-emp-detail-card {
-	border: 1px solid var(--emp-border) !important;
+	border: 1px solid #e5e6eb !important;
 	border-radius: 10px !important;
-	background: var(--emp-card-bg) !important;
-	box-shadow: none !important;
+	background: #ffffff !important;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04) !important;
 	height: 100%;
+	transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.arco-emp-detail-card {
-	transition: border-color 0.15s ease;
-}
-
+.arco-emp-detail-card.arco-card:hover,
 .arco-emp-detail-card:hover {
-	border-color: var(--color-neutral-4, #c9cdd4) !important;
+	border-color: #c9cdd4 !important;
+	box-shadow: 0 2px 8px rgba(29, 33, 41, 0.06) !important;
+}
+
+.arco-emp-detail-card > .arco-card-header {
+	padding: 14px 20px 0 !important;
+	border-bottom: none !important;
+	background: transparent !important;
 }
 
 .arco-emp-detail-card > .arco-card-body {
-	padding: 18px 20px !important;
+	padding: 14px 20px 18px !important;
+	background: transparent !important;
 }
 
 .arco-emp-detail-card-title {
@@ -3011,9 +3288,12 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 @media (max-width: 992px) {
-	.arco-emp-header {
-		flex-direction: column;
-		min-height: 0;
+	.arco-emp-header-facts-row {
+		gap: 8px;
+	}
+
+	.arco-emp-header-fact-chip {
+		flex: 1 1 calc(50% - 8px);
 	}
 
 	.arco-emp-info-grid {
@@ -3034,12 +3314,26 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 /* —— Employee detail v3 dark mode —— */
+html[data-theme="dark"] .arco-emp-form-chrome,
+html[arco-theme="dark"] .arco-emp-form-chrome,
+html[data-theme="dark"] .arco-emp-overview,
+html[arco-theme="dark"] .arco-emp-overview,
+html[data-theme="dark"] #employee-arco-overview-root,
+html[arco-theme="dark"] #employee-arco-overview-root {
+	--emp-page-bg: transparent;
+	--emp-card-bg: var(--hr-desk-surface, #232324);
+	--emp-border: var(--hr-desk-border, rgba(255, 255, 255, 0.08));
+}
+
 html[data-theme="dark"] .arco-emp-header-card,
 html[arco-theme="dark"] .arco-emp-header-card,
+html[data-theme="dark"] .arco-emp-detail-card.arco-card,
+html[arco-theme="dark"] .arco-emp-detail-card.arco-card,
 html[data-theme="dark"] .arco-emp-detail-card,
 html[arco-theme="dark"] .arco-emp-detail-card {
 	background: var(--hr-desk-surface, #232324) !important;
 	border-color: var(--hr-desk-border, rgba(255, 255, 255, 0.08)) !important;
+	box-shadow: none !important;
 }
 
 html[data-theme="dark"] .arco-emp-header-card .arco-card-body,
@@ -3059,17 +3353,30 @@ html[arco-theme="dark"] .arco-emp-detail-card-title,
 html[data-theme="dark"] .arco-emp-attendance-stat-copy > strong,
 html[arco-theme="dark"] .arco-emp-attendance-stat-copy > strong,
 html[data-theme="dark"] .arco-emp-completeness-percent,
-html[arco-theme="dark"] .arco-emp-completeness-percent {
+html[arco-theme="dark"] .arco-emp-completeness-percent,
+html[data-theme="dark"] .arco-emp-header-strip-copy strong,
+html[arco-theme="dark"] .arco-emp-header-strip-copy strong {
 	color: var(--hr-desk-text, rgba(255, 255, 255, 0.9));
 }
 
-html[data-theme="dark"] .arco-emp-header-meta,
-html[arco-theme="dark"] .arco-emp-header-meta,
-html[data-theme="dark"] .arco-emp-header-meta.is-muted,
-html[arco-theme="dark"] .arco-emp-header-meta.is-muted,
+html[data-theme="dark"] .arco-emp-header-subtitle,
+html[arco-theme="dark"] .arco-emp-header-subtitle,
+html[data-theme="dark"] .arco-emp-header-strip-copy em,
+html[arco-theme="dark"] .arco-emp-header-strip-copy em,
 html[data-theme="dark"] .arco-emp-attendance-stat-copy > span,
 html[arco-theme="dark"] .arco-emp-attendance-stat-copy > span {
 	color: var(--hr-desk-text-3, rgba(255, 255, 255, 0.45));
+}
+
+html[data-theme="dark"] .arco-emp-header-strip,
+html[arco-theme="dark"] .arco-emp-header-strip {
+	background: var(--hr-desk-surface-2, rgba(255, 255, 255, 0.04));
+	border-color: var(--hr-desk-border, rgba(255, 255, 255, 0.08));
+}
+
+html[data-theme="dark"] .arco-emp-header-strip-item + .arco-emp-header-strip-item::before,
+html[arco-theme="dark"] .arco-emp-header-strip-item + .arco-emp-header-strip-item::before {
+	background: var(--hr-desk-border, rgba(255, 255, 255, 0.08));
 }
 
 html[data-theme="dark"] .arco-emp-attendance-stat,
@@ -3337,8 +3644,7 @@ html[arco-theme="dark"] .arco-emp-attendance-stat-icon.is-overtime {
 /* Shell rules consolidated at top (.arco-hr-*-wrapper, .arco-orgchart-wrapper, …) */
 
 .hr-workplace,
-.hr-dashboard,
-.hr-orgdiagram {
+.hr-dashboard {
 	display: flex;
 	flex-direction: column;
 	gap: 16px;
@@ -3591,10 +3897,21 @@ html[arco-theme="dark"] .hr-wp-date-card {
 
 .hr-wp-content {
 	display: grid;
-	grid-template-columns: minmax(0, 1fr) 320px;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
 	grid-template-rows: auto auto;
 	gap: var(--hr-wp-gap);
 	align-items: stretch;
+	width: 100%;
+	min-width: 0;
+}
+
+.hr-wp-content > .hr-wp-panel,
+.hr-wp-cell-dept,
+.hr-wp-cell-quick,
+.hr-wp-cell-joiners,
+.hr-wp-cell-rank {
+	min-width: 0;
+	max-width: 100%;
 }
 
 .hr-wp-cell-dept {
@@ -3644,14 +3961,94 @@ html[arco-theme="dark"] .hr-wp-date-card {
 
 .hr-wp-dept-charts {
 	display: grid;
-	grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-	gap: 8px;
+	/* 部门卡变窄时自动上下堆叠，避免饼图区被挤扁 */
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+	gap: 12px;
+	align-items: stretch;
 }
 
 .hr-wp-dept-bar,
 .hr-wp-dept-pie {
 	min-width: 0;
 	overflow: hidden;
+}
+
+.hr-wp-dept-pie {
+	container-type: inline-size;
+	container-name: dept-pie;
+	min-height: 320px;
+}
+
+.hr-wp-dept-pie-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(132px, 168px);
+	gap: 8px 12px;
+	align-items: center;
+	min-height: 320px;
+}
+
+.hr-wp-dept-pie-chart {
+	min-width: 0;
+	min-height: 260px;
+}
+
+.hr-wp-dept-pie-legend {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	min-width: 0;
+	max-height: 300px;
+	overflow-y: auto;
+}
+
+.hr-wp-dept-pie-legend li {
+	display: grid;
+	grid-template-columns: 8px minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+	line-height: 1.3;
+}
+
+.hr-wp-dept-pie-legend i {
+	width: 8px;
+	height: 8px;
+	border-radius: 2px;
+	flex: 0 0 auto;
+}
+
+.hr-wp-dept-pie-legend-name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	color: var(--color-text-2);
+}
+
+.hr-wp-dept-pie-legend-pct {
+	font-size: 12px;
+	font-variant-numeric: tabular-nums;
+	color: var(--color-text-3);
+	white-space: nowrap;
+}
+
+@container dept-pie (max-width: 360px) {
+	.hr-wp-dept-pie-layout {
+		grid-template-columns: 1fr;
+		align-items: stretch;
+	}
+
+	.hr-wp-dept-pie-legend {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 8px 16px;
+		max-height: none;
+		overflow: visible;
+	}
 }
 
 .hr-wp-cell-quick .hr-wp-quick-grid {
@@ -3754,11 +4151,12 @@ html[arco-theme="dark"] .hr-wp-date-card {
 	color: var(--color-text-3);
 }
 
-@media (max-width: 1200px) {
+@media (max-width: 1440px) {
 	.hr-wp-kpis {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 
+	/* 侧栏约占 220px：视口 1440 时内容区约 1200，双栏易裁切快捷入口 */
 	.hr-wp-content {
 		grid-template-columns: 1fr;
 		grid-template-rows: auto;
@@ -3772,8 +4170,14 @@ html[arco-theme="dark"] .hr-wp-date-card {
 		grid-row: auto;
 	}
 
-	.hr-wp-dept-charts {
-		grid-template-columns: 1fr;
+	.hr-wp-cell-quick .hr-wp-quick-grid {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 1100px) {
+	.hr-wp-cell-quick .hr-wp-quick-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
@@ -3794,6 +4198,15 @@ html[arco-theme="dark"] .hr-wp-date-card {
 
 	.hr-wp-kpis {
 		grid-template-columns: 1fr;
+	}
+
+	.hr-wp-quick-grid,
+	.hr-wp-cell-quick .hr-wp-quick-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.hr-wp-banner {
+		flex-direction: column;
 	}
 }
 
@@ -6537,4 +6950,890 @@ body[data-theme="dark"] .contract-initiate .ci-template-thumb,
 body[arco-theme="dark"] .contract-initiate .ci-preview-doc,
 body[data-theme="dark"] .contract-initiate .ci-preview-doc {
 	background: var(--color-fill-2, #2e2e30);
+}
+
+/* ---------- Employee archive tab panels (preview / section edit) ---------- */
+.arco-emp-archive-panels {
+	margin: 0 0 16px;
+}
+
+.arco-emp-archive-section-host {
+	width: 100%;
+}
+
+.arco-emp-archive-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.arco-emp-archive-section.arco-card {
+	border-radius: 10px;
+	border: 1px solid #e5e6eb;
+	box-shadow: none;
+	background: #fff;
+	overflow: hidden;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.arco-emp-archive-section.arco-card:hover {
+	border-color: #c9cdd4;
+}
+
+.arco-emp-archive-section.is-expanded.arco-card {
+	border-color: #bedaff;
+	box-shadow: 0 1px 4px rgba(22, 93, 255, 0.06);
+}
+
+.arco-emp-archive-section > .arco-card-header {
+	padding: 0;
+	border-bottom: none;
+	min-height: 48px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.arco-emp-archive-section > .arco-card-header .arco-card-header-title {
+	flex: 1;
+	overflow: visible;
+	padding: 0;
+}
+
+.arco-emp-archive-section > .arco-card-header .arco-card-header-extra {
+	flex-shrink: 0;
+	padding-right: 14px;
+	margin-left: 0;
+}
+
+.arco-emp-archive-section > .arco-card-body {
+	padding: 0 !important;
+}
+
+.arco-emp-collapse-head {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	min-height: 48px;
+	padding: 0 12px 0 16px;
+	cursor: pointer;
+	user-select: none;
+	transition: background-color 0.15s ease;
+}
+
+.arco-emp-collapse-head:hover {
+	background: #f7f8fa;
+}
+
+.arco-emp-archive-section-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.4;
+}
+
+.arco-emp-collapse-meta {
+	font-size: 12px;
+	font-weight: 400;
+	color: #86909c;
+	background: #f2f3f5;
+	border-radius: 999px;
+	padding: 1px 8px;
+	line-height: 18px;
+}
+
+.arco-emp-collapse-icon {
+	flex-shrink: 0;
+	margin-left: auto;
+	font-size: 14px;
+	color: #86909c;
+	transition: transform 0.22s ease, color 0.15s ease;
+}
+
+.arco-emp-collapse-icon.is-open {
+	transform: rotate(180deg);
+	color: #165dff;
+}
+
+.arco-emp-collapse-head:hover .arco-emp-collapse-icon {
+	color: #165dff;
+}
+
+.arco-emp-collapse-panel {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.arco-emp-collapse-panel.is-open {
+	grid-template-rows: 1fr;
+}
+
+.arco-emp-collapse-panel-inner {
+	overflow: hidden;
+	min-height: 0;
+}
+
+.arco-emp-archive-section-body {
+	padding: 4px 16px 16px;
+	border-top: 1px solid #f2f3f5;
+}
+
+.arco-emp-archive-section.is-collapsed .arco-emp-archive-section-body {
+	border-top-color: transparent;
+}
+
+.arco-emp-attendance-summary {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.arco-emp-attendance-summary-item {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 12px 14px;
+	border-radius: 8px;
+	background: #f7f8fa;
+}
+
+.arco-emp-attendance-summary-item span {
+	font-size: 12px;
+	color: #86909c;
+}
+
+.arco-emp-attendance-summary-item strong {
+	font-size: 18px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.2;
+}
+
+.arco-emp-attendance-summary-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+	.arco-emp-attendance-summary {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+.arco-emp-empty-state {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 28px 16px 32px;
+	color: #c9cdd4;
+	text-align: center;
+}
+
+.arco-emp-empty-state p {
+	margin: 0;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #86909c;
+	position: relative;
+	z-index: 1;
+}
+
+.arco-emp-archive-section .arco-emp-empty {
+	padding: 28px 12px 32px !important;
+}
+
+.arco-emp-archive-section .arco-emp-empty .arco-empty-image {
+	height: auto !important;
+	margin: 0 0 8px !important;
+	line-height: 1;
+}
+
+.arco-emp-archive-section .arco-emp-empty .arco-empty-image svg {
+	width: 64px;
+	height: 64px;
+	display: block;
+}
+
+.arco-emp-archive-section .arco-emp-empty .arco-empty-description {
+	margin-top: 0 !important;
+	padding-top: 0 !important;
+	font-size: 13px !important;
+	line-height: 1.5 !important;
+	color: #86909c !important;
+	position: relative;
+	z-index: 1;
+}
+
+.arco-emp-archive-section-footer {
+	display: flex;
+	justify-content: flex-end;
+	padding-top: 8px;
+	margin-top: 4px;
+	border-top: 1px solid #f2f3f5;
+}
+
+.arco-emp-record-list-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-bottom: 0;
+}
+
+.arco-emp-record-list:not(.is-collapsed) .arco-emp-record-list-head {
+	margin-bottom: 12px;
+}
+
+.arco-emp-preview-grid {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+	gap: 14px 24px;
+}
+
+.arco-emp-preview-label {
+	font-size: 12px;
+	color: #86909c;
+	margin-bottom: 4px;
+	line-height: 1.4;
+}
+
+.arco-emp-preview-value {
+	font-size: 13px;
+	color: #1d2129;
+	font-weight: 500;
+	line-height: 1.5;
+	word-break: break-word;
+}
+
+.arco-emp-req {
+	color: #f53f3f;
+	margin-left: 2px;
+	font-style: normal;
+}
+
+.arco-emp-archive-form .arco-form-item {
+	margin-bottom: 10px;
+}
+
+.arco-emp-archive-form-group {
+	margin-bottom: 8px;
+}
+
+.arco-emp-archive-form-group + .arco-emp-archive-form-group {
+	margin-top: 8px;
+	padding-top: 14px;
+	border-top: 1px solid #f2f3f5;
+}
+
+.arco-emp-archive-form-group-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.4;
+	margin: 0 0 12px;
+}
+
+.arco-emp-archive-form .arco-form-item-label-col > .arco-form-item-label,
+.arco-emp-archive-form .arco-form-item-label {
+	font-size: 12px;
+	color: #86909c;
+	line-height: 1.4;
+	padding-bottom: 2px !important;
+}
+
+.arco-emp-archive-form .arco-input-wrapper,
+.arco-emp-archive-form .arco-select-view,
+.arco-emp-archive-form .arco-picker,
+.arco-emp-archive-form .arco-textarea-wrapper {
+	border-radius: 6px;
+}
+
+/* 概况卡片：编辑态沿用预览网格，控件压到接近纯文本高度，避免撑高卡片 */
+.arco-emp-overview-card .arco-emp-info-grid.is-editing {
+	align-content: start;
+	gap: 10px 16px;
+}
+
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-emp-info-item {
+	gap: 2px;
+}
+
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-emp-info-value {
+	font-weight: 400;
+	line-height: 1.3;
+	min-height: 24px;
+	display: flex;
+	align-items: center;
+}
+
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-input-wrapper,
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-select-view,
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-picker {
+	width: 100%;
+	height: 24px !important;
+	min-height: 24px !important;
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+	background: #fff;
+	border-radius: 4px;
+}
+
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-input-wrapper .arco-input,
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-select-view-value,
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-picker-start-time,
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-picker-input input {
+	font-size: 13px !important;
+	line-height: 22px !important;
+}
+
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-select,
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-picker {
+	width: 100%;
+}
+
+.arco-emp-overview-card .arco-emp-info-grid.is-editing .arco-select-view-single {
+	height: 24px !important;
+	min-height: 24px !important;
+}
+
+.arco-emp-record-cards {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.arco-emp-record-card {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 12px;
+	border: 1px solid #f2f3f5;
+	border-radius: 6px;
+	background: #fafbfc;
+}
+
+.arco-emp-record-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.45;
+}
+
+.arco-emp-record-sub {
+	margin-top: 4px;
+	font-size: 12px;
+	color: #86909c;
+	line-height: 1.5;
+}
+
+.arco-emp-record-ops {
+	flex-shrink: 0;
+}
+
+.arco-emp-archive-rate {
+	display: flex;
+	align-items: center;
+	gap: 20px;
+	padding: 4px 0 8px;
+}
+
+.arco-emp-archive-rate-value {
+	font-size: 28px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.2;
+}
+
+.arco-emp-archive-rate-sub {
+	margin-top: 4px;
+	font-size: 13px;
+	color: #86909c;
+}
+
+.arco-emp-material-list {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.arco-emp-material-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	padding: 10px 12px;
+	border: 1px solid #f2f3f5;
+	border-radius: 6px;
+}
+
+.arco-emp-material-name {
+	font-size: 13px;
+	font-weight: 500;
+	color: #1d2129;
+}
+
+.arco-emp-material-status {
+	margin-top: 4px;
+	font-size: 12px;
+	color: #4e5969;
+}
+
+.arco-emp-material-status .is-missing {
+	color: #f53f3f;
+}
+
+.arco-emp-empty {
+	padding: 24px 0;
+}
+
+@media (max-width: 992px) {
+	.arco-emp-preview-grid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 640px) {
+	.arco-emp-preview-grid {
+		grid-template-columns: 1fr;
+	}
+
+	.arco-emp-record-card,
+	.arco-emp-material-row {
+		flex-direction: column;
+		align-items: stretch;
+	}
+}
+
+/* ---------- Employee overview redesign (blue primary) ---------- */
+.arco-emp-overview .arco-emp-link-btn {
+	color: #165dff !important;
+}
+
+.arco-emp-overview .arco-emp-detail-card-icon {
+	color: #165dff;
+	background: rgba(22, 93, 255, 0.08);
+}
+
+.arco-emp-overview-card.arco-card {
+	box-shadow: none;
+	border: 1px solid #e5e6eb;
+	border-radius: 8px;
+}
+
+.arco-emp-attendance-stats-row.is-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 10px;
+}
+
+.arco-emp-overview-alert {
+	margin-bottom: 8px;
+}
+
+.arco-emp-checklist {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.arco-emp-checklist-item {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+	font-size: 13px;
+	color: #1d2129;
+	text-align: left;
+}
+
+.arco-emp-checklist-item small {
+	margin-left: auto;
+	color: #165dff;
+	font-size: 12px;
+}
+
+.arco-emp-checklist-item.is-done {
+	color: #4e5969;
+}
+
+.arco-emp-checklist-item.is-done small {
+	display: none;
+}
+
+.arco-emp-checklist-mark {
+	width: 16px;
+	height: 16px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #00b42a;
+	flex-shrink: 0;
+}
+
+.arco-emp-checklist-empty {
+	width: 14px;
+	height: 14px;
+	border: 1.5px solid #c9cdd4;
+	border-radius: 50%;
+	display: inline-block;
+}
+
+.arco-emp-growth-timeline {
+	padding: 4px 4px 0;
+}
+
+.arco-emp-growth-item {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 2px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+	text-align: left;
+}
+
+.arco-emp-growth-item strong {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2129;
+}
+
+.arco-emp-growth-item small {
+	font-size: 12px;
+	color: #86909c;
+}
+
+.arco-emp-growth-item em {
+	font-style: normal;
+	font-size: 12px;
+	color: #4e5969;
+}
+
+.arco-emp-growth-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: #165dff;
+	display: inline-block;
+}
+
+.arco-emp-growth-dot.is-confirm {
+	background: #00b42a;
+}
+
+.arco-emp-growth-dot.is-training {
+	background: #ff7d00;
+}
+
+.arco-emp-growth-dot.is-transfer,
+.arco-emp-growth-dot.is-movement {
+	background: #722ed1;
+}
+
+.arco-emp-growth-dot.is-reward {
+	background: #f53f3f;
+}
+
+/* ---------- Overview prototype layout ---------- */
+.arco-emp-overview-proto {
+	gap: 16px;
+	align-items: stretch;
+}
+
+.arco-emp-overview-proto .arco-emp-detail-cell.span-4 {
+	grid-column: span 4;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.arco-emp-overview-proto .arco-emp-detail-cell.span-8 {
+	grid-column: span 8;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.arco-emp-overview-proto .arco-emp-overview-card {
+	height: 100%;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.arco-emp-overview-proto .arco-emp-detail-cell > .arco-emp-overview-card {
+	height: 100%;
+	flex: 1;
+}
+
+.arco-emp-overview-proto .arco-emp-overview-card > .arco-card-header {
+	padding: 14px 16px 0;
+	border-bottom: none;
+	min-height: auto;
+	flex: 0 0 auto;
+}
+
+.arco-emp-overview-proto .arco-emp-overview-card > .arco-card-body {
+	padding: 10px 16px 14px;
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.arco-emp-overview-basic-grid,
+.arco-emp-overview-org-grid {
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 12px 18px;
+}
+
+.arco-emp-overview-basic-grid .arco-emp-info-item.is-span-2,
+.arco-emp-overview-org-grid .arco-emp-info-item.is-span-2 {
+	grid-column: 1 / -1;
+}
+
+.arco-emp-overview-org-grid.is-fill {
+	flex: 1;
+	align-content: space-between;
+	gap: 14px 18px;
+	min-height: 100%;
+}
+
+.arco-emp-overview-proto .arco-emp-attendance-spin,
+.arco-emp-overview-proto .arco-emp-attendance-spin > .arco-spin-children {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	width: 100%;
+	min-height: 100%;
+}
+
+.arco-emp-attendance-fill {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 100%;
+	justify-content: center;
+	gap: 10px;
+}
+
+.arco-emp-attendance-month {
+	margin: 0;
+	font-size: 12px;
+	color: #86909c;
+	flex: 0 0 auto;
+}
+
+.arco-emp-attendance-pills {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex: 1 1 auto;
+	justify-content: center;
+}
+
+.arco-emp-attendance-pill {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 40px;
+	padding: 8px 14px;
+	border-radius: 999px;
+	border: 1px solid transparent;
+}
+
+.arco-emp-attendance-pill-icon {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	flex: 0 0 auto;
+	font-size: 14px;
+	background: rgba(255, 255, 255, 0.75);
+}
+
+.arco-emp-attendance-pill-label {
+	flex: 1;
+	min-width: 0;
+	font-size: 13px;
+	color: #4e5969;
+}
+
+.arco-emp-attendance-pill-value {
+	flex: 0 0 auto;
+	font-size: 16px;
+	font-weight: 650;
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+
+.arco-emp-attendance-pill.is-attendance {
+	background: rgba(22, 93, 255, 0.08);
+	border-color: rgba(22, 93, 255, 0.12);
+	color: #165dff;
+}
+
+.arco-emp-attendance-pill.is-attendance .arco-emp-attendance-pill-icon {
+	color: #165dff;
+}
+
+.arco-emp-attendance-pill.is-leave {
+	background: rgba(0, 180, 42, 0.08);
+	border-color: rgba(0, 180, 42, 0.12);
+	color: #00b42a;
+}
+
+.arco-emp-attendance-pill.is-leave .arco-emp-attendance-pill-icon {
+	color: #00b42a;
+}
+
+.arco-emp-attendance-pill.is-late {
+	background: rgba(255, 125, 0, 0.1);
+	border-color: rgba(255, 125, 0, 0.14);
+	color: #ff7d00;
+}
+
+.arco-emp-attendance-pill.is-late .arco-emp-attendance-pill-icon {
+	color: #ff7d00;
+}
+
+.arco-emp-attendance-pill.is-overtime {
+	background: rgba(114, 46, 209, 0.08);
+	border-color: rgba(114, 46, 209, 0.12);
+	color: #722ed1;
+}
+
+.arco-emp-attendance-pill.is-overtime .arco-emp-attendance-pill-icon {
+	color: #722ed1;
+}
+
+.arco-emp-attendance-pill.is-attendance .arco-emp-attendance-pill-value,
+.arco-emp-attendance-pill.is-leave .arco-emp-attendance-pill-value,
+.arco-emp-attendance-pill.is-late .arco-emp-attendance-pill-value,
+.arco-emp-attendance-pill.is-overtime .arco-emp-attendance-pill-value {
+	color: inherit;
+}
+
+.arco-emp-growth-card {
+	min-height: 0;
+}
+
+.arco-emp-growth-rail {
+	display: flex;
+	align-items: flex-start;
+	gap: 0;
+	overflow-x: auto;
+	padding: 8px 4px 4px;
+	scrollbar-width: thin;
+}
+
+.arco-emp-growth-node {
+	position: relative;
+	flex: 1 0 148px;
+	min-width: 148px;
+	max-width: 200px;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 8px;
+	padding: 0 16px 0 0;
+	border: 0;
+	background: transparent;
+	cursor: pointer;
+	text-align: left;
+}
+
+.arco-emp-growth-date {
+	font-size: 12px;
+	color: #86909c;
+	line-height: 1.2;
+}
+
+.arco-emp-growth-track {
+	position: relative;
+	width: 100%;
+	height: 16px;
+	display: flex;
+	align-items: center;
+}
+
+.arco-emp-growth-rail .arco-emp-growth-dot {
+	width: 12px;
+	height: 12px;
+	border: 2px solid #fff;
+	box-shadow: 0 0 0 1px #165dff;
+	background: #165dff;
+	z-index: 1;
+}
+
+.arco-emp-growth-rail .arco-emp-growth-dot.is-confirm {
+	background: #00b42a;
+	box-shadow: 0 0 0 1px #00b42a;
+}
+
+.arco-emp-growth-rail .arco-emp-growth-dot.is-training {
+	background: #ff7d00;
+	box-shadow: 0 0 0 1px #ff7d00;
+}
+
+.arco-emp-growth-rail .arco-emp-growth-dot.is-transfer,
+.arco-emp-growth-rail .arco-emp-growth-dot.is-movement {
+	background: #722ed1;
+	box-shadow: 0 0 0 1px #722ed1;
+}
+
+.arco-emp-growth-rail .arco-emp-growth-dot.is-reward {
+	background: #f53f3f;
+	box-shadow: 0 0 0 1px #f53f3f;
+}
+
+.arco-emp-growth-line {
+	position: absolute;
+	left: 12px;
+	right: -16px;
+	top: 50%;
+	height: 2px;
+	background: #e5e6eb;
+	transform: translateY(-50%);
+}
+
+.arco-emp-growth-title {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d2129;
+	line-height: 1.35;
+}
+
+.arco-emp-growth-desc {
+	font-style: normal;
+	font-size: 12px;
+	line-height: 1.5;
+	color: #86909c;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.arco-emp-checklist-item small {
+	display: none;
+}
+
+@media (max-width: 1200px) {
+	.arco-emp-overview-proto .arco-emp-detail-cell.span-4,
+	.arco-emp-overview-proto .arco-emp-detail-cell.span-8 {
+		grid-column: span 12;
+	}
 }

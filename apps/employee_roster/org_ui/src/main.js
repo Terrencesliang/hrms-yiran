@@ -1,7 +1,7 @@
 import { createApp, h, reactive } from "vue";
 import ArcoVue from "@arco-design/web-vue";
 import ArcoVueIcon from "@arco-design/web-vue/es/icon";
-import { ConfigProvider } from "@arco-design/web-vue";
+import { ConfigProvider, Message } from "@arco-design/web-vue";
 import zhCN from "@arco-design/web-vue/es/locale/lang/zh-cn";
 import "@arco-design/web-vue/dist/arco.css";
 import "./styles.css";
@@ -11,6 +11,7 @@ import OrgDiagramPage from "./pages/orgdiagram/OrgDiagramPage.vue";
 import SidebarApp from "./pages/sidebar/SidebarApp.vue";
 import NavbarApp from "./pages/navbar/NavbarApp.vue";
 import EmployeeFormChrome from "./components/EmployeeFormChrome.vue";
+import EmployeeArchivePanels from "./components/employee-detail/EmployeeArchivePanels.vue";
 import EmployeeListOverview from "./components/EmployeeListOverview.vue";
 import EmployeeRosterTable from "./components/EmployeeRosterTable.vue";
 import ApprovalsApp from "./pages/approvals/ApprovalsApp.vue";
@@ -58,6 +59,11 @@ function boot(app) {
 	app.use(ArcoVue);
 	app.use(ArcoVueIcon);
 	return app;
+}
+
+export function notify({ type = "info", content = "" } = {}) {
+	const method = ["success", "warning", "error", "info"].includes(type) ? type : "info";
+	Message[method](String(content || ""));
 }
 
 /** Register a new HR page here: mountXxx(el) → boot(createApp(Page)). */
@@ -375,7 +381,14 @@ const employeeFormState = reactive({
 	profile_missing: [],
 	show_overview: true,
 	can_edit: false,
+	can_save: false,
+	can_delete: false,
 	can_create_transfer: false,
+	is_new: false,
+	is_editing: false,
+	is_dirty: false,
+	is_saving: false,
+	is_deleting: false,
 });
 
 const employeeFormHandlers = {
@@ -412,6 +425,45 @@ export function updateEmployeeForm(payload) {
 
 export function setEmployeeFormHandlers(handlers = {}) {
 	Object.assign(employeeFormHandlers, handlers || {});
+}
+
+const employeeArchiveState = reactive({
+	activeTab: "",
+	loading: false,
+	can_edit: false,
+	resetToken: 0,
+	expandSection: "",
+	expandNonce: 0,
+	doc: {},
+});
+
+const employeeArchiveHandlers = {
+	onUpdated: null,
+};
+
+export function mountEmployeeArchivePanels(el, payload = {}, handlers = {}) {
+	Object.assign(employeeArchiveState, payload || {});
+	Object.assign(employeeArchiveHandlers, handlers || {});
+	const app = boot(
+		createApp({
+			render() {
+				return h(EmployeeArchivePanels, {
+					state: employeeArchiveState,
+					handlers: employeeArchiveHandlers,
+				});
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function updateEmployeeArchivePanels(payload = {}) {
+	Object.assign(employeeArchiveState, payload || {});
+}
+
+export function setEmployeeArchiveHandlers(handlers = {}) {
+	Object.assign(employeeArchiveHandlers, handlers || {});
 }
 
 const employeeListOverviewState = reactive({
@@ -453,14 +505,26 @@ export function updateEmployeeListOverview(payload = {}) {
 const employeeRosterTableState = reactive({
 	rows: [],
 	total: 0,
+	active: 0,
+	left: 0,
+	employmentCounts: {},
+	filters: [],
+	activeFilterCount: 0,
 	loading: false,
-	sortBy: "employee_name",
+	sortBy: "employee_number",
 	sortOrder: "asc",
+	canCreate: false,
+	canDelete: false,
 });
 
 const employeeRosterTableHandlers = {
 	onOpen: null,
 	onSort: null,
+	onDelete: null,
+	onCreate: null,
+	onStatusFilter: null,
+	onClearStatus: null,
+	onFilterOpen: null,
 };
 
 export function mountEmployeeRosterTable(el, payload = {}, handlers = {}) {
@@ -486,11 +550,11 @@ export function updateEmployeeRosterTable(payload = {}) {
 	Object.assign(employeeRosterTableState, payload || {});
 }
 
-function mountDeskHeader(el, component) {
+function mountDeskHeader(el, component, props = {}) {
 	const app = boot(
 		createApp({
 			render() {
-				return h(ConfigProvider, { locale: zhCN }, () => h(component));
+				return h(ConfigProvider, { locale: zhCN }, () => h(component, props));
 			},
 		})
 	);
@@ -498,8 +562,8 @@ function mountDeskHeader(el, component) {
 	return app;
 }
 
-export function mountEmployeeListDeskHeader(el) {
-	return mountDeskHeader(el, EmployeeListDeskHeader);
+export function mountEmployeeListDeskHeader(el, payload = {}, handlers = {}) {
+	return mountDeskHeader(el, EmployeeListDeskHeader, { state: payload, handlers });
 }
 
 export function mountEmployeeFormDeskHeader(el) {

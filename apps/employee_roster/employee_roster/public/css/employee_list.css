@@ -547,3 +547,38 @@ body[data-route="List/Employee"] .layout-main-section {
 		grid-template-columns: 1fr;
 	}
 }
+
+/* ---------- Employee directory workspace (selected v4 prototype) ---------- */
+.hr-employee-list-page .page-form.list-page-form,
+.hr-employee-list-page .page-form.hr-emp-filter-card,
+.hr-roster-page.hr-employee-list-stats {
+	display: none !important;
+}
+
+.hr-employee-list-page .hr-emp-table-card {
+	display: block;
+	min-height: calc(100vh - 150px);
+	margin: 0;
+	border: 0;
+	border-radius: 0;
+	background: transparent;
+	box-shadow: none;
+	overflow: visible;
+}
+
+.hr-employee-list-page .hr-employee-arco-table-host {
+	min-height: calc(100vh - 150px);
+	background: transparent;
+}
+
+.hr-employee-list-page .hr-employee-native-list,
+.hr-employee-list-page .hr-employee-native-list .list-paging-area,
+.hr-employee-list-page .hr-employee-native-list .list-footer {
+	display: none !important;
+}
+
+@media (max-width: 768px) {
+	.hr-employee-list-page .hr-emp-table-card {
+		margin: 0;
+	}
+}

@@ -94,7 +94,18 @@
 								<HrEchart :option="deptBarOption" height="320px" />
 							</div>
 							<div class="hr-wp-dept-pie">
-								<HrEchart :option="deptPieOption" height="320px" />
+								<div class="hr-wp-dept-pie-layout">
+									<div class="hr-wp-dept-pie-chart">
+										<HrEchart :option="deptPieOption" height="260px" />
+									</div>
+									<ul v-if="deptPieLegend.length" class="hr-wp-dept-pie-legend">
+										<li v-for="item in deptPieLegend" :key="item.name">
+											<i :style="{ background: item.color }" aria-hidden="true" />
+											<span class="hr-wp-dept-pie-legend-name">{{ item.label }}</span>
+											<span class="hr-wp-dept-pie-legend-pct">{{ item.pct }}%</span>
+										</li>
+									</ul>
+								</div>
 							</div>
 						</div>
 					</a-card>
@@ -333,7 +344,12 @@ const deptBarOption = computed(() => {
 	return {
 		backgroundColor: "transparent",
 		color: ["#165DFF"],
-		tooltip: { trigger: "axis", axisPointer: { type: "shadow" } },
+		tooltip: {
+			trigger: "axis",
+			axisPointer: { type: "shadow" },
+			textStyle: { fontSize: 12, color: theme.text1 },
+			padding: [6, 10],
+		},
 		grid: { left: 88, right: 36, top: 8, bottom: 8 },
 		xAxis: {
 			type: "value",
@@ -383,6 +399,17 @@ const DEPT_PIE_COLORS = [
 	"#FF9A2E",
 ];
 
+const deptPieLegend = computed(() => {
+	const items = deptItems.value;
+	const total = deptTotal.value || 0;
+	return items.map((item, index) => ({
+		name: item.name,
+		label: shortDept(item.name),
+		pct: total ? ((item.count / total) * 100).toFixed(1) : "0.0",
+		color: DEPT_PIE_COLORS[index % DEPT_PIE_COLORS.length],
+	}));
+});
+
 const deptPieOption = computed(() => {
 	const theme = chartTheme.value;
 	const items = deptItems.value;
@@ -401,27 +428,17 @@ const deptPieOption = computed(() => {
 	return {
 		backgroundColor: "transparent",
 		color: DEPT_PIE_COLORS,
-		tooltip: { trigger: "item", formatter: "{b}: {c} ({d}%)" },
-		legend: {
-			orient: "vertical",
-			right: 4,
-			top: "middle",
-			width: 96,
-			itemWidth: 8,
-			itemHeight: 8,
-			textStyle: { fontSize: 11, color: theme.text2 },
-			formatter: (name) => {
-				const item = items.find((i) => shortDept(i.name) === name);
-				if (!item) return name;
-				const pct = total ? ((item.count / total) * 100).toFixed(1) : "0.0";
-				return `${name} ${pct}%`;
-			},
+		tooltip: {
+			trigger: "item",
+			formatter: "{b}: {c} ({d}%)",
+			textStyle: { fontSize: 12, color: theme.text1 },
+			padding: [6, 10],
 		},
 		series: [
 			{
 				type: "pie",
-				radius: ["48%", "68%"],
-				center: ["28%", "50%"],
+				radius: ["48%", "70%"],
+				center: ["50%", "50%"],
 				itemStyle: {
 					borderRadius: 4,
 					borderColor: theme.surface,

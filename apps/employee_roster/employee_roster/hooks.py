@@ -19,6 +19,10 @@ extend_doctype_class = {
 	"File": ["employee_roster.integrations.tencent_cos.file_mixin.TencentCOSFileMixin"],
 }
 
+override_doctype_class = {
+	"Department": "employee_roster.hr_roster.department.Department",
+}
+
 # Apps
 # ------------------
 
@@ -55,19 +59,20 @@ app_include_css = [
 	"/assets/employee_roster/css/attendance_deduction_rule_form.css?v=20260303b",
 	"/assets/employee_roster/css/unified_sidebar.css?v=20260911a",
 	"/assets/employee_roster/css/hr_desk_theme.css?v=20260910f",
-	"/assets/employee_roster/org_ui/org_ui.css?v=20260912zq",
+	"/assets/employee_roster/org_ui/org_ui.css?v=20260916a",
 	"/assets/employee_roster/css/employee_checkin_list.css?v=20260912a",
 	"/assets/employee_roster/css/hr_attendance_rules_desk.css?v=20260910c",
-	"/assets/employee_roster/css/employee_list.css?v=20260912a",
-	"/assets/employee_roster/css/employee_form.css?v=20260912r",
+	"/assets/employee_roster/css/employee_list.css?v=20260914u",
+	"/assets/employee_roster/css/employee_form.css?v=20260914n",
 	"/assets/employee_roster/css/archive.css?v=20260912a",
 ]
 app_include_js = [
 	"/assets/employee_roster/js/apps_screen.js?v=20260904a",
-	"/assets/employee_roster/org_ui/org_ui.js?v=20260912zq",
+	"/assets/employee_roster/org_ui/org_ui.js?v=20260916a",
 	"/assets/employee_roster/js/recruiting_candidates.js",
 	"/assets/employee_roster/js/unified_sidebar.js?v=20260912c",
-	"/assets/employee_roster/js/employee_form.js?v=20260912r",
+	"/assets/employee_roster/js/employee_form_validation.js?v=20260914k",
+	"/assets/employee_roster/js/employee_form.js?v=20260914n",
 ]
 
 # include js, css files in header of web template
@@ -225,6 +230,9 @@ doctype_js = {
 # Hook on document methods and events
 
 doc_events = {
+	"Employee": {
+		"before_trash": "employee_roster.hr_roster.employee_lifecycle.ensure_left_before_delete",
+	},
 	"Salary Slip": {
 		"validate": "employee_roster.hr_roster.attendance_deduction.payroll_integration.adjust_salary_slip_payment_days",
 	},

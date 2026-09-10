@@ -5,10 +5,14 @@ export function call(method, args = {}, extra = {}) {
 			args,
 			...extra,
 			callback(r) {
+				if (r?.exc) {
+					reject(r);
+					return;
+				}
 				resolve(r.message);
 			},
 			error(err) {
-				reject(err);
+				reject(err || new Error("请求失败"));
 			},
 		});
 	});

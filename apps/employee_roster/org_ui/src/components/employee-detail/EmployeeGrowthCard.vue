@@ -1,69 +1,46 @@
 <template>
-	<EmployeeDetailCard title="成长记录" :icon="IconHistory">
-		<template #action>
+	<a-card class="arco-emp-detail-card arco-emp-overview-card arco-emp-growth-card" :bordered="true">
+		<template #title>
+			<div class="arco-emp-detail-card-title">
+				<span class="arco-emp-detail-card-icon"><icon-history /></span>
+				<span>成长记录</span>
+			</div>
+		</template>
+		<template #extra>
 			<a-button type="text" size="mini" class="arco-emp-link-btn" @click="$emit('navigate', 'profile_tab')">
 				查看全部 <icon-right />
 			</a-button>
 		</template>
-		<div class="arco-emp-journey">
+
+		<a-empty v-if="!items.length" description="暂无成长记录" class="arco-emp-empty" />
+		<div v-else class="arco-emp-growth-rail">
 			<button
-				v-for="(item, index) in journeyItems"
+				v-for="(item, index) in items"
 				:key="item.key"
 				type="button"
-				class="arco-emp-journey-item"
-				@click="$emit('navigate', item.target)"
+				class="arco-emp-growth-node"
+				@click="$emit('navigate', item.target || 'on_job')"
 			>
-				<span class="arco-emp-journey-node" :class="`is-${item.tone}`"><component :is="item.icon" /></span>
-				<span class="arco-emp-journey-copy">
-					<strong>{{ item.title }}</strong>
-					<small>{{ item.meta }}</small>
-					<em>{{ item.description }}</em>
+				<small class="arco-emp-growth-date">{{ item.date || "-" }}</small>
+				<span class="arco-emp-growth-track">
+					<span class="arco-emp-growth-dot" :class="`is-${item.type || 'default'}`" />
+					<span v-if="index < items.length - 1" class="arco-emp-growth-line" aria-hidden="true" />
 				</span>
-				<span v-if="index < journeyItems.length - 1" class="arco-emp-journey-line" aria-hidden="true" />
+				<strong class="arco-emp-growth-title">{{ item.title }}</strong>
+				<em v-if="item.description" class="arco-emp-growth-desc">{{ item.description }}</em>
 			</button>
 		</div>
-	</EmployeeDetailCard>
+	</a-card>
 </template>
 
 <script setup>
 import { computed } from "vue";
-import { IconBook, IconCommon, IconHistory, IconSchedule } from "@arco-design/web-vue/es/icon";
-import { statusLabel } from "../../utils/employeeDetail";
-import EmployeeDetailCard from "./EmployeeDetailCard.vue";
+import { IconHistory, IconRight } from "@arco-design/web-vue/es/icon";
 
-const props = defineProps({ state: { type: Object, required: true } });
+const props = defineProps({
+	timeline: { type: Array, default: () => [] },
+});
 defineEmits(["navigate"]);
 
-const journeyItems = computed(() => [
-	{
-		key: "join",
-		title: "入职",
-		meta: props.state.date_of_joining || "尚未填写日期",
-		description: props.state.employment_type_label || statusLabel(props.state.status),
-		target: "date_of_joining",
-		icon: IconSchedule,
-		tone: "primary",
-	},
-	{
-		key: "education",
-		title: "教育经历",
-		meta: props.state.education?.length ? `${props.state.education.length} 条记录` : "暂无记录",
-		description: props.state.education?.[0]?.school_univ || props.state.education_summary || "学历、专业与培训",
-		target: "education",
-		icon: IconBook,
-		tone: "green",
-	},
-	{
-		key: "work",
-		title: "工作经历",
-		meta: `${(props.state.external_work_history?.length || 0) + (props.state.internal_work_history?.length || 0)} 条记录`,
-		description:
-			props.state.external_work_history?.[0]?.company_name ||
-			props.state.internal_work_history?.[0]?.department ||
-			"外部与内部任职履历",
-		target: "external_work_history",
-		icon: IconCommon,
-		tone: "purple",
-	},
-]);
+const items = computed(() => props.timeline || []);
 </script>

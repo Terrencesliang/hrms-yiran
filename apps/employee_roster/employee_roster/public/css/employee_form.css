@@ -82,6 +82,9 @@ body.arco-employee-form .page-head .btn,
 body.arco-employee-form .form-tabs-list,
 .page-container[data-page-route^="Form/Employee"] .form-tabs-list,
 body.arco-employee-form .arco-emp-tabs {
+	position: static !important;
+	top: auto !important;
+	z-index: auto !important;
 	background: var(--hr-emp-card);
 	border: 1px solid var(--hr-emp-border);
 	border-bottom: none;
@@ -154,67 +157,133 @@ body.arco-employee-form .tab-content,
 	background-color: var(--hr-emp-bg);
 }
 
-/* ---------- Section cards ---------- */
+/* ---------- Section cards（在职/个人/联系等原生页签） ---------- */
 body.arco-employee-form .form-section.card-section,
 body.arco-employee-form .arco-emp-section,
 .page-container[data-page-route^="Form/Employee"] .form-section.card-section {
-	background: var(--hr-emp-card) !important;
-	border: 1px solid var(--hr-emp-border) !important;
-	border-radius: var(--hr-emp-radius) !important;
-	box-shadow: none !important;
-	margin: 0 0 12px !important;
+	background: #ffffff !important;
+	border: 1px solid #e5e6eb !important;
+	border-radius: 10px !important;
+	box-shadow: 0 1px 4px rgba(29, 33, 41, 0.04) !important;
+	margin: 0 0 16px !important;
 	padding: 0 !important;
 	overflow: hidden;
 }
 
+body.arco-employee-form .form-section.card-section:hover,
+.page-container[data-page-route^="Form/Employee"] .form-section.card-section:hover {
+	border-color: #c9cdd4 !important;
+}
+
+/* 标题区：强制靠左，覆盖 Frappe 默认 max-width:900px + margin:auto 居中 */
 body.arco-employee-form .form-section .section-head,
 .page-container[data-page-route^="Form/Employee"] .form-section .section-head {
-	font-size: 14px;
-	font-weight: 500;
-	color: var(--hr-emp-text);
-	padding: 12px 16px;
-	margin: 0;
-	border-bottom: 1px solid var(--hr-emp-border);
-	background: #fafbfc;
-	display: flex;
+	min-height: 48px;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 14px 16px !important;
+	font-size: 14px !important;
+	font-weight: 600 !important;
+	line-height: 1.4;
+	color: #1d2129 !important;
+	border-bottom: none !important;
+	background: transparent !important;
+	display: flex !important;
 	align-items: center;
-	gap: 8px;
+	justify-content: flex-start !important;
+	text-align: left !important;
+	gap: 10px;
+	cursor: pointer;
+	transition: background-color 0.15s ease;
+}
+
+body.arco-employee-form .form-section.arco-emp-native-collapsible .section-head:hover,
+.page-container[data-page-route^="Form/Employee"] .form-section.arco-emp-native-collapsible .section-head:hover {
+	background: #f7f8fa !important;
+}
+
+body.arco-employee-form .form-section .section-head::before,
+.page-container[data-page-route^="Form/Employee"] .form-section .section-head::before {
+	display: none !important;
 }
 
 body.arco-employee-form .form-section .section-head .collapse-indicator,
 .page-container[data-page-route^="Form/Employee"] .form-section .section-head .collapse-indicator {
-	color: var(--hr-emp-text-3);
+	display: none !important;
+}
+
+body.arco-employee-form .form-section .section-head .arco-emp-native-chevron,
+.page-container[data-page-route^="Form/Employee"] .form-section .section-head .arco-emp-native-chevron {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	margin-left: auto;
+	flex-shrink: 0;
+	border-right: 2px solid #86909c;
+	border-bottom: 2px solid #86909c;
+	transform: rotate(45deg);
+	transition: transform 0.22s ease, border-color 0.15s ease;
+	order: 99;
+}
+
+body.arco-employee-form .form-section .section-head:not(.collapsed) .arco-emp-native-chevron,
+.page-container[data-page-route^="Form/Employee"] .form-section .section-head:not(.collapsed) .arco-emp-native-chevron {
+	transform: rotate(225deg);
+	border-color: #165dff;
+	margin-top: 4px;
 }
 
 body.arco-employee-form .form-section .section-head.collapsed,
 .page-container[data-page-route^="Form/Employee"] .form-section .section-head.collapsed {
-	border-bottom: none;
+	padding-bottom: 14px !important;
+	border-bottom: none !important;
 }
 
-/* 无标题的首块（概况基本字段）也给内边距 */
+body.arco-employee-form .form-section.arco-emp-native-collapsible .section-body,
+.page-container[data-page-route^="Form/Employee"] .form-section.arco-emp-native-collapsible .section-body {
+	border-top: 1px solid #f2f3f5;
+}
+
+/* section-body 同样去掉 Frappe 居中限制，字段跟标题左对齐 */
 body.arco-employee-form .form-section .section-body,
 .page-container[data-page-route^="Form/Employee"] .form-section .section-body {
-	padding: 12px 16px 4px;
+	width: 100% !important;
+	max-width: none !important;
+	margin: 0 !important;
+	padding: 12px 20px 8px !important;
+	background: transparent;
+}
+
+body.arco-employee-form .form-section .form-column,
+.page-container[data-page-route^="Form/Employee"] .form-section .form-column {
+	max-width: none !important;
 }
 
 body.arco-employee-form .form-section:not(:has(.section-head:not(.hide-control))) .section-body,
 .page-container[data-page-route^="Form/Employee"] .form-section:not(:has(.section-head:not(.hide-control))) .section-body {
-	padding-top: 16px;
+	padding-top: 18px;
+}
+
+/* 空标题 / 无字段分区不占视觉空间 */
+body.arco-employee-form .form-section.empty-section.hide-control,
+.page-container[data-page-route^="Form/Employee"] .form-section.empty-section.hide-control {
+	display: none !important;
 }
 
 /* ---------- Fields / Form items ---------- */
 body.arco-employee-form .form-column .form-group,
 .page-container[data-page-route^="Form/Employee"] .form-column .form-group {
-	margin-bottom: 14px;
+	margin-bottom: 18px;
 }
 
 body.arco-employee-form .form-group .control-label,
 body.arco-employee-form .frappe-control .control-label,
 .page-container[data-page-route^="Form/Employee"] .form-group .control-label {
 	font-size: 13px;
-	font-weight: 500;
-	color: var(--hr-emp-text-2);
-	margin-bottom: 4px;
+	font-weight: 400;
+	color: #86909c;
+	margin-bottom: 6px;
 }
 
 body.arco-employee-form .form-control,
@@ -232,16 +301,35 @@ body.arco-employee-form .frappe-control[data-fieldtype="Currency"] input,
 body.arco-employee-form .frappe-control[data-fieldtype="Phone"] input,
 .page-container[data-page-route^="Form/Employee"] .form-control,
 .page-container[data-page-route^="Form/Employee"] .input-with-feedback {
-	border-radius: var(--hr-emp-radius-sm) !important;
-	border: 1px solid var(--hr-emp-border) !important;
-	background: #fff !important;
-	min-height: 32px;
-	height: 32px;
-	font-size: 13px;
-	color: var(--hr-emp-text);
+	border-radius: 8px !important;
+	border: 1px solid transparent !important;
+	background: #f2f3f5 !important;
+	min-height: 36px;
+	height: 36px;
+	font-size: 14px;
+	color: #1d2129;
 	box-shadow: none !important;
-	padding: 4px 12px;
-	transition: border-color 0.15s ease, box-shadow 0.15s ease;
+	padding: 6px 12px;
+	transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.arco-employee-form .form-control:hover,
+body.arco-employee-form .input-with-feedback:hover,
+body.arco-employee-form .frappe-control .control-input input:hover,
+body.arco-employee-form .frappe-control .control-input select:hover,
+.page-container[data-page-route^="Form/Employee"] .form-control:hover {
+	background: #e5e6eb !important;
+	border-color: transparent !important;
+}
+
+body.arco-employee-form .form-control:focus,
+body.arco-employee-form .input-with-feedback:focus,
+body.arco-employee-form .frappe-control .control-input input:focus,
+body.arco-employee-form .frappe-control .control-input select:focus,
+.page-container[data-page-route^="Form/Employee"] .form-control:focus {
+	background: #ffffff !important;
+	border-color: var(--hr-emp-primary) !important;
+	box-shadow: 0 0 0 2px rgba(22, 93, 255, 0.12) !important;
 }
 
 body.arco-employee-form textarea.form-control,
@@ -250,7 +338,7 @@ body.arco-employee-form .frappe-control[data-fieldtype="Text"] textarea,
 body.arco-employee-form .frappe-control[data-fieldtype="Long Text"] textarea,
 .page-container[data-page-route^="Form/Employee"] textarea.form-control {
 	height: auto !important;
-	min-height: 72px;
+	min-height: 96px;
 	line-height: 1.5;
 	padding: 8px 12px;
 }
@@ -277,9 +365,9 @@ body.arco-employee-form .frappe-control .control-value,
 .page-container[data-page-route^="Form/Employee"] .control-value {
 	font-size: 13px;
 	color: var(--hr-emp-text);
-	min-height: 32px;
-	line-height: 32px;
-	padding: 0 4px;
+	min-height: 40px;
+	line-height: 40px;
+	padding: 0 8px;
 }
 
 body.arco-employee-form .frappe-control[data-fieldtype="Check"] .label-area,
@@ -291,6 +379,145 @@ body.arco-employee-form .frappe-control[data-fieldtype="Check"] .label-area,
 body.arco-employee-form .frappe-control .link-btn,
 .page-container[data-page-route^="Form/Employee"] .frappe-control .link-btn {
 	border-radius: var(--hr-emp-radius-sm);
+}
+
+/* Link 字段自带的「打开链接」跳转：员工表单组织类字段不需要 */
+body.arco-employee-form .frappe-control .link-btn .btn-open,
+.page-container[data-page-route^="Form/Employee"] .frappe-control .link-btn .btn-open {
+	display: none !important;
+	visibility: hidden !important;
+	pointer-events: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+	margin: 0 !important;
+	padding: 0 !important;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Link"] .control-input-wrapper,
+body.arco-employee-form .frappe-control[data-fieldtype="Autocomplete"] .control-input-wrapper,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Link"] .control-input-wrapper,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Autocomplete"] .control-input-wrapper {
+	position: relative;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Link"] .control-input input,
+body.arco-employee-form .frappe-control[data-fieldtype="Autocomplete"] .control-input input,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Link"] .control-input input,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Autocomplete"] .control-input input {
+	padding-right: 36px !important;
+	cursor: text;
+}
+
+/* 清除旧的 wrapper 伪元素，箭头改为绑定实际输入容器，避免聚焦时产生白条。 */
+body.arco-employee-form .frappe-control[data-fieldtype="Link"] .control-input-wrapper::after,
+body.arco-employee-form .frappe-control[data-fieldtype="Autocomplete"] .control-input-wrapper::after,
+body.arco-employee-form .frappe-control[data-fieldtype="Select"] .control-input-wrapper::after,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Link"] .control-input-wrapper::after,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Autocomplete"] .control-input-wrapper::after {
+	content: none;
+}
+
+body.arco-employee-form .arco-emp-choice-trigger,
+.page-container[data-page-route^="Form/Employee"] .arco-emp-choice-trigger {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 36px;
+	height: 36px;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	border-radius: 0 8px 8px 0;
+	background: transparent;
+	color: #86909c;
+	cursor: pointer;
+	z-index: 5;
+}
+
+body.arco-employee-form .arco-emp-choice-trigger:hover,
+.page-container[data-page-route^="Form/Employee"] .arco-emp-choice-trigger:hover {
+	background: rgba(78, 89, 105, 0.08);
+}
+
+body.arco-employee-form .arco-emp-choice-trigger:focus-visible,
+.page-container[data-page-route^="Form/Employee"] .arco-emp-choice-trigger:focus-visible {
+	outline: 2px solid var(--hr-emp-primary);
+	outline-offset: -2px;
+}
+
+body.arco-employee-form .arco-emp-choice-trigger > span,
+.page-container[data-page-route^="Form/Employee"] .arco-emp-choice-trigger > span {
+	display: block;
+	width: 12px;
+	height: 12px;
+	margin: auto;
+	background: center / 12px 12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%2386909c' d='M2.2 4.2a.75.75 0 0 1 1.06 0L6 6.94l2.74-2.74a.75.75 0 1 1 1.06 1.06l-3.27 3.27a.75.75 0 0 1-1.06 0L2.2 5.26a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Autocomplete"] .control-input,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Autocomplete"] .control-input {
+	position: relative;
+}
+
+/* Frappe 聚焦 Link 时会显示 link-btn；移除它的底色并让清除按钮避开下拉箭头。 */
+body.arco-employee-form .frappe-control[data-fieldtype="Link"] .link-btn,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Link"] .link-btn {
+	right: 30px !important;
+	width: 24px !important;
+	height: 100% !important;
+	padding: 0 !important;
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	z-index: 4;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Link"] .link-btn:has(.btn-clear[style*="display: none"]),
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Link"] .link-btn:has(.btn-clear[style*="display: none"]) {
+	display: none !important;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Select"] select,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Select"] select {
+	padding-right: 36px !important;
+	appearance: none;
+	-webkit-appearance: none;
+	background-image: none !important;
+	cursor: pointer;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Select"] .control-input,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Select"] .control-input {
+	position: relative;
+}
+
+/* 用单一向下箭头替换 Frappe 的 chevrons-up-down，保持 Arco Select 的视觉语义。 */
+body.arco-employee-form .frappe-control[data-fieldtype="Select"] .select-icon,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Select"] .select-icon {
+	position: absolute !important;
+	top: 50% !important;
+	right: 12px !important;
+	width: 14px !important;
+	height: 14px !important;
+	display: flex !important;
+	align-items: center;
+	justify-content: center;
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Select"] .select-icon > svg,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Select"] .select-icon > svg {
+	display: none !important;
+}
+
+body.arco-employee-form .frappe-control[data-fieldtype="Select"] .select-icon::after,
+.page-container[data-page-route^="Form/Employee"] .frappe-control[data-fieldtype="Select"] .select-icon::after {
+	content: "";
+	width: 12px;
+	height: 12px;
+	background: center / 12px 12px no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath fill='%2386909c' d='M2.2 4.2a.75.75 0 0 1 1.06 0L6 6.94l2.74-2.74a.75.75 0 1 1 1.06 1.06l-3.27 3.27a.75.75 0 0 1-1.06 0L2.2 5.26a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
 }
 
 body.arco-employee-form .help-box,
@@ -633,8 +860,18 @@ body.arco-employee-form .form-section.empty-section.hide-control,
 
 /* 概况页：隐藏原生分区，改由 Vue 摘要面板展示 */
 .arco-employee-form-page.arco-emp-overview-active .form-layout .form-section.arco-emp-native-hidden,
-body.arco-employee-form .arco-employee-form-page.arco-emp-overview-active .form-section.arco-emp-native-hidden {
+body.arco-employee-form .arco-employee-form-page.arco-emp-overview-active .form-section.arco-emp-native-hidden,
+.arco-employee-form-page.arco-emp-archive-active .form-layout .form-section.arco-emp-native-hidden,
+body.arco-employee-form .arco-employee-form-page.arco-emp-archive-active .form-section.arco-emp-native-hidden {
 	display: none !important;
+}
+
+#employee-arco-archive-root {
+	margin: 0 0 10px;
+}
+
+.arco-employee-form-page.arco-emp-tab-entering #employee-arco-archive-root {
+	animation: arco-emp-tab-in 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ---------- Responsive ---------- */
@@ -865,6 +1102,21 @@ html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .page-
 	color: var(--hr-emp-text-2);
 }
 
+html[data-theme="dark"] body.arco-employee-form .form-section.card-section,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-section.card-section,
+html[data-theme="dark"] body.arco-employee-form .arco-emp-section,
+html[arco-theme="dark"] body.arco-employee-form .arco-emp-section {
+	background: var(--hr-emp-card, #232324) !important;
+	border-color: var(--hr-emp-border, rgba(255, 255, 255, 0.08)) !important;
+	box-shadow: none !important;
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-section .section-head,
+html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-section .section-head {
+	background: transparent !important;
+	color: var(--hr-emp-text, rgba(255, 255, 255, 0.9));
+}
+
 html[data-theme="dark"] body.arco-employee-form .form-control,
 html[data-theme="dark"] body.arco-employee-form .input-with-feedback,
 html[data-theme="dark"] body.arco-employee-form .frappe-control .control-input input,
@@ -873,8 +1125,20 @@ html[data-theme="dark"] body.arco-employee-form .frappe-control .control-input t
 html[arco-theme="dark"] body.arco-employee-form .form-control,
 html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .form-control,
 html[arco-theme="dark"] .page-container[data-page-route^="Form/Employee"] .input-with-feedback {
-	background: var(--hr-emp-card) !important;
+	background: rgba(255, 255, 255, 0.06) !important;
+	border-color: transparent !important;
 	color: var(--hr-emp-text);
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-control:hover,
+html[arco-theme="dark"] body.arco-employee-form .form-control:hover {
+	background: rgba(255, 255, 255, 0.1) !important;
+}
+
+html[data-theme="dark"] body.arco-employee-form .form-control:focus,
+html[arco-theme="dark"] body.arco-employee-form .form-control:focus {
+	background: rgba(255, 255, 255, 0.08) !important;
+	border-color: var(--hr-emp-primary) !important;
 }
 
 html[data-theme="dark"] body.arco-employee-form .form-grid,

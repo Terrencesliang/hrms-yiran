@@ -8,7 +8,17 @@
  "name": "roster",
  "owner": "Administrator",
  "page_name": "roster",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "standard": "Yes",
  "system_page": 0,
  "title": "员工花名册"

@@ -15,7 +15,7 @@ export const EMPLOYMENT_TYPE_LABELS = {
 
 export function dash(value) {
 	if (value === 0) return value;
-	if (value == null || value === "") return "—";
+	if (value == null || value === "") return "-";
 	return value;
 }
 
@@ -42,13 +42,13 @@ export function probationStatusText(state) {
 	if (state?.employment_type === "Full-time" && state?.status === "Active") {
 		return "已转正";
 	}
-	return "—";
+	return "-";
 }
 
 export function joinDateLine(state) {
 	const date = dash(state?.date_of_joining);
 	const days = Number(state?.tenure_days);
-	if (!Number.isFinite(days) || date === "—") return date;
+	if (!Number.isFinite(days) || date === "-") return date;
 	return `${date}（入职第 ${days} 天）`;
 }
 
@@ -58,19 +58,32 @@ export function workCityLine(state) {
 
 export function departmentLine(state) {
 	const dept = state?.department;
-	const company = state?.company;
-	if (dept && company) return `${dept} - ${company}`;
-	return dash(dept || company);
+	const group = state?.group_name;
+	if (dept && group) return `${dept} · ${group}`;
+	return dash(dept || group);
+}
+
+export function headerMetaParts(state) {
+	const days = Number(state?.tenure_days);
+	const parts = [
+		dash(state?.employee_number),
+		dash(state?.designation),
+		departmentLine(state),
+		dash(state?.company),
+		workCityLine(state),
+	].filter((v) => v !== "-");
+	if (Number.isFinite(days) && days >= 0) {
+		parts.push(`入职第 ${days} 天`);
+	}
+	return parts;
 }
 
 export function headerMetaLine(state) {
-	const parts = [dash(state?.employee_number), dash(state?.designation), departmentLine(state)].filter(
-		(v) => v !== "—"
-	);
-	return parts.length ? parts.join(" ｜ ") : "—";
+	const parts = headerMetaParts(state);
+	return parts.length ? parts.join(" ｜ ") : "-";
 }
 
 export function headerCompanyLine(state) {
-	const parts = [dash(state?.company), workCityLine(state)].filter((v) => v !== "—");
-	return parts.length ? parts.join(" ｜ ") : "—";
+	const parts = [dash(state?.company), workCityLine(state)].filter((v) => v !== "-");
+	return parts.length ? parts.join(" ｜ ") : "-";
 }

@@ -58,6 +58,8 @@ def hide_hr_setup_sidebar_links():
 
 def after_install():
 	from employee_roster.patches.post_fixture_sync.ensure_employee_group_name_field import execute as ensure_group_name_field
+	from employee_roster.patches.post_fixture_sync.ensure_cn_employee_fields import execute as ensure_cn_employee_fields
+	from employee_roster.patches.post_fixture_sync.ensure_employee_archive_schema import execute as ensure_employee_archive_schema
 	from employee_roster.patches.v1_0.ensure_employee_checkin_day_fields import (
 		ensure_employee_checkin_day_fields,
 	)
@@ -68,6 +70,8 @@ def after_install():
 
 	seed_document_types()
 	ensure_group_name_field()
+	ensure_cn_employee_fields()
+	ensure_employee_archive_schema()
 	ensure_org_custom_fields()
 	ensure_employee_checkin_day_fields()
 	sync_hr_roster_sidebar()
@@ -102,8 +106,20 @@ def sync_sidebar():
 	doc = frappe.get_doc("Sidebar", "HR Setup")
 	changed = False
 
-	for row in doc.items:
-		if row.label in ("Home", "主页") and (
+	has_employee_entry = any(row.link_to == "Employee" for row in doc.items)
+	for row in list(doc.items):
+		if row.link_to == "roster":
+			if has_employee_entry:
+				doc.remove(row)
+				changed = True
+				continue
+			row.label = "员工花名册"
+			row.link_type = "DocType"
+			row.link_to = "Employee"
+			row.type = "Link"
+			has_employee_entry = True
+			changed = True
+		elif row.label in ("Home", "主页") and (
 			row.link_type != "Page" or row.link_to != "hr-home"
 		):
 			row.link_type = "Page"
@@ -120,7 +136,7 @@ def sync_sidebar():
 
 	if not any(row.link_to == "employee-archive" for row in doc.items):
 		roster_idx = next(
-			(idx for idx, row in enumerate(doc.items) if row.link_to == "roster"),
+			(idx for idx, row in enumerate(doc.items) if row.link_to == "Employee"),
 			None,
 		)
 		items = [row.as_dict() for row in doc.items]

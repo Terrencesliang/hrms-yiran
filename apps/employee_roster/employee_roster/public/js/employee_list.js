@@ -1,8 +1,8 @@
 // Copyright (c) 2026 stillgroup
 // License: MIT
 /**
- * Employee List View — Arco Design Pro 风格：
- * 人员概览 data-panel + 筛选卡片 + 列表卡片 + 状态/雇佣类型 Tag
+ * Employee List View — Arco Design 员工名录工作区：
+ * 轻量状态导航 + 组合搜索 + 表格懒加载。
  */
 (function () {
 	const DOCTYPE = "Employee";
@@ -36,8 +36,9 @@
 				prev_onload(listview);
 			}
 			set_default_sort(listview);
+			set_lazy_page_size(listview);
 			enhance_list_shell(listview);
-			inject_stat_board(listview);
+			enable_automatic_refresh(listview);
 			refresh_stat_board(listview);
 			queue_employee_table_sync(listview);
 		},
@@ -57,15 +58,7 @@
 				prev_refresh(listview);
 			}
 			enhance_list_shell(listview);
-			if (
-				!listview.$hr_stat_board ||
-				!listview.$hr_stat_board.length ||
-				!document.documentElement.contains(listview.$hr_stat_board.get(0))
-			) {
-				inject_stat_board(listview);
-			}
 			refresh_stat_board(listview);
-			sync_list_toolbar(listview);
 			queue_employee_table_sync(listview);
 		},
 
@@ -110,7 +103,11 @@
 				} catch (error) {
 					console.warn("[employee-list] desk header unmount failed", error);
 				}
-				listview.$hr_desk_header_app = window.OrgUI.mountEmployeeListDeskHeader($header.get(0));
+				listview.$hr_desk_header_app = window.OrgUI.mountEmployeeListDeskHeader(
+					$header.get(0),
+					{ canCreate: !!frappe.model?.can_create?.(DOCTYPE) },
+					{ onCreate: () => frappe.new_doc(DOCTYPE) },
+				);
 			}
 		}
 
@@ -132,27 +129,48 @@
 
 		if (!$list.parent().hasClass("hr-emp-table-card")) {
 			$list.wrap('<div class="hr-emp-table-card"></div>');
-			$list.before(`
-				<div class="hr-emp-table-toolbar">
-					<div class="hr-emp-table-toolbar-left">
-						<span class="hr-emp-table-title">${__("员工名录")}</span>
-						<span class="hr-emp-table-count"></span>
-					</div>
-				</div>
-			`);
 		}
 		listview.$hr_emp_table = $list.closest(".hr-emp-table-card");
+		listview.$hr_emp_table.find(".hr-emp-table-toolbar").remove();
 		$list.addClass("hr-employee-native-list");
 		mount_employee_table(listview, $list);
-		sync_list_toolbar(listview);
 	}
 
 	function set_default_sort(listview) {
 		if (listview._hr_employee_sort_initialized) return;
 		listview._hr_employee_sort_initialized = true;
-		listview.sort_by = "employee_name";
+		listview.sort_by = "employee_number";
 		listview.sort_order = "asc";
-		listview.sort_selector?.set_value?.("employee_name", "asc");
+		listview.sort_selector?.set_value?.("employee_number", "asc");
+	}
+
+	function set_lazy_page_size(listview) {
+		if (listview._hr_employee_lazy_size_initialized) return;
+		listview._hr_employee_lazy_size_initialized = true;
+		listview.start = 0;
+		listview.page_length = 2500;
+	}
+
+	function enable_automatic_refresh(listview) {
+		if (listview._hr_employee_auto_refresh_initialized) return;
+		listview._hr_employee_auto_refresh_initialized = true;
+
+		const refreshWhenVisible = () => {
+			if (window.cur_list !== listview || listview.doctype !== DOCTYPE) return;
+			window.clearTimeout(listview._hr_employee_auto_refresh_timer);
+			listview._hr_employee_auto_refresh_timer = window.setTimeout(() => {
+				listview.start = 0;
+				listview.refresh?.();
+			}, 250);
+		};
+
+		frappe.realtime?.on?.("list_update", (event) => {
+			if (event?.doctype === DOCTYPE) refreshWhenVisible();
+		});
+		frappe.router?.on?.("change", () => {
+			const route = frappe.get_route?.() || [];
+			if (route[0] === "List" && route[1] === DOCTYPE) refreshWhenVisible();
+		});
 	}
 
 	function mount_employee_table(listview, $list) {
@@ -160,22 +178,49 @@
 		if (!$card.length || $card.find(".hr-employee-arco-table-host").length) return;
 
 		const $host = $('<div class="hr-employee-arco-table-host"></div>');
-		$card.find(".hr-emp-table-toolbar").after($host);
+		$card.prepend($host);
 		if (!window.OrgUI?.mountEmployeeRosterTable) return;
 
 		listview.$hr_employee_table_app = window.OrgUI.mountEmployeeRosterTable(
 			$host.get(0),
 			{},
 			{
+				onCreate() {
+					frappe.new_doc(DOCTYPE);
+				},
+				onFilterOpen() {
+					const $button = listview.$page.find(".page-form .filter-button").first();
+					if ($button.length) $button.trigger("click");
+				},
+				onStatusFilter: async (item) => {
+					const current = get_filter_value(listview, item.field);
+					const currentOp = get_filter_operator(listview, item.field);
+					if (current === item.valueKey && currentOp === (item.operator || "=")) {
+						await remove_filter(listview, item.field);
+					} else {
+						await clear_status_filters(listview);
+						await set_filter(listview, item.field, item.valueKey, item.operator || "=");
+					}
+					queue_employee_table_sync(listview);
+				},
+				onClearStatus: async () => {
+					await clear_status_filters(listview);
+					queue_employee_table_sync(listview);
+				},
 				onOpen(record) {
 					if (record?.name) frappe.set_route("Form", DOCTYPE, record.name);
 				},
 				onSort(field, order) {
-					const nextField = field === "date_of_joining" ? "date_of_joining" : "employee_name";
+					const nextField = field === "date_of_joining" ? "date_of_joining" : "employee_number";
 					const nextOrder = order === "desc" ? "desc" : "asc";
 					listview.sort_by = nextField;
 					listview.sort_order = nextOrder;
 					listview.sort_selector?.set_value?.(nextField, nextOrder);
+					// 先同步前端状态，立刻按数值重排，避免等列表刷新时倒序被字符串序打乱
+					window.OrgUI?.updateEmployeeRosterTable?.({
+						sortBy: nextField,
+						sortOrder: nextOrder,
+					});
 					if (typeof listview.on_sort_change === "function") {
 						listview.on_sort_change(nextField, nextOrder);
 					} else {
@@ -188,13 +233,16 @@
 
 	function sync_employee_table(listview) {
 		if (!window.OrgUI?.updateEmployeeRosterTable) return;
-		const sortBy = ["employee_name", "date_of_joining"].includes(listview.sort_by)
+		const sortBy = ["employee_number", "date_of_joining"].includes(listview.sort_by)
 			? listview.sort_by
-			: "employee_name";
+			: "employee_number";
 		window.OrgUI.updateEmployeeRosterTable({
 			rows: listview.data || [],
-			total: listview.total_count ?? (listview.data || []).length,
 			loading: false,
+			canCreate: !!frappe.model?.can_create?.(DOCTYPE),
+			canDelete: !!frappe.model?.can_delete?.(DOCTYPE),
+			filters: current_filters(listview),
+			activeFilterCount: current_filters(listview).length,
 			sortBy,
 			sortOrder: listview.sort_order === "desc" ? "desc" : "asc",
 		});
@@ -205,103 +253,27 @@
 		window.clearTimeout(listview._hr_employee_table_count_timer);
 		listview._hr_employee_table_sync_timer = window.setTimeout(() => {
 			sync_employee_table(listview);
-			sync_list_toolbar(listview);
 		}, 0);
 		listview._hr_employee_table_count_timer = window.setTimeout(() => {
 			sync_employee_table(listview);
-			sync_list_toolbar(listview);
-			localize_paging_controls(listview);
 		}, 600);
 	}
 
-	function localize_paging_controls(listview) {
-		const $card = listview.$hr_emp_table;
-		if (!$card?.length) return;
-		$card
-			.find('.list-paging-area [role="radiogroup"]')
-			.attr("aria-label", __("每页条数"));
-	}
-
-	function sync_list_toolbar(listview) {
-		const $card = listview.$hr_emp_table;
-		if (!$card || !$card.length) {
-			return;
-		}
-		const total = listview.total_count ?? (listview.data && listview.data.length) ?? 0;
-		$card.find(".hr-emp-table-count").text(`${__("共")} ${total} ${__("人")}`);
-	}
-
-	function inject_stat_board(listview) {
-		const $section = listview.$page.find(".layout-main-section");
-		if (!$section.length) {
-			return;
-		}
-
-		$section.addClass("hr-employee-list-page");
-		enhance_list_shell(listview);
-		const $existing = $section.find(".hr-employee-list-stats").first();
-		if ($existing.length) {
-			listview.$hr_stat_board = $existing;
-			return;
-		}
-		try {
-			listview.$hr_employee_overview_app?.unmount?.();
-		} catch (error) {
-			console.warn("[employee-list] overview unmount failed", error);
-		}
-
-		const $board = $(`
-			<div class="hr-roster-page hr-employee-list-stats">
-				<div class="hr-employee-list-overview-root"></div>
-			</div>
-		`);
-
-		const $page_form = $section.find(".page-form").first();
-		if ($page_form.length) {
-			$page_form.after($board);
-		} else {
-			$section.prepend($board);
-		}
-
-		listview.$hr_stat_board = $board;
-		const mountEl = $board.find(".hr-employee-list-overview-root").get(0);
-		if (!mountEl || !window.OrgUI?.mountEmployeeListOverview) return;
-		listview.$hr_employee_overview_app = window.OrgUI.mountEmployeeListOverview(mountEl, {}, {
-			onFilter: async (item) => {
-				const current = get_filter_value(listview, item.field);
-				const currentOp = get_filter_operator(listview, item.field);
-				if (current === item.valueKey && currentOp === item.operator) {
-					await remove_filter(listview, item.field);
-				} else {
-					await set_filter(listview, item.field, item.valueKey, item.operator);
-				}
-				sync_stat_active(listview.$hr_stat_board, listview);
-			},
-		});
-	}
-
 	function refresh_stat_board(listview) {
-		const $board = listview.$hr_stat_board;
-		if (!$board || !$board.length) {
-			return;
-		}
-
 		const company = get_filter_value(listview, "company") || "";
 
 		frappe.call({
 			method: "employee_roster.hr_roster.page.roster.roster.get_employee_stats",
 			args: { company },
 			callback(r) {
-				if (!r.message || !listview.$hr_stat_board) {
-					return;
-				}
-				window.OrgUI?.updateEmployeeListOverview?.({
+				if (!r.message) return;
+				window.OrgUI?.updateEmployeeRosterTable?.({
 					total: r.message.total || 0,
 					active: r.message.active || 0,
-					inactive: r.message.inactive || 0,
 					left: r.message.left || 0,
 					employmentCounts: r.message.employment_counts || {},
 					filters: current_filters(listview),
+					activeFilterCount: current_filters(listview).length,
 				});
 			},
 		});
@@ -313,10 +285,6 @@
 			operator: filter[2],
 			value: filter[3],
 		}));
-	}
-
-	function sync_stat_active($wrap, listview) {
-		window.OrgUI?.updateEmployeeListOverview?.({ filters: current_filters(listview) });
 	}
 
 	function render_status_tag(value) {
@@ -369,5 +337,11 @@
 	async function set_filter(listview, fieldname, value, operator) {
 		await remove_filter(listview, fieldname);
 		await listview.filter_area.add([[listview.doctype, fieldname, operator || "=", value]]);
+	}
+
+	async function clear_status_filters(listview) {
+		for (const fieldname of ["status", "designation", "employment_type"]) {
+			if (get_filter_value(listview, fieldname)) await remove_filter(listview, fieldname);
+		}
 	}
 })();
