@@ -133,8 +133,22 @@ def get_client():
 	return CosS3Client(config)
 
 
-def write_file(file_doc):
-	"""Frappe write_file hook: persist HR business files in COS."""
+def write_file(*args, **kwargs):
+	"""Frappe write_file hook: persist HR business files in COS.
+
+	兼容两代 Frappe 调用约定:
+	- 旧版(`frappe.utils.file_manager.save_file`):
+	    write_file(fname, content, content_type=..., is_private=...)
+	- 新版:`write_file(file_doc)`
+	旧版环境(Frappe 17.0.0-dev 19e451d 及更早)下直接回退本地磁盘存储,
+	避免出现 `write_file() got an unexpected keyword argument 'content_type'`。
+	"""
+	if args and isinstance(args[0], str):
+		from frappe.utils.file_manager import save_file_on_filesystem
+
+		return save_file_on_filesystem(*args, **kwargs)
+
+	file_doc = args[0]
 	if not should_store_in_cos(file_doc):
 		return file_doc.save_file_on_filesystem()
 
