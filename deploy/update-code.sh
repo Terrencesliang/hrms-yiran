@@ -69,6 +69,11 @@ for _ in $(seq 1 30); do
 done
 sleep 20   # 等 bench 各进程起来
 
+# 安装应用新增/变更的 Python 依赖(读 pyproject,避免出现 No module named 'xxx')
+log "4.5/6 同步应用 Python 依赖(employee_roster)..."
+docker exec "${BACKEND_CONTAINER}" bash -c \
+	"cd /home/frappe/frappe-bench && env/bin/python /workspace/source/deploy/scripts/install_app_deps.py 2>&1 | tail -6" || true
+
 # migrate
 log "5/6 执行数据库迁移 bench --site ${SITE_NAME} migrate ..."
 docker exec "${BACKEND_CONTAINER}" bash -c \
