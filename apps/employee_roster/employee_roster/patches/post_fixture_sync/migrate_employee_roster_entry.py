@@ -9,7 +9,7 @@ def execute():
 	for sidebar_name in ("HR Setup", "hr_roster"):
 		if not frappe.db.exists("Sidebar", sidebar_name):
 			continue
-			doc = frappe.get_doc("Sidebar", sidebar_name)
+		doc = frappe.get_doc("Sidebar", sidebar_name)
 		changed = False
 		has_employee_entry = any(row.link_to == "Employee" for row in doc.items)
 		for row in list(doc.items):
