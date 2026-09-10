@@ -276,3 +276,28 @@ def download_file(key: str):
 	)
 	frappe.local.response["type"] = "redirect"
 	frappe.local.response["location"] = location
+
+
+@frappe.whitelist()
+def preview_file(key: str):
+	"""Authorize through Frappe, then stream the PDF inline for in-browser preview."""
+	from frappe.core.doctype.file.utils import find_file_by_url
+
+	expected_url = build_file_url(_decode_key(key))
+	file_doc = find_file_by_url(expected_url)
+	if not file_doc:
+		frappe.throw(_("You do not have permission to access this file"), frappe.PermissionError)
+	file_doc.check_permission("read")
+	if is_cos_file_url(file_doc.file_url):
+		if not is_enabled():
+			frappe.throw(_("You do not have permission to access this file"), frappe.PermissionError)
+		content = get_object_content(file_doc.file_url)
+	else:
+		content = file_doc.get_content()
+		content = content.encode() if isinstance(content, str) else content
+	filename = file_doc.file_name or "contract.pdf"
+	if not str(filename).lower().endswith(".pdf"):
+		filename = f"{filename}.pdf"
+	frappe.local.response.filename = filename
+	frappe.local.response.filecontent = content
+	frappe.local.response.type = "pdf"

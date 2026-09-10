@@ -45,3 +45,14 @@ def notify_users(
 		except Exception:
 			# mail optional
 			pass
+	try:
+		from employee_roster.integrations.wecom.service import notify_system_users
+
+		notify_system_users(
+			list(seen),
+			subject=subject,
+			message=message,
+		)
+	except Exception:
+		# 企业微信未配置或暂时不可用时，不阻断审批流。
+		frappe.log_error(frappe.get_traceback(), "Approval WeCom notify failed")

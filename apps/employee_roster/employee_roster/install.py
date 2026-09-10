@@ -65,6 +65,7 @@ def after_install():
 	)
 	from employee_roster.hr_roster.attendance_deduction.setup import setup_attendance_deduction_module
 	from employee_roster.hr_roster.org_fields import ensure_org_custom_fields
+	from employee_roster.integrations.wecom.setup import ensure_wecom_custom_fields
 
 	from employee_roster.hr_roster.approval_admin import seed_approval_admin_data
 
@@ -74,6 +75,7 @@ def after_install():
 	ensure_employee_archive_schema()
 	ensure_org_custom_fields()
 	ensure_employee_checkin_day_fields()
+	ensure_wecom_custom_fields()
 	sync_hr_roster_sidebar()
 	hide_hr_setup_sidebar_links()
 	hide_hr_setup_workspace()

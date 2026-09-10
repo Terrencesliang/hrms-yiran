@@ -1,0 +1,111 @@
+{
+ "actions": [],
+ "allow_rename": 0,
+ "autoname": "field:report_key",
+ "creation": "2026-09-10 14:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "report_key",
+  "employee",
+  "employee_name",
+  "wecom_userid",
+  "start_date",
+  "end_date",
+  "summary_section",
+  "work_days",
+  "regular_days",
+  "rest_days",
+  "except_days",
+  "column_break_1",
+  "regular_work_hours",
+  "standard_work_hours",
+  "late_count",
+  "late_minutes",
+  "early_count",
+  "early_minutes",
+  "missing_punch_count",
+  "absent_count",
+  "absent_hours",
+  "raw_data",
+  "last_synced_on"
+ ],
+ "fields": [
+  {
+   "fieldname": "report_key",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "报告键",
+   "read_only": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "员工",
+   "options": "Employee",
+   "reqd": 1
+  },
+  {
+   "fetch_from": "employee.employee_name",
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "员工姓名",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wecom_userid",
+   "fieldtype": "Data",
+   "label": "企业微信 UserID",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "开始日期",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "结束日期",
+   "reqd": 1
+  },
+  {
+   "fieldname": "summary_section",
+   "fieldtype": "Section Break",
+   "label": "月报汇总"
+  },
+  {"fieldname": "work_days", "fieldtype": "Int", "label": "应出勤天数", "read_only": 1},
+  {"fieldname": "regular_days", "fieldtype": "Int", "label": "正常天数", "read_only": 1},
+  {"fieldname": "rest_days", "fieldtype": "Int", "label": "休息天数", "read_only": 1},
+  {"fieldname": "except_days", "fieldtype": "Int", "label": "异常天数", "read_only": 1},
+  {"fieldname": "column_break_1", "fieldtype": "Column Break"},
+  {"fieldname": "regular_work_hours", "fieldtype": "Float", "label": "实际工时", "read_only": 1},
+  {"fieldname": "standard_work_hours", "fieldtype": "Float", "label": "标准工时", "read_only": 1},
+  {"fieldname": "late_count", "fieldtype": "Int", "label": "迟到次数", "read_only": 1},
+  {"fieldname": "late_minutes", "fieldtype": "Float", "label": "迟到分钟", "read_only": 1},
+  {"fieldname": "early_count", "fieldtype": "Int", "label": "早退次数", "read_only": 1},
+  {"fieldname": "early_minutes", "fieldtype": "Float", "label": "早退分钟", "read_only": 1},
+  {"fieldname": "missing_punch_count", "fieldtype": "Int", "label": "缺卡次数", "read_only": 1},
+  {"fieldname": "absent_count", "fieldtype": "Int", "label": "旷工次数", "read_only": 1},
+  {"fieldname": "absent_hours", "fieldtype": "Float", "label": "旷工小时", "read_only": 1},
+  {"fieldname": "raw_data", "fieldtype": "Long Text", "hidden": 1, "label": "企微原始数据", "read_only": 1},
+  {"fieldname": "last_synced_on", "fieldtype": "Datetime", "label": "最后同步时间", "read_only": 1}
+ ],
+ "module": "hr_roster",
+ "name": "WeCom Attendance Monthly",
+ "permissions": [
+  {"read": 1, "role": "HR User"},
+  {"create": 1, "delete": 1, "read": 1, "role": "HR Manager", "write": 1}
+ ],
+ "sort_field": "start_date",
+ "sort_order": "DESC",
+ "track_changes": 1
+}

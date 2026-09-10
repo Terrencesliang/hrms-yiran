@@ -89,7 +89,7 @@
 						<a-link v-if="status === 'signed'" @click="onDownload(record)">下载</a-link>
 						<a-link v-if="record.retryable" status="danger" @click="onRetry(record)">重试</a-link>
 						<a-link @click="onSync(record)">同步</a-link>
-						<a-link @click="openDetail(record)">查看</a-link>
+						<a-link @click="onView(record)">查看</a-link>
 					</div>
 				</template>
 			</a-table>
@@ -442,6 +442,7 @@ function normalizeRow(row, index) {
 		voidAt: row?.cancelled_on || row?.voidAt || "",
 		voidReason: row?.error_status || row?.voidReason || "—",
 		updatedAt: row?.modified || row?.updated_at || row?.updatedAt || "",
+		signedFile: row?.signed_file || row?.signedFile || "",
 		error: row?.error_status || row?.error || row?.error_message || row?.last_error || "",
 	};
 }
@@ -469,25 +470,30 @@ function archiveColor(value) {
 	return "gray";
 }
 
-function safeOpen(result) {
+function safeOpen(result, { preview = false } = {}) {
 	const value =
 		(typeof result === "string" ? result : "") ||
 		result?.url ||
 		result?.sign_url ||
 		result?.download_url ||
+		result?.preview_url ||
 		result?.data?.url ||
 		result?.data?.sign_url ||
 		result?.data?.download_url ||
+		result?.data?.preview_url ||
 		"";
 	if (!value) return false;
 	try {
-		const url = new URL(value, window.location.origin);
+		let href = value;
+		if (preview) {
+			href = String(value).replace(
+				"employee_roster.integrations.tencent_cos.storage.download_file",
+				"employee_roster.integrations.tencent_cos.storage.preview_file"
+			);
+		}
+		const url = new URL(href, window.location.origin);
 		if (!["http:", "https:"].includes(url.protocol)) return false;
-		const link = document.createElement("a");
-		link.href = url.href;
-		link.target = "_blank";
-		link.rel = "noopener noreferrer";
-		link.click();
+		window.open(url.href, "_blank", "noopener,noreferrer");
 		return true;
 	} catch (error) {
 		return false;
@@ -524,6 +530,26 @@ async function openDetail(record) {
 	} finally {
 		detailLoading.value = false;
 	}
+}
+
+async function onPreviewFile(record) {
+	const localUrl = record.signedFile || record.signed_file || "";
+	if (localUrl && safeOpen(localUrl, { preview: true })) return;
+	try {
+		const result = await downloadSignedContract(signingKey(record));
+		if (!safeOpen(result, { preview: true })) Message.error("后端未返回可预览的合同文件地址");
+	} catch (error) {
+		console.warn("[contract-signing] preview failed", error);
+		Message.error(error?.message || "打开合同预览失败");
+	}
+}
+
+async function onView(record) {
+	if (props.status === "signed" || record.signedFile || record.signed_file) {
+		await onPreviewFile(record);
+		return;
+	}
+	await openDetail(record);
 }
 
 async function runAction(record, action, successMessage) {
