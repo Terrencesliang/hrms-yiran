@@ -5,17 +5,11 @@
 				:company="company"
 				:company-options="companyOptions"
 				:keyword="keyword"
-				:view-mode="viewMode"
 				:depth="depth"
-				:zoom="zoom"
 				@update:company="company = $event"
 				@update:keyword="keyword = $event"
-				@update:view-mode="viewMode = $event"
 				@update:depth="depth = $event"
 				@company-change="loadDiagram"
-				@zoom-out="setZoom(zoom - 10)"
-				@zoom-in="setZoom(zoom + 10)"
-				@fit="fitDiagram"
 				@export="exportDiagram"
 			/>
 
@@ -31,6 +25,9 @@
 					@toggle="toggleNode"
 					@open-detail="openUnitDetail"
 					@open-member="openMember"
+					@zoom-out="setZoom(zoom - 10)"
+					@zoom-in="setZoom(zoom + 10)"
+					@fit="() => fitDiagram('smooth', 'contain')"
 				/>
 			</a-spin>
 		</div>
@@ -53,7 +50,6 @@ const {
 	company,
 	data,
 	keyword,
-	viewMode,
 	depth,
 	zoom,
 	companyOptions,
@@ -67,8 +63,12 @@ const {
 	openMember,
 } = useOrgDiagram();
 
-function fitDiagram(behavior = "smooth") {
-	const nextZoom = diagramCanvas.value?.fit?.() || 100;
+function fitDiagram(behavior = "smooth", mode = "auto") {
+	if (behavior && typeof behavior === "object") {
+		behavior = "smooth";
+		mode = "contain";
+	}
+	const nextZoom = diagramCanvas.value?.fit?.(mode) || 100;
 	setZoom(nextZoom);
 	nextTick(() => {
 		requestAnimationFrame(() => {
@@ -79,7 +79,9 @@ function fitDiagram(behavior = "smooth") {
 
 function scheduleFit(behavior = "auto") {
 	nextTick(() => {
-		requestAnimationFrame(() => fitDiagram(behavior));
+		requestAnimationFrame(() => {
+			requestAnimationFrame(() => fitDiagram(behavior, "auto"));
+		});
 	});
 }
 

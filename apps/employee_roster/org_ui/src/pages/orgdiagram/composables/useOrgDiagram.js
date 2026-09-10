@@ -39,7 +39,6 @@ export function useOrgDiagram() {
 	const company = ref("");
 	const data = ref({ companies: [], departments: [] });
 	const keyword = ref("");
-	const viewMode = ref("diagram");
 	const depth = ref(1);
 	const zoom = ref(100);
 	const expandedKeys = ref(new Set());
@@ -137,10 +136,6 @@ export function useOrgDiagram() {
 		frappe.set_route("Form", "Employee", id);
 	}
 
-	watch(viewMode, (mode) => {
-		if (mode === "list" && window.frappe?.set_route) frappe.set_route("orgchart");
-	});
-
 	watch(depth, applyDepth);
 
 	watch(keyword, (value) => {
@@ -155,7 +150,6 @@ export function useOrgDiagram() {
 		company,
 		data,
 		keyword,
-		viewMode,
 		depth,
 		zoom,
 		companyOptions,

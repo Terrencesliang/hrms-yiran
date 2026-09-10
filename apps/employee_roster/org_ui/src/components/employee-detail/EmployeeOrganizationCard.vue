@@ -1,31 +1,47 @@
 <template>
-	<EmployeeDetailCard title="工作与组织" :icon="IconMindMapping">
-		<template #action>
+	<a-card class="arco-emp-detail-card arco-emp-overview-card" :bordered="true">
+		<template #title>
+			<div class="arco-emp-detail-card-title">
+				<span class="arco-emp-detail-card-icon"><icon-mind-mapping /></span>
+				<span>工作与组织</span>
+			</div>
+		</template>
+		<template #extra>
 			<a-button type="text" size="mini" class="arco-emp-link-btn" @click="$emit('navigate', 'on_job')">
-				编辑 <icon-right />
+				查看详情 <icon-right />
 			</a-button>
 		</template>
-		<div class="arco-emp-info-grid">
-			<EmployeeInfoItem label="合同公司" :value="state.company" />
-			<EmployeeInfoItem label="部门" :value="state.department" />
-			<EmployeeInfoItem label="岗位" :value="state.designation" />
-			<EmployeeInfoItem label="职务" :value="state.hr_job_title" />
-			<EmployeeInfoItem label="职级" :value="state.grade" />
-			<EmployeeInfoItem label="岗位类别" :value="state.hr_position_category" />
-			<EmployeeInfoItem label="工作地点" :value="state.hr_work_location || state.branch" />
-			<EmployeeInfoItem label="工作性质" :value="state.employment_type_label" />
-			<EmployeeInfoItem label="汇报上级" :value="state.reports_to" />
-			<EmployeeInfoItem label="考勤编号" :value="state.attendance_device_id" />
-			<EmployeeInfoItem label="OA编码" :value="state.hr_oa_code" />
+
+		<div class="arco-emp-info-grid arco-emp-overview-org-grid is-fill">
+			<EmployeeInfoItem label="所属公司" :value="blank(data.company)" :span="2" />
+			<EmployeeInfoItem label="所属部门" :value="blank(departmentDisplay)" />
+			<EmployeeInfoItem label="岗位" :value="blank(data.designation)" />
+			<EmployeeInfoItem label="职级" :value="blank(data.grade)" />
+			<EmployeeInfoItem label="工作地点" :value="blank(data.hr_work_location || data.hr_work_city)" />
+			<EmployeeInfoItem label="汇报上级" :value="blank(data.reports_to)" />
+			<EmployeeInfoItem
+				label="工作性质"
+				:value="blank(data.employment_type_label || employmentTypeLabel(data.employment_type))"
+			/>
 		</div>
-	</EmployeeDetailCard>
+	</a-card>
 </template>
 
 <script setup>
+import { computed } from "vue";
 import { IconMindMapping, IconRight } from "@arco-design/web-vue/es/icon";
-import EmployeeDetailCard from "./EmployeeDetailCard.vue";
+import { blank, employmentTypeLabel } from "../../utils/employeeArchive";
 import EmployeeInfoItem from "./EmployeeInfoItem.vue";
 
-defineProps({ state: { type: Object, required: true } });
+const props = defineProps({
+	data: { type: Object, required: true },
+});
 defineEmits(["navigate"]);
+
+const departmentDisplay = computed(() => {
+	const dept = props.data?.department || "";
+	const group = props.data?.group_name || "";
+	if (dept && group) return `${dept} · ${group}`;
+	return dept || group;
+});
 </script>

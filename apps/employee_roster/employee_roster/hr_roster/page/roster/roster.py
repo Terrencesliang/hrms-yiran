@@ -18,6 +18,11 @@ _EMPLOYEE_FIELDS = [
 ]
 
 
+def _require_permission(doctype: str, permission_type: str = "read", doc=None) -> None:
+	if frappe.session.user == "Guest" or not frappe.has_permission(doctype, permission_type, doc=doc):
+		frappe.throw(_("您没有访问 {0} 的权限").format(_(doctype)), frappe.PermissionError)
+
+
 def _serialize_row(row):
 	return {
 		"name": row.name,
@@ -77,9 +82,10 @@ def _build_stats(rows):
 
 
 @frappe.whitelist()
-def get_roster_data():
+def get_roster_data() -> dict:
 	"""返回员工花名册数据：顶部统计 + 员工表格"""
-	all_rows = frappe.db.get_all(
+	_require_permission("Employee")
+	all_rows = frappe.get_list(
 		"Employee",
 		fields=_EMPLOYEE_FIELDS,
 		order_by="employee_number asc",
@@ -108,26 +114,27 @@ def _empty_stats():
 
 
 @frappe.whitelist()
-def update_employee_fields(employee: str, field: str, value: str):
+def update_employee_fields(employee: str, field: str, value: str) -> dict:
 	"""双击编辑: 更新 Employee 记录的指定字段值 (仅允许白名单字段)."""
 	allowed = {"cell_number", "group_name", "status"}
 	if field not in allowed:
 		frappe.throw(_("不允许编辑字段: {0}").format(field))
 
-	if field == "group_name":
-		if not frappe.db.has_column("Employee", "group_name"):
-			frappe.throw(_("Employee 表无 group_name 字段"))
-		frappe.db.set_value("Employee", employee, "group_name", value or "")
-	else:
-		frappe.db.set_value("Employee", employee, field, value or "")
-
-	frappe.db.commit()
+	doc = frappe.get_doc("Employee", employee)
+	_require_permission("Employee", "write", doc=doc)
+	if field == "group_name" and not frappe.db.has_column("Employee", "group_name"):
+		frappe.throw(_("Employee 表无 group_name 字段"))
+	doc.set(field, value or "")
+	doc.save()
 	return {"ok": True, "employee": employee, "field": field, "value": value}
 
 
 @frappe.whitelist()
-def search_employees(keyword: str | None = None, department: str | None = None, status: str | None = None):
+def search_employees(
+	keyword: str | None = None, department: str | None = None, status: str | None = None
+) -> list[dict]:
 	"""搜索/筛选员工"""
+	_require_permission("Employee")
 	filters = []
 	if department:
 		filters.append(["department", "=", department])
@@ -143,7 +150,7 @@ def search_employees(keyword: str | None = None, department: str | None = None, 
 			["employee_number", "like", kw],
 		]
 
-	rows = frappe.db.get_all(
+	rows = frappe.get_list(
 		"Employee",
 		fields=_EMPLOYEE_FIELDS,
 		filters=filters,
@@ -155,9 +162,10 @@ def search_employees(keyword: str | None = None, department: str | None = None, 
 
 
 @frappe.whitelist()
-def get_groups():
+def get_groups() -> list[str]:
 	"""返回已存在的组别列表"""
-	rows = frappe.db.get_all(
+	_require_permission("Employee")
+	rows = frappe.get_list(
 		"Employee",
 		fields=["group_name"],
 		filters=[["group_name", "is", "set"]],
@@ -168,19 +176,21 @@ def get_groups():
 
 
 @frappe.whitelist()
-def get_departments():
+def get_departments() -> list[str]:
 	"""返回部门列表"""
-	return frappe.db.get_all("Department", pluck="department_name", order_by="department_name asc")
+	_require_permission("Department")
+	return frappe.get_list("Department", pluck="department_name", order_by="department_name asc")
 
 
 @frappe.whitelist()
-def get_employee_stats(company: str | None = None):
+def get_employee_stats(company: str | None = None) -> dict:
 	"""Employee 列表页顶部统计条数据（可按公司过滤）。"""
+	_require_permission("Employee")
 	filters = []
 	if company:
 		filters.append(["company", "=", company])
 
-	rows = frappe.db.get_all(
+	rows = frappe.get_list(
 		"Employee",
 		fields=["status", "employment_type", "designation", "group_name"],
 		filters=filters,

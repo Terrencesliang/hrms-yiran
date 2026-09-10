@@ -269,6 +269,8 @@ def _load_active_employees(company: str | None):
 		if row.department:
 			by_dept[row.department].append(item)
 		name_map[row.name] = row.employee_name
+	for item in items:
+		item["reports_to_name"] = name_map.get(item.get("reports_to"), "")
 	return by_dept, name_map, items
 
 
@@ -333,6 +335,9 @@ def _member_node(emp: dict) -> dict:
 		"designation": emp.get("designation") or "",
 		"employment_type": emp.get("employment_type") or "",
 		"employee_number": emp.get("employee_number") or "",
+		"reports_to": emp.get("reports_to") or "",
+		"reports_to_name": emp.get("reports_to_name") or "",
+		"status": "Active",
 		"employee_count": 0,
 		"parttime_count": 0,
 		"staff_quota": 0,
@@ -454,6 +459,8 @@ def create_org_unit(
 	if org_code and _has_dept_org_fields() and frappe.db.exists("Department", {"org_code": org_code}):
 		frappe.throw(_("组织代码已存在"))
 
+	_assert_sibling_title_unique(title, parent_name, company)
+
 	doc = frappe.new_doc("Department")
 	doc.department_name = title
 	doc.company = company
@@ -539,7 +546,6 @@ def import_org_units(file_url: str, company: str | None = None) -> dict:
 			continue
 		try:
 			org_code = (row.get("组织代码") or row.get("org_code") or "").strip()
-			existing = _find_existing_department(title, org_code, company)
 			payload = {
 				"org_code": org_code,
 				"org_abbr": (row.get("组织简称") or row.get("org_abbr") or "").strip(),
@@ -552,6 +558,8 @@ def import_org_units(file_url: str, company: str | None = None) -> dict:
 				"staff_quota": row.get("编制人数") or row.get("staff_quota") or 0,
 				"effective_date": (row.get("启用日期") or row.get("effective_date") or "").strip(),
 			}
+			parent_name = _resolve_parent_label(payload["parent"], company)
+			existing = _find_existing_department(title, org_code, company, parent=parent_name)
 			if existing:
 				_update_existing_department(existing, payload, company)
 				updated += 1
@@ -559,7 +567,7 @@ def import_org_units(file_url: str, company: str | None = None) -> dict:
 				create_org_unit(
 					title=title,
 					company=company,
-					parent=_resolve_parent_label(payload["parent"], company),
+					parent=parent_name,
 					org_code=payload["org_code"],
 					org_abbr=payload["org_abbr"],
 					org_type=payload["org_type"],
@@ -584,7 +592,12 @@ def _read_attached_csv(file_url: str) -> list[dict]:
 	return [row for row in reader if any((value or "").strip() for value in row.values())]
 
 
-def _find_existing_department(title: str, org_code: str, company: str | None):
+def _find_existing_department(
+	title: str,
+	org_code: str,
+	company: str | None,
+	parent: str | None = None,
+):
 	if org_code and _has_dept_org_fields():
 		name = frappe.db.get_value("Department", {"org_code": org_code}, "name")
 		if name:
@@ -592,7 +605,31 @@ def _find_existing_department(title: str, org_code: str, company: str | None):
 	filters = {"department_name": title}
 	if company:
 		filters["company"] = company
-	return frappe.db.get_value("Department", filters, "name")
+	if parent:
+		filters["parent_department"] = parent
+	names = frappe.get_all("Department", filters=filters, pluck="name")
+	if len(names) == 1:
+		return names[0]
+	if parent and names:
+		return names[0]
+	# 未指定上级且存在多个同名组织时，不误匹配，交给新建逻辑处理
+	return None
+
+
+def _assert_sibling_title_unique(title: str, parent_name: str, company: str) -> None:
+	exists = frappe.db.exists(
+		"Department",
+		{
+			"department_name": title,
+			"parent_department": parent_name,
+			"company": company,
+		},
+	)
+	if exists:
+		frappe.throw(
+			_("同一上级下已存在同名组织「{0}」，不同上级下可以使用相同名称").format(title),
+			title=_("组织名称重复"),
+		)
 
 
 def _update_existing_department(name: str, payload: dict, company: str | None) -> None:
@@ -632,11 +669,21 @@ def _resolve_parent_label(label: str, company: str | None) -> str | None:
 	company_title = frappe.db.get_value("Company", company, "company_name") if company else None
 	if label in {company, company_title}:
 		return _all_departments_for(company)
-	found = frappe.db.get_value("Department", {"department_name": label, "company": company}, "name") if company else None
-	if found:
-		return found
+	found = (
+		frappe.get_all(
+			"Department",
+			filters={"department_name": label, "company": company},
+			pluck="name",
+		)
+		if company
+		else []
+	)
+	if len(found) == 1:
+		return found[0]
 	if frappe.db.exists("Department", label):
 		return label
+	if len(found) > 1:
+		frappe.throw(_("上级组织「{0}」存在多个同名节点，请改用完整组织名称选择上级").format(label))
 	return _all_departments_for(company)
 
 

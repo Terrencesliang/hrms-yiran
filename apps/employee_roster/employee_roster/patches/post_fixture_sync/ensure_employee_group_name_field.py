@@ -11,7 +11,19 @@ def execute():
 
 
 def _ensure_custom_field():
-	if frappe.db.exists("Custom Field", "Employee-group_name"):
+	name = "Employee-group_name"
+	if frappe.db.exists("Custom Field", name):
+		cf = frappe.get_doc("Custom Field", name)
+		changed = False
+		if cf.fieldtype != "Autocomplete":
+			cf.fieldtype = "Autocomplete"
+			changed = True
+		if cf.label != "组别":
+			cf.label = "组别"
+			changed = True
+		if changed:
+			cf.flags.ignore_validate = True
+			cf.save()
 		return
 
 	create_custom_field(
@@ -19,7 +31,7 @@ def _ensure_custom_field():
 		{
 			"fieldname": "group_name",
 			"label": "组别",
-			"fieldtype": "Data",
+			"fieldtype": "Autocomplete",
 			"insert_after": "department",
 			"in_list_view": 1,
 		},

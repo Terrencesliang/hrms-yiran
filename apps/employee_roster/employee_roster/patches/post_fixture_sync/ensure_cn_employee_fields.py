@@ -30,6 +30,15 @@ TAB_LABELS = {
 }
 
 FIELD_LABELS = {
+	"naming_series": "编号规则",
+	"first_name": "名",
+	"middle_name": "中间名",
+	"last_name": "姓",
+	"employee_name": "员工姓名",
+	"user_id": "关联用户",
+	"create_user_permission": "创建用户权限",
+	"salutation": "称谓",
+	"image": "员工照片",
 	"employee_number": "工号",
 	"company": "合同公司",
 	"department": "部门",
@@ -89,6 +98,31 @@ FIELD_LABELS = {
 	"feedback": "反馈",
 }
 
+CHILD_FIELD_LABELS = {
+	"Employee Education": {
+		"school_univ": "学校/院校",
+		"qualification": "学历/资格",
+		"level": "学历层次",
+		"year_of_passing": "毕业年份",
+		"class_per": "成绩/百分比",
+		"maj_opt_subj": "专业/选修科目",
+	},
+	"Employee External Work History": {
+		"company_name": "公司名称",
+		"designation": "岗位",
+		"salary": "薪资",
+		"address": "公司地址",
+		"contact": "证明人联系方式",
+		"total_experience": "工作年限",
+	},
+	"Employee Internal Work History": {
+		"department": "部门",
+		"designation": "岗位",
+		"from_date": "开始日期",
+		"to_date": "结束日期",
+	},
+}
+
 
 # 在职信息页签内容（field_order 重排后紧跟 employment_details Tab Break）
 ON_JOB_TAB_FIELDS = [
@@ -123,12 +157,72 @@ ON_JOB_TAB_FIELDS = [
 	"hr_probation_months",
 ]
 
+# 个人信息「基本信息」分区：把原生性别从概览挪进来
+PERSONAL_BASIC_FIELDS = [
+	"gender",
+]
+
 
 def execute():
 	_ensure_custom_fields()
+	_upgrade_org_select_fields()
+	_ensure_gender_options()
 	_ensure_labels()
-	_reorder_on_job_fields()
+	_ensure_child_labels()
+	_hide_default_shift()
+	_hide_employee_alias()
+	_reorder_employee_fields()
 	frappe.clear_cache(doctype="Employee")
+
+
+def _hide_default_shift():
+	"""考勤假期页不再展示「默认班次」。"""
+	if not frappe.db.exists("DocField", {"parent": "Employee", "fieldname": "default_shift"}):
+		return
+	key = "Employee-default_shift-hidden"
+	if frappe.db.exists("Property Setter", key):
+		frappe.db.set_value("Property Setter", key, "value", "1")
+	else:
+		make_property_setter("Employee", "default_shift", "hidden", 1, "Check")
+
+
+def _hide_employee_alias():
+	"""别名与曾用名合并，Desk 表单隐藏「别名」。"""
+	if not frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": "hr_alias"}):
+		return
+	key = "Employee-hr_alias-hidden"
+	if frappe.db.exists("Property Setter", key):
+		frappe.db.set_value("Property Setter", key, "value", "1")
+	else:
+		make_property_setter("Employee", "hr_alias", "hidden", 1, "Check")
+	frappe.db.set_value("Custom Field", {"dt": "Employee", "fieldname": "hr_alias"}, "hidden", 1)
+
+JOB_TITLE_OPTIONS = "\n总经理\n副总经理\n总监\n高级经理\n经理\n主管\n组长\n专员\n助理\n实习生\n其他"
+JOB_GRADE_OPTIONS = "\n" + "\n".join(str(i) for i in range(1, 16))
+
+ORG_SELECT_FIELD_UPGRADES = {
+	"group_name": {"fieldtype": "Autocomplete", "options": ""},
+	"hr_job_title": {"fieldtype": "Autocomplete", "options": JOB_TITLE_OPTIONS},
+	"hr_job_grade_level": {"fieldtype": "Select", "options": JOB_GRADE_OPTIONS},
+	"hr_concurrent_post": {"fieldtype": "Link", "options": "Designation"},
+}
+
+
+def _upgrade_org_select_fields():
+	"""组织信息：自由文本改为下拉/联想选择。"""
+	for fieldname, props in ORG_SELECT_FIELD_UPGRADES.items():
+		name = f"Employee-{fieldname}"
+		if not frappe.db.exists("Custom Field", name):
+			continue
+		cf = frappe.get_doc("Custom Field", name)
+		changed = False
+		for key, value in props.items():
+			if cf.get(key) != value:
+				cf.set(key, value)
+				changed = True
+		if changed:
+			cf.flags.ignore_validate = True
+			cf.save()
 
 
 def _job_fields():
@@ -154,7 +248,7 @@ def _job_fields():
 			"label": "入职与转正",
 			"insert_after": "hr_workplace_col",
 		},
-		{"fieldname": "hr_job_title", "fieldtype": "Data", "label": "职务", "insert_after": "designation"},
+		{"fieldname": "hr_job_title", "fieldtype": "Autocomplete", "label": "职务", "insert_after": "designation", "options": JOB_TITLE_OPTIONS},
 		{
 			"fieldname": "hr_position_category",
 			"fieldtype": "Select",
@@ -162,8 +256,20 @@ def _job_fields():
 			"options": "\n管理类\n技术类\n客服类\n销售类\n职能类\n运营类\n其他",
 			"insert_after": "hr_job_title",
 		},
-		{"fieldname": "hr_job_grade_level", "fieldtype": "Data", "label": "职等", "insert_after": "grade"},
-		{"fieldname": "hr_concurrent_post", "fieldtype": "Data", "label": "兼任", "insert_after": "hr_job_grade_level"},
+		{
+			"fieldname": "hr_job_grade_level",
+			"fieldtype": "Select",
+			"label": "职等",
+			"options": JOB_GRADE_OPTIONS,
+			"insert_after": "grade",
+		},
+		{
+			"fieldname": "hr_concurrent_post",
+			"fieldtype": "Link",
+			"label": "兼任",
+			"options": "Designation",
+			"insert_after": "hr_job_grade_level",
+		},
 		{
 			"fieldname": "hr_employee_identity",
 			"fieldtype": "Select",
@@ -226,7 +332,7 @@ def _personal_fields():
 		{"fieldname": "hr_work_start_date", "fieldtype": "Date", "label": "参加工作时间", "insert_after": "hr_id_valid_until"},
 		{"fieldname": "hr_total_work_years", "fieldtype": "Data", "label": "工龄", "insert_after": "hr_work_start_date"},
 		{"fieldname": "hr_personal_col_1", "fieldtype": "Column Break", "insert_after": "hr_total_work_years"},
-		{"fieldname": "hr_alias", "fieldtype": "Data", "label": "别名", "insert_after": "hr_personal_col_1"},
+		{"fieldname": "hr_alias", "fieldtype": "Data", "label": "别名", "insert_after": "hr_personal_col_1", "hidden": 1},
 		{
 			"fieldname": "hr_has_children",
 			"fieldtype": "Select",
@@ -510,30 +616,44 @@ def _ensure_custom_fields():
 
 
 def _ensure_labels():
-	for fieldname, label in {**TAB_LABELS, **FIELD_LABELS}.items():
-		is_native = frappe.db.exists("DocField", {"parent": "Employee", "fieldname": fieldname})
-		is_custom = frappe.db.exists("Custom Field", {"dt": "Employee", "fieldname": fieldname})
+	_ensure_doctype_labels("Employee", {**TAB_LABELS, **FIELD_LABELS})
+
+
+def _ensure_child_labels():
+	for doctype, labels in CHILD_FIELD_LABELS.items():
+		_ensure_doctype_labels(doctype, labels)
+
+
+def _ensure_doctype_labels(doctype, labels):
+	for fieldname, label in labels.items():
+		is_native = frappe.db.exists("DocField", {"parent": doctype, "fieldname": fieldname})
+		is_custom = frappe.db.exists("Custom Field", {"dt": doctype, "fieldname": fieldname})
 		if not is_native and not is_custom:
 			continue
 		if is_custom:
-			frappe.db.set_value("Custom Field", {"dt": "Employee", "fieldname": fieldname}, "label", label)
+			frappe.db.set_value("Custom Field", {"dt": doctype, "fieldname": fieldname}, "label", label)
 			continue
-		key = f"Employee-{fieldname}-label"
+		key = f"{doctype}-{fieldname}-label"
 		if frappe.db.exists("Property Setter", key):
 			frappe.db.set_value("Property Setter", key, "value", label)
 		else:
-			make_property_setter("Employee", fieldname, "label", label, "Data")
+			make_property_setter(doctype, fieldname, "label", label, "Data")
 
 
-def _reorder_on_job_fields():
-	"""把部门/岗位/公司等组织字段从概览搬进「在职信息」页签。
+def _ensure_gender_options():
+	"""中国 HR 常用性别选项；复用原生 Gender 主数据，不另造字段。"""
+	for name in ("男", "女"):
+		if frappe.db.exists("Gender", name):
+			continue
+		doc = frappe.get_doc({"doctype": "Gender", "gender": name})
+		doc.insert(ignore_permissions=True)
 
-	erpnext 原生布局把这些字段放在 basic_details_tab（概览）里，而概览页签
-	由 Vue 卡片渲染、原生字段被隐藏，导致在职信息页签内容缺失。通过
-	doctype 级 field_order 属性设置器重排。
 
-	每次运行先删除旧的 field_order，从 insert_after 解析出的干净顺序重新
-	计算，避免在被污染的顺序上累积错误。
+def _reorder_employee_fields():
+	"""重排原生字段到中文页签分区。
+
+	- 部门/岗位等 → 在职信息
+	- 性别 → 个人信息「基本信息」
 	"""
 	key = "Employee-main-field_order"
 	if frappe.db.exists("Property Setter", key):
@@ -541,12 +661,27 @@ def _reorder_on_job_fields():
 	frappe.clear_cache(doctype="Employee")
 
 	meta = frappe.get_meta("Employee", cached=False)
-	current = [df.fieldname for df in meta.fields]
-	movable = [f for f in ON_JOB_TAB_FIELDS if f in current]
-	rest = [f for f in current if f not in movable]
-	if "employment_details" not in rest:
-		return
-	anchor = rest.index("employment_details") + 1
-	new_order = rest[:anchor] + movable + rest[anchor:]
+	order = [df.fieldname for df in meta.fields]
 
-	make_property_setter("Employee", None, "field_order", json.dumps(new_order), "Small Text", for_doctype=True)
+	order = _move_fields_after(order, ON_JOB_TAB_FIELDS, "employment_details")
+	# 紧跟「曾用名」之后，保证出现在基本信息卡片内
+	anchor = "hr_former_name" if "hr_former_name" in order else "hr_personal_basic_section"
+	order = _move_fields_after(order, PERSONAL_BASIC_FIELDS, anchor)
+
+	make_property_setter("Employee", None, "field_order", json.dumps(order), "Small Text", for_doctype=True)
+
+
+def _move_fields_after(order: list[str], fields: list[str], anchor: str) -> list[str]:
+	if anchor not in order:
+		return order
+	movable = [f for f in fields if f in order]
+	if not movable:
+		return order
+	rest = [f for f in order if f not in movable]
+	idx = rest.index(anchor) + 1
+	return rest[:idx] + movable + rest[idx:]
+
+
+def _reorder_on_job_fields():
+	"""兼容旧调用名。"""
+	_reorder_employee_fields()
