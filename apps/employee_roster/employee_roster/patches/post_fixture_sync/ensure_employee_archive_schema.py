@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import frappe
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.utils import cint
 
 from employee_roster.hr_roster.employee_detail_schema import (
 	CHILD_DOCTYPES,
@@ -26,12 +27,13 @@ def _ensure_child_doctypes():
 		if frappe.db.exists("DocType", name):
 			_sync_child_fields(spec)
 			continue
+		# custom=1：子表由 patch 维护，不要求仓库内有 controller 模块文件
 		doc = frappe.get_doc(
 			{
 				"doctype": "DocType",
 				"name": name,
 				"module": spec["module"],
-				"custom": 0,
+				"custom": 1,
 				"istable": 1,
 				"editable_grid": 1,
 				"engine": "InnoDB",
@@ -54,11 +56,14 @@ def _ensure_child_doctypes():
 
 
 def _sync_child_fields(spec):
-	"""已存在的子表：补缺失字段。"""
+	"""已存在的子表：标记为 custom，并补缺失字段。"""
 	meta = frappe.get_meta(spec["name"])
 	existing = {df.fieldname for df in meta.fields}
 	doc = frappe.get_doc("DocType", spec["name"])
 	changed = False
+	if not cint(doc.custom):
+		doc.custom = 1
+		changed = True
 	for f in spec["fields"]:
 		if f["fieldname"] in existing:
 			continue
