@@ -12,14 +12,9 @@ function ensureOrgUiCss() {
 	document.head.appendChild(link);
 }
 
-frappe.pages["orgchart"].on_page_load = function (wrapper) {
+function mountOrgChart(wrapper) {
 	ensureOrgUiCss();
-
-	frappe.ui.make_app_page({
-		parent: wrapper,
-		title: __("组织架构"),
-		single_column: true,
-	});
+	if (!wrapper?.page?.main) return;
 
 	$(wrapper).addClass("arco-orgchart-wrapper");
 	$(wrapper).find(".layout-main").addClass("row");
@@ -37,7 +32,25 @@ frappe.pages["orgchart"].on_page_load = function (wrapper) {
 		return;
 	}
 
+	try {
+		orgChartApp?.unmount?.();
+	} catch (_) {
+		/* ignore */
+	}
 	orgChartApp = window.OrgUI.mountOrgChart(mountEl);
+}
+
+frappe.pages["orgchart"].on_page_load = function (wrapper) {
+	frappe.ui.make_app_page({
+		parent: wrapper,
+		title: __("组织架构"),
+		single_column: true,
+	});
+	mountOrgChart(wrapper);
+};
+
+frappe.pages["orgchart"].on_page_show = function (wrapper) {
+	if (wrapper?.page?.main) mountOrgChart(wrapper);
 };
 
 frappe.pages["orgchart"].on_page_leave = function () {

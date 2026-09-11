@@ -13,14 +13,9 @@ function ensureOrgUiCss() {
 	document.head.appendChild(link);
 }
 
-frappe.pages["hr-home"].on_page_load = function (wrapper) {
+function mountHrHome(wrapper) {
 	ensureOrgUiCss();
-
-	frappe.ui.make_app_page({
-		parent: wrapper,
-		title: __("人事主页"),
-		single_column: true,
-	});
+	if (!wrapper?.page?.main) return;
 
 	$(wrapper).addClass("arco-hr-home-wrapper");
 	$(wrapper).find(".layout-main").addClass("row");
@@ -38,7 +33,25 @@ frappe.pages["hr-home"].on_page_load = function (wrapper) {
 		return;
 	}
 
+	try {
+		hrHomeApp?.unmount?.();
+	} catch (_) {
+		/* ignore */
+	}
 	hrHomeApp = window.OrgUI.mountHrHome(mountEl);
+}
+
+frappe.pages["hr-home"].on_page_load = function (wrapper) {
+	frappe.ui.make_app_page({
+		parent: wrapper,
+		title: __("人事主页"),
+		single_column: true,
+	});
+	mountHrHome(wrapper);
+};
+
+frappe.pages["hr-home"].on_page_show = function (wrapper) {
+	if (wrapper?.page?.main) mountHrHome(wrapper);
 };
 
 frappe.pages["hr-home"].on_page_leave = function () {

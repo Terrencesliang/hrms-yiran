@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # Start the Docker development environment with source sync and asset watching.
+# Behavior aligned with deploy/dev.ps1 on Windows.
 set -euo pipefail
 
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/common.sh
+source "${DEPLOY_DIR}/scripts/common.sh"
 ENV_FILE="${DEPLOY_DIR}/.env"
 compose_args=(-f docker-compose.yml -f docker-compose.dev.yml)
 show_logs=false
@@ -47,6 +50,8 @@ if [ ! -f "${ENV_FILE}" ]; then
 	exit 1
 fi
 
+bash "${DEPLOY_DIR}/scripts/validate_env.sh" "${ENV_FILE}"
+
 if grep -qE '^USE_BUNDLED_POSTGRES=true' "${ENV_FILE}"; then
 	compose_args+=(--profile bundled-postgres)
 fi
@@ -57,11 +62,14 @@ fi
 cd "${DEPLOY_DIR}"
 started_at=${SECONDS}
 echo "Starting HRMS development mode..."
-up_args=(up -d backend)
+up_args=(up -d backend nginx)
 if [ "${force_recreate}" = true ]; then
-	up_args=(up -d --force-recreate backend)
+	up_args=(up -d --force-recreate backend nginx)
 fi
 docker compose "${compose_args[@]}" "${up_args[@]}"
+
+echo "Waiting for backend container..."
+deploy_wait_backend_running "${compose_args[@]}"
 
 echo "Synchronizing mounted source code..."
 docker compose "${compose_args[@]}" exec -T backend \
@@ -86,8 +94,7 @@ if [ "${allow_migrate}" = true ]; then
 		bash /workspace/source/deploy/scripts/prepare_dev.sh "${prepare_args[@]}"
 fi
 
-port="$(sed -n 's/^HTTP_PORT=//p' "${ENV_FILE}" | tail -1 | tr -d '"\r')"
-port="${port:-8080}"
+port="$(deploy_env_value "${ENV_FILE}" HTTP_PORT 8080)"
 echo
 echo "Development mode is ready in $((SECONDS - started_at))s: http://localhost:${port}"
 echo "Source sync: enabled (Windows/macOS polling)"

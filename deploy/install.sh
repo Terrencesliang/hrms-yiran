@@ -90,6 +90,7 @@ log "检查 Docker 环境"
 require_docker
 ensure_repo
 ensure_env
+bash "${DEPLOY_DIR}/scripts/validate_env.sh" "${DEPLOY_DIR}/.env"
 export_local_data_if_needed
 
 cd "${DEPLOY_DIR}"

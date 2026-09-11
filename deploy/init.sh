@@ -199,9 +199,51 @@ ensure_bench_initialized() {
 		.
 }
 
+sync_site_db_from_env() {
+	# Patch site_config.json directly so a stale db_host=postgres cannot block
+	# bench/set-config when USE_BUNDLED_POSTGRES=false.
+	cd "${BENCH_DIR}"
+	if [ ! -f "sites/${SITE_NAME}/site_config.json" ]; then
+		return 0
+	fi
+	python3 - <<PY
+import json
+from pathlib import Path
+
+site = "${SITE_NAME}"
+host = "${DB_HOST}"
+port = "${DB_PORT}"
+site_path = Path("sites") / site / "site_config.json"
+cfg = json.loads(site_path.read_text())
+old_host = str(cfg.get("db_host") or "")
+old_port = str(cfg.get("db_port") or "")
+changed = False
+if old_host != host:
+    cfg["db_host"] = host
+    changed = True
+if old_port != port:
+    cfg["db_port"] = int(port) if port.isdigit() else port
+    changed = True
+if changed:
+    site_path.write_text(json.dumps(cfg, indent=1, ensure_ascii=False) + "\n")
+    print(f"synced {site_path}: db_host {old_host}:{old_port} -> {host}:{port}")
+else:
+    print(f"site db config already matches env ({host}:{port})")
+
+Path("sites/currentsite.txt").write_text(site + "\n")
+common = Path("sites/common_site_config.json")
+if common.exists():
+    common_cfg = json.loads(common.read_text())
+    common_cfg["default_site"] = site
+    common_cfg["serve_default_site"] = True
+    common.write_text(json.dumps(common_cfg, indent=1, ensure_ascii=False) + "\n")
+PY
+}
+
 apply_site_config() {
 	local clear_cache="${1:-false}"
 	cd "${BENCH_DIR}"
+	sync_site_db_from_env
 	if developer_mode_enabled; then
 		bench --site "${SITE_NAME}" set-config developer_mode 1
 	else
@@ -310,7 +352,8 @@ create_and_setup_site() {
 	cd "${BENCH_DIR}"
 
 	if [ -d "sites/${SITE_NAME}" ]; then
-		log "站点 ${SITE_NAME} 已存在，跳过创建"
+		log "站点 ${SITE_NAME} 已存在，跳过创建并同步 .env 数据库地址"
+		sync_site_db_from_env
 		bench use "${SITE_NAME}" || true
 		return
 	fi
@@ -375,6 +418,8 @@ first_time_install() {
 
 start_bench() {
 	cd "${BENCH_DIR}"
+	# Must run before any bench/site DB call — fixes stale db_host=postgres.
+	sync_site_db_from_env
 	if developer_mode_enabled; then
 		python /workspace/source/deploy/dev_sync.py --once
 	fi

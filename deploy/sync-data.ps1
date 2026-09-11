@@ -11,6 +11,13 @@ param(
 
 $ErrorActionPreference = "Stop"
 $DeployDir = $PSScriptRoot
+. (Join-Path $DeployDir "scripts\common.ps1")
+
+$envFile = Join-Path $DeployDir ".env"
+$siteName = "hrms.localhost"
+if (Test-Path $envFile) {
+    $siteName = Get-DeployEnvValue -EnvFile $envFile -Key "SITE_NAME" -Default "hrms.localhost"
+}
 
 & (Join-Path $DeployDir "scripts\export_local_data.ps1") -WslDistro $WslDistro -WslUser $WslUser
 
@@ -20,7 +27,7 @@ Push-Location $DeployDir
 try {
     & (Join-Path $DeployDir "compose.ps1") exec -T backend bash /workspace/source/deploy/scripts/restore_backup.sh
     if ($LASTEXITCODE -ne 0) { throw "容器内数据恢复失败" }
-    & (Join-Path $DeployDir "compose.ps1") exec -T backend bash -lc "cd /home/frappe/frappe-bench && bench build --app hrms --app employee_roster && bench --site hrms.localhost clear-cache"
+    & (Join-Path $DeployDir "compose.ps1") exec -T backend bash -lc "cd /home/frappe/frappe-bench && bench build --app hrms --app employee_roster && bench --site $siteName clear-cache"
     Write-Host ""
     Write-Host "数据同步完成。" -ForegroundColor Green
 }

@@ -59,7 +59,7 @@ app_include_css = [
 	"/assets/employee_roster/css/attendance_deduction_rule_form.css?v=20260303b",
 	"/assets/employee_roster/css/unified_sidebar.css?v=20260911a",
 	"/assets/employee_roster/css/hr_desk_theme.css?v=20260910f",
-	"/api/method/employee_roster.integrations.wecom.assets.org_ui_css?v=20260916p",
+	"/api/method/employee_roster.integrations.wecom.assets.org_ui_css?v=20260916r",
 	"/assets/employee_roster/css/employee_checkin_list.css?v=20260912a",
 	"/assets/employee_roster/css/hr_attendance_rules_desk.css?v=20260910c",
 	"/assets/employee_roster/css/employee_list.css?v=20260914u",
@@ -68,9 +68,9 @@ app_include_css = [
 ]
 app_include_js = [
 	"/assets/employee_roster/js/apps_screen.js?v=20260904a",
-	"/api/method/employee_roster.integrations.wecom.assets.org_ui_js?v=20260916p",
+	"/api/method/employee_roster.integrations.wecom.assets.org_ui_js?v=20260916r",
 	"/assets/employee_roster/js/recruiting_candidates.js",
-	"/assets/employee_roster/js/unified_sidebar.js?v=20260912g",
+	"/assets/employee_roster/js/unified_sidebar.js?v=20260912i",
 	"/assets/employee_roster/js/employee_form_validation.js?v=20260914k",
 	"/assets/employee_roster/js/employee_form.js?v=20260914n",
 ]
@@ -125,6 +125,8 @@ role_home_page = {
 	# Desk route (not a Website Page) — login must land under /desk/...
 	"Employee Center User": "desk/employee-center/home",
 }
+
+boot_session = "employee_roster.hr_roster.boot.boot_session"
 
 # Setup Wizard
 # ------------
@@ -232,6 +234,7 @@ has_permission = {
 
 doc_events = {
 	"Employee": {
+		"after_insert": "employee_roster.hr_roster.account_service.ensure_employee_account",
 		"before_trash": "employee_roster.hr_roster.employee_lifecycle.ensure_left_before_delete",
 	},
 	"Salary Slip": {

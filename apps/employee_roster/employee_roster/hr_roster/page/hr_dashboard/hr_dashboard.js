@@ -12,14 +12,9 @@ function ensureOrgUiCss() {
 	document.head.appendChild(link);
 }
 
-frappe.pages["hr-dashboard"].on_page_load = function (wrapper) {
+function mountHrDashboard(wrapper) {
 	ensureOrgUiCss();
-
-	frappe.ui.make_app_page({
-		parent: wrapper,
-		title: __("数据面板"),
-		single_column: true,
-	});
+	if (!wrapper?.page?.main) return;
 
 	$(wrapper).addClass("arco-hr-dashboard-wrapper");
 	$(wrapper).find(".layout-main").addClass("row");
@@ -37,7 +32,25 @@ frappe.pages["hr-dashboard"].on_page_load = function (wrapper) {
 		return;
 	}
 
+	try {
+		hrDashboardApp?.unmount?.();
+	} catch (_) {
+		/* ignore */
+	}
 	hrDashboardApp = window.OrgUI.mountHrDashboard(mountEl);
+}
+
+frappe.pages["hr-dashboard"].on_page_load = function (wrapper) {
+	frappe.ui.make_app_page({
+		parent: wrapper,
+		title: __("数据面板"),
+		single_column: true,
+	});
+	mountHrDashboard(wrapper);
+};
+
+frappe.pages["hr-dashboard"].on_page_show = function (wrapper) {
+	if (wrapper?.page?.main) mountHrDashboard(wrapper);
 };
 
 frappe.pages["hr-dashboard"].on_page_leave = function () {

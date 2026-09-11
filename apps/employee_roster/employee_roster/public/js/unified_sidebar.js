@@ -174,7 +174,14 @@ frappe.provide("employee_roster.unified_sidebar");
 		"System Management",
 	]);
 
-	const HR_SETUP_PAGES = new Set(["hr-home", "hr-dashboard"]);
+	const HR_SETUP_PAGES = new Set([
+		"hr-home",
+		"hr-dashboard",
+		"org-diagram",
+		"orgchart",
+		"employee-archive",
+		"roster",
+	]);
 
 	const CONTRACT_PAGES = new Set([
 		"contract-overview",
@@ -524,10 +531,19 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		enforceEmployeeCenterRoute() {
+			const route = this.getRouteStrSafe();
+			if (frappe.boot?.hr_must_change_password) {
+				if (route === "personal-center" || route.startsWith("personal-center/")) return false;
+				frappe.show_alert?.({ message: __("首次登录请先修改初始密码"), indicator: "orange" });
+				frappe.set_route("personal-center");
+				return true;
+			}
 			if (this.accessContext) return this.enforceMenuRoute();
 			if (!this.isEmployeeCenterOnly()) return false;
-			const route = this.getRouteStrSafe();
-			if (route === "employee-center" || route.startsWith("employee-center/")) return false;
+			if (
+				route === "employee-center" || route.startsWith("employee-center/") ||
+				route === "personal-center" || route.startsWith("personal-center/")
+			) return false;
 			frappe.set_route("employee-center", "home");
 			return true;
 		},
@@ -640,7 +656,6 @@ frappe.provide("employee_roster.unified_sidebar");
 				const hrPrefixes = [
 					"List/Employee",
 					"Form/Employee",
-					"employee",
 					"recruiting-",
 					"org-diagram",
 					"orgchart",
@@ -674,6 +689,8 @@ frappe.provide("employee_roster.unified_sidebar");
 					"List/Department",
 					"List/Designation",
 				];
+				const routeHead = String(route || "").split("/")[0];
+				if (routeHead === "employee" || route === "employee") return true;
 				return hrPrefixes.some(
 					(prefix) => route === prefix || route.startsWith(prefix + "/") || route.startsWith(prefix)
 				);
@@ -1032,7 +1049,23 @@ frappe.provide("employee_roster.unified_sidebar");
 					} else if (item.module) {
 						this.pinModule(item.module);
 					}
+					const nextRoute = parts.join("/");
+					const currentRoute = this.getRouteStrSafe();
 					frappe.set_route(...parts);
+					// Same-route re-entry: Frappe may skip change; force page show remount.
+					if (currentRoute === nextRoute || currentRoute.startsWith(nextRoute + "/")) {
+						const page = frappe.pages?.[parts[0]];
+						const wrapper = page?.wrapper || page?.page?.wrapper || page;
+						if (typeof page?.on_page_show === "function" && wrapper) {
+							window.requestAnimationFrame(() => {
+								try {
+									page.on_page_show(wrapper);
+								} catch (err) {
+									console.warn("[hr-unified-sidebar] page remount failed:", err);
+								}
+							});
+						}
+					}
 					return;
 				}
 				if (type === "Workspace" && linkTo) {
@@ -1867,10 +1900,17 @@ frappe.provide("employee_roster.unified_sidebar");
 			"roster",
 			"orgchart",
 			"org-diagram",
+			"employee-archive",
 			"hr-home",
 			"hr-dashboard",
 		];
-		return hrSetupRoutes.some((name) => route.startsWith(name) || pathname.includes(name));
+		const routeHead = String(route || "").split("/")[0];
+		const pathHead = String(pathname || "")
+			.replace(/\/$/, "")
+			.replace(/^\/(desk|app)(?=\/|$)/, "")
+			.replace(/^\//, "")
+			.split("/")[0];
+		return hrSetupRoutes.some((name) => routeHead === name || pathHead === name);
 	}
 
 	employee_roster.unified_sidebar = controller;

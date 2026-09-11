@@ -22,6 +22,7 @@ param(
 $ErrorActionPreference = "Stop"
 $DeployDir = $PSScriptRoot
 $envFile = Join-Path $DeployDir ".env"
+. (Join-Path $DeployDir "scripts\common.ps1")
 
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
     throw "Docker not found. Install Docker Desktop first."
@@ -34,21 +35,11 @@ if (-not (Test-Path $envFile)) {
     throw "Missing deploy\.env. Run .\install.ps1 first."
 }
 
-$composeOptions = @("-f", "docker-compose.yml", "-f", "docker-compose.dev.yml")
-$port = "8080"
-$useBundledPostgres = $false
-foreach ($line in Get-Content $envFile) {
-    if ($line -match '^USE_BUNDLED_POSTGRES=(.+)$' -and $Matches[1].Trim().ToLower() -eq 'true') {
-        $composeOptions += @("--profile", "bundled-postgres")
-        $useBundledPostgres = $true
-    }
-    if ($line -match '^USE_BUNDLED_REDIS=(.+)$' -and $Matches[1].Trim().ToLower() -eq 'true') {
-        $composeOptions += @("--profile", "bundled-redis")
-    }
-    if ($line -match '^HTTP_PORT=(.+)$') {
-        $port = $Matches[1].Trim().Trim('"')
-    }
-}
+Assert-DeployEnvFile -EnvFile $envFile
+
+$composeOptions = @(Get-DeployComposeArgs -EnvFile $envFile -IncludeDevCompose)
+$port = Get-DeployEnvValue -EnvFile $envFile -Key "HTTP_PORT" -Default "8080"
+$useBundledPostgres = ((Get-DeployEnvValue -EnvFile $envFile -Key "USE_BUNDLED_POSTGRES" -Default "false").ToLower() -eq "true")
 
 Push-Location $DeployDir
 try {
@@ -56,9 +47,12 @@ try {
     Write-Host "Starting HRMS development mode..." -ForegroundColor Cyan
     $upOptions = @("up", "-d")
     if ($Recreate) { $upOptions += "--force-recreate" }
-    $upOptions += "backend"
+    $upOptions += @("backend", "nginx")
     & docker compose @composeOptions @upOptions
     if ($LASTEXITCODE -ne 0) { throw "docker compose up failed" }
+
+    Write-Host "Waiting for backend container..."
+    Wait-DeployBackendRunning -ComposeOptions $composeOptions
 
     Write-Host "Synchronizing mounted source code..."
     & docker compose @composeOptions exec -T backend python /workspace/source/deploy/dev_sync.py --once

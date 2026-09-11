@@ -37,6 +37,7 @@ import AttendanceRulesDeskHeader from "./pages/attendance_rules/AttendanceRulesD
 import EmployeeCenterPage from "./pages/employee_center/EmployeeCenterPage.vue";
 import PermissionManagementPage from "./pages/permission_management/PermissionManagementPage.vue";
 import RoleAssignmentPage from "./pages/role_assignment/RoleAssignmentPage.vue";
+import PersonalCenterPage from "./pages/personal_center/PersonalCenterPage.vue";
 
 /** Keep Arco / Desk dark mode in sync when OrgUI mounts after a Desk route change. */
 function syncArcoTheme() {
@@ -171,6 +172,18 @@ export function mountEmployeeCenter(el, options = {}) {
 						instanceName: options.instanceName || "",
 					})
 				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountPersonalCenter(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(PersonalCenterPage));
 			},
 		})
 	);

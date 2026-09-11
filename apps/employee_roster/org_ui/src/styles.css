@@ -546,13 +546,23 @@ body.hr-unified-sidebar-active .layout-main-section.hr-desk-content-stack {
 }
 
 /* ---------- Arco HR organization diagram ---------- */
+/*
+ * Never set display:!important on the page-container itself.
+ * Frappe hides inactive pages with inline display:none; !important would
+ * keep 架构图 stuck on top after route changes (URL updates, content does not).
+ */
 .arco-orgdiagram-wrapper.page-container,
 .arco-orgdiagram-wrapper {
-	display: flex !important;
 	flex-direction: column;
 	box-sizing: border-box;
 	height: calc(100dvh - var(--hr-arco-navbar-height, 60px));
 	min-height: calc(100dvh - var(--hr-arco-navbar-height, 60px));
+}
+
+body[data-route="org-diagram"] .page-container.arco-orgdiagram-wrapper,
+body[data-page-route="org-diagram"] .page-container.arco-orgdiagram-wrapper,
+body[data-route^="org-diagram/"] .page-container.arco-orgdiagram-wrapper {
+	display: flex;
 }
 
 .arco-orgdiagram-wrapper .page-head {

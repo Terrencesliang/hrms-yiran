@@ -1,0 +1,19 @@
+{
+ "content": null,
+ "creation": "2026-09-11 12:00:00.000000",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-09-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "personal-center",
+ "owner": "Administrator",
+ "page_name": "personal-center",
+ "roles": [{"role":"Employee Center User"},{"role":"Employee"},{"role":"HR User"},{"role":"HR Manager"},{"role":"System Manager"}],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "个人中心"
+}

@@ -15,11 +15,7 @@ param(
 $ErrorActionPreference = "Stop"
 $DeployDir = $PSScriptRoot
 $envFile = Join-Path $DeployDir ".env"
-
-function Write-Step([string]$Message) {
-    Write-Host ""
-    Write-Host "==> $Message" -ForegroundColor Cyan
-}
+. (Join-Path $DeployDir "scripts\common.ps1")
 
 function Test-DockerReady {
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
@@ -31,15 +27,27 @@ function Test-DockerReady {
     }
 }
 
-function Show-AccessInfo {
-    $admin = "admin"
-    $port = "8080"
-    if (Test-Path $envFile) {
-        foreach ($line in Get-Content $envFile) {
-            if ($line -match '^ADMIN_PASSWORD=(.+)$') { $admin = $Matches[1].Trim().Trim('"') }
-            if ($line -match '^HTTP_PORT=(.+)$') { $port = $Matches[1].Trim() }
-        }
-    }
+if (-not (Test-Path $envFile)) {
+    throw "Missing deploy\.env. Run .\install.ps1 first."
+}
+
+Write-Host ""
+Write-Host "==> Checking Docker" -ForegroundColor Cyan
+Test-DockerReady
+Assert-DeployEnvFile -EnvFile $envFile
+
+Push-Location $DeployDir
+try {
+    Write-Host ""
+    Write-Host "==> Starting containers" -ForegroundColor Cyan
+    & (Join-Path $DeployDir "compose.ps1") up -d backend nginx
+    if ($LASTEXITCODE -ne 0) { throw "docker compose up failed" }
+
+    $composeOptions = @(Get-DeployComposeArgs -EnvFile $envFile)
+    Wait-DeployBackendRunning -ComposeOptions $composeOptions
+
+    $admin = Get-DeployEnvValue -EnvFile $envFile -Key "ADMIN_PASSWORD" -Default "admin"
+    $port = Get-DeployEnvValue -EnvFile $envFile -Key "HTTP_PORT" -Default "8080"
 
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
@@ -52,26 +60,12 @@ function Show-AccessInfo {
     Write-Host "Logs:  deploy\logs.ps1"
     Write-Host "Stop:  deploy\stop.ps1"
     Write-Host "========================================" -ForegroundColor Green
-}
-
-if (-not (Test-Path $envFile)) {
-    throw "Missing deploy\.env. Run .\install.ps1 first."
-}
-
-Write-Step "Checking Docker"
-Test-DockerReady
-
-Push-Location $DeployDir
-try {
-    Write-Step "Starting containers"
-    & (Join-Path $DeployDir "compose.ps1") up -d backend
-    if ($LASTEXITCODE -ne 0) { throw "docker compose up failed" }
 
     if ($Logs) {
-        Write-Step "Following logs (Ctrl+C to exit)"
+        Write-Host ""
+        Write-Host "==> Following logs (Ctrl+C to exit)" -ForegroundColor Cyan
         & (Join-Path $DeployDir "compose.ps1") logs -f backend
     } else {
-        Show-AccessInfo
         Write-Host "First install may take 15-30 minutes. Run .\logs.ps1 to watch progress." -ForegroundColor Yellow
     }
 }

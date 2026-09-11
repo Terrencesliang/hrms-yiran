@@ -12,14 +12,19 @@ function ensureOrgDiagramUiCss() {
 	document.head.appendChild(link);
 }
 
-frappe.pages["org-diagram"].on_page_load = function (wrapper) {
+function unmountOrgDiagram() {
+	try {
+		orgDiagramApp?.unmount?.();
+	} catch (error) {
+		console.warn("[org-diagram] unmount failed", error);
+	}
+	orgDiagramApp = null;
+}
+
+function mountOrgDiagram(wrapper) {
 	ensureOrgDiagramUiCss();
 
-	frappe.ui.make_app_page({
-		parent: wrapper,
-		title: __("架构图"),
-		single_column: true,
-	});
+	if (!wrapper?.page?.main) return;
 
 	$(wrapper).addClass("arco-orgchart-wrapper arco-orgdiagram-wrapper");
 	$(wrapper).find(".layout-main").addClass("row");
@@ -37,14 +42,31 @@ frappe.pages["org-diagram"].on_page_load = function (wrapper) {
 		return;
 	}
 
+	unmountOrgDiagram();
 	orgDiagramApp = window.OrgUI.mountOrgDiagram(mountEl);
+}
+
+frappe.pages["org-diagram"].on_page_load = function (wrapper) {
+	frappe.ui.make_app_page({
+		parent: wrapper,
+		title: __("架构图"),
+		single_column: true,
+	});
+
+	// Frappe only auto-fires on_page_show via "show"; wire "hide" ourselves.
+	$(wrapper)
+		.off("hide.orgdiagram")
+		.on("hide.orgdiagram", () => {
+			unmountOrgDiagram();
+		});
+
+	mountOrgDiagram(wrapper);
+};
+
+frappe.pages["org-diagram"].on_page_show = function (wrapper) {
+	if (wrapper?.page?.main) mountOrgDiagram(wrapper);
 };
 
 frappe.pages["org-diagram"].on_page_leave = function () {
-	try {
-		orgDiagramApp?.unmount?.();
-	} catch (error) {
-		console.warn("[org-diagram] unmount failed", error);
-	}
-	orgDiagramApp = null;
+	unmountOrgDiagram();
 };

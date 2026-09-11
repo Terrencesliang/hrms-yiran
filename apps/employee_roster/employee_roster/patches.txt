@@ -20,6 +20,7 @@ employee_roster.integrations.wecom.setup
 employee_roster.patches.v1_0.seed_employee_center
 employee_roster.patches.v1_0.ensure_employee_center_user_role
 employee_roster.patches.v1_0.seed_business_roles
+employee_roster.patches.v1_0.provision_employee_accounts
 
 [post_fixture_sync]
 # Patches added in this section will be executed after fixtures and customizations
