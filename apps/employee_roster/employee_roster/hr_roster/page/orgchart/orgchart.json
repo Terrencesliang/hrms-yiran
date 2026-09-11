@@ -10,10 +10,20 @@
  "name": "orgchart",
  "owner": "Administrator",
  "page_name": "orgchart",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u7ec4\u7ec7\u67b6\u6784"
+ "title": "组织架构"
 }

@@ -10,10 +10,20 @@
  "name": "contract-seals",
  "owner": "Administrator",
  "page_name": "contract-seals",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u4f01\u4e1a\u5370\u7ae0"
+ "title": "企业印章"
 }

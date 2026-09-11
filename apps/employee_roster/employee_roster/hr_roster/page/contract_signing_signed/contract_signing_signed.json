@@ -10,10 +10,20 @@
  "name": "contract-signing-signed",
  "owner": "Administrator",
  "page_name": "contract-signing-signed",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u5df2\u7b7e\u7f72"
+ "title": "已签署"
 }

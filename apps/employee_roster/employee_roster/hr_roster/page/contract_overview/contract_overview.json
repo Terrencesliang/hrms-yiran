@@ -10,10 +10,20 @@
  "name": "contract-overview",
  "owner": "Administrator",
  "page_name": "contract-overview",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u5408\u540c\u6982\u89c8"
+ "title": "合同概览"
 }

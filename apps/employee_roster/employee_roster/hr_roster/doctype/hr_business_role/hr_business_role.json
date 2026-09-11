@@ -1,0 +1,44 @@
+{
+ "actions": [],
+ "autoname": "field:role_code",
+ "creation": "2026-09-11 12:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "role_code",
+  "role_title",
+  "company",
+  "role_category",
+  "system_key",
+  "is_system_role",
+  "enabled",
+  "description",
+  "menu_permissions"
+ ],
+ "fields": [
+  {"fieldname": "role_code", "fieldtype": "Data", "hidden": 1, "label": "角色编码", "reqd": 1, "unique": 1},
+  {"fieldname": "role_title", "fieldtype": "Data", "in_list_view": 1, "label": "角色名称", "reqd": 1},
+  {"fieldname": "company", "fieldtype": "Link", "in_list_view": 1, "label": "所属企业", "options": "Company"},
+  {"fieldname": "role_category", "fieldtype": "Select", "label": "角色类型", "options": "系统角色\n自定义角色", "reqd": 1},
+  {"fieldname": "system_key", "fieldtype": "Data", "hidden": 1, "label": "系统标识"},
+  {"default": "0", "fieldname": "is_system_role", "fieldtype": "Check", "label": "系统角色"},
+  {"default": "1", "fieldname": "enabled", "fieldtype": "Check", "in_list_view": 1, "label": "启用"},
+  {"fieldname": "description", "fieldtype": "Small Text", "label": "角色说明"},
+  {"fieldname": "menu_permissions", "fieldtype": "Table", "label": "菜单权限", "options": "HR Role Menu Permission"}
+ ],
+ "index_web_pages_for_search": 0,
+ "links": [],
+ "modified": "2026-09-11 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "hr_roster",
+ "name": "HR Business Role",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {"create": 1, "delete": 1, "email": 1, "export": 1, "print": 1, "read": 1, "report": 1, "role": "System Manager", "share": 1, "write": 1}
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}

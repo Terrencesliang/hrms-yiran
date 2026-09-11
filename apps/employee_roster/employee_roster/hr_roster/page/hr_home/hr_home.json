@@ -10,10 +10,20 @@
  "name": "hr-home",
  "owner": "Administrator",
  "page_name": "hr-home",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u4eba\u4e8b\u4e3b\u9875"
+ "title": "人事主页"
 }

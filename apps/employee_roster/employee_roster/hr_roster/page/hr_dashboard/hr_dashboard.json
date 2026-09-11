@@ -10,10 +10,20 @@
  "name": "hr-dashboard",
  "owner": "Administrator",
  "page_name": "hr-dashboard",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u6570\u636e\u9762\u677f"
+ "title": "数据面板"
 }

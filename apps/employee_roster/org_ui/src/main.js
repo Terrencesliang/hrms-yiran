@@ -34,6 +34,9 @@ import EmployeeCheckinOverview from "./components/EmployeeCheckinOverview.vue";
 import EmployeeCheckinTable from "./components/EmployeeCheckinTable.vue";
 import AttendanceRulesPage from "./pages/attendance_rules/AttendanceRulesPage.vue";
 import AttendanceRulesDeskHeader from "./pages/attendance_rules/AttendanceRulesDeskHeader.vue";
+import EmployeeCenterPage from "./pages/employee_center/EmployeeCenterPage.vue";
+import PermissionManagementPage from "./pages/permission_management/PermissionManagementPage.vue";
+import RoleAssignmentPage from "./pages/role_assignment/RoleAssignmentPage.vue";
 
 /** Keep Arco / Desk dark mode in sync when OrgUI mounts after a Desk route change. */
 function syncArcoTheme() {
@@ -151,6 +154,47 @@ export function mountHrDashboard(el) {
 		createApp({
 			render() {
 				return h(ConfigProvider, { locale: zhCN }, () => h(HrDashboardPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountEmployeeCenter(el, options = {}) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () =>
+					h(EmployeeCenterPage, {
+						view: options.view || "home",
+						instanceName: options.instanceName || "",
+					})
+				);
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountPermissionManagement(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(PermissionManagementPage));
+			},
+		})
+	);
+	app.mount(el);
+	return app;
+}
+
+export function mountRoleAssignment(el) {
+	const app = boot(
+		createApp({
+			render() {
+				return h(ConfigProvider, { locale: zhCN }, () => h(RoleAssignmentPage));
 			},
 		})
 	);

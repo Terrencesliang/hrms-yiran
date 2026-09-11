@@ -1,4 +1,6 @@
 export { call, downloadText, uploadFile } from "./frappe";
+export * from "./employeeCenter";
+export * from "./permissionManagement";
 export {
 	collectExpandKeys,
 	createOrgUnit,

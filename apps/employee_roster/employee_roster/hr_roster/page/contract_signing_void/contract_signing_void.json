@@ -10,10 +10,20 @@
  "name": "contract-signing-void",
  "owner": "Administrator",
  "page_name": "contract-signing-void",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u5df2\u4f5c\u5e9f"
+ "title": "已作废"
 }

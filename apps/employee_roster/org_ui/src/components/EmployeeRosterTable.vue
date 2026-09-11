@@ -64,10 +64,16 @@
 						{{ employeeInitial(record) }}
 					</a-avatar>
 					<div class="hr-roster-copy">
-					<a-link class="hr-roster-employee-link" @click.stop="openRow(record)">
-						{{ record.employee_name || "未命名员工" }}
-					</a-link>
-					<span>工号 {{ record.employee_number || "—" }}</span>
+						<strong
+							class="hr-roster-employee-name"
+							role="link"
+							tabindex="0"
+							@click.stop="openRow(record)"
+							@keydown.enter.prevent="openRow(record)"
+						>
+							{{ record.employee_name || "未命名员工" }}
+						</strong>
+						<span>工号 {{ record.employee_number || "—" }}</span>
 					</div>
 				</div>
 			</template>
@@ -139,8 +145,7 @@ const columns = computed(() => [
 		dataIndex: "employee_number",
 		slotName: "employee",
 		width: 210,
-		fixed: "left",
-		// sorter: true = 仅展示排序控件，真正排序由 sortedRows 受控完成，避免与 Arco 内置排序叠加重排
+		// 不再 fixed：避免固定列/排序列灰底与其它列不一致
 		sortable: {
 			sortDirections: ["ascend", "descend"],
 			sorter: true,
@@ -363,15 +368,45 @@ onBeforeUnmount(() => observer?.disconnect());
 .hr-roster-filter-button { flex: 0 0 auto; }
 .hr-roster-filter-count { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; margin-left: 4px; padding: 0 5px; border-radius: 9px; background: rgb(var(--arcoblue-6, 22, 93, 255)); color: #fff; font-size: 11px; }
 .hr-roster-arco-table { width: 100%; }
-.hr-roster-arco-table :deep(.arco-table-th) { height: 44px; background: var(--color-fill-1); color: var(--color-text-2); font-size: 13px; font-weight: 500; }
-.hr-roster-arco-table :deep(.arco-table-td) { height: 66px; border-bottom-color: var(--color-border-1); font-size: 13px; }
-.hr-roster-arco-table :deep(.arco-table-tr:not(.arco-table-tr-empty):hover .arco-table-td) { background: rgb(var(--arcoblue-1, 232, 243, 255)); }
-.hr-roster-arco-table :deep(.arco-table-tr:hover .hr-roster-employee-link) { text-decoration: underline; text-underline-offset: 3px; }
+.hr-roster-arco-table :deep(.arco-table-th) {
+	height: 44px;
+	background: var(--color-fill-1) !important;
+	color: var(--color-text-2);
+	font-size: 13px;
+	font-weight: 500;
+}
+.hr-roster-arco-table :deep(.arco-table-td),
+.hr-roster-arco-table :deep(.arco-table-td.arco-table-col-sorted) {
+	height: 66px;
+	background: #fff;
+	border-bottom-color: var(--color-border-1);
+	font-size: 13px;
+}
+.hr-roster-arco-table :deep(.arco-table-th.arco-table-col-sorted) {
+	background: var(--color-fill-1) !important;
+}
+/* .arco-table-hover 在表格根节点上，不能写成后代选择器 */
+.hr-roster-arco-table :deep(tbody .arco-table-tr:not(.arco-table-tr-empty):not(.arco-table-tr-summary):hover > .arco-table-td),
+.hr-roster-arco-table :deep(tbody .arco-table-tr:not(.arco-table-tr-empty):not(.arco-table-tr-summary):hover > .arco-table-td.arco-table-col-sorted) {
+	background-color: #e8f3ff !important;
+}
 .hr-roster-employee, .hr-roster-copy { display: flex; }
 .hr-roster-employee { align-items: center; gap: 12px; }
 .hr-roster-copy { min-width: 0; flex-direction: column; gap: 4px; }
-.hr-roster-employee-link { justify-content: flex-start; width: fit-content; padding: 0; font-size: 13px; font-weight: 600; }
 .hr-roster-copy strong, .hr-roster-primary-text, .hr-roster-date { color: var(--color-text-1); font-size: 13px; font-weight: 500; }
+.hr-roster-employee-name {
+	width: fit-content;
+	color: var(--color-text-1);
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	text-decoration: none !important;
+}
+
+.hr-roster-employee-name:hover {
+	color: #165dff;
+	text-decoration: none !important;
+}
 .hr-roster-copy span { max-width: 235px; overflow: hidden; color: var(--color-text-3); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
 .hr-roster-contact strong { font-weight: 400; }
 .hr-roster-date { font-variant-numeric: tabular-nums; white-space: nowrap; }

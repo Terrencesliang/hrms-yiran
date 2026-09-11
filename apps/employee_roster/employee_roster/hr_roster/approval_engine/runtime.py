@@ -367,7 +367,10 @@ def _create_approve_tasks(instance, node: dict) -> None:
 		applicant_employee=instance.applicant_employee,
 		applicant_user=instance.applicant_user,
 		form_data=form_data,
+		allow_fallback=not (instance.business_hook or "").startswith("employee_center_"),
 	)
+	if not users:
+		frappe.throw(_("无法解析审批人，请联系管理员检查员工中心审批流程"))
 	mode = (props.get("mode") or "or").lower()
 	created = []
 	for user in users:
@@ -444,4 +447,6 @@ def _finish_approved(instance) -> None:
 	try:
 		run_business_hook(instance)
 	except Exception:
+		if (instance.business_hook or "").startswith("employee_center_"):
+			raise
 		frappe.log_error(frappe.get_traceback(), "Approval business hook failed")

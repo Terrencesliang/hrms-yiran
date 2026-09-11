@@ -431,6 +431,8 @@ def get_workspace_detail(instance_name: str | None = None, task_name: str | None
 	return {
 		"instance": {
 			"name": inst.name,
+			"application_no": inst.get("application_no") or inst.name,
+			"application_type": inst.get("application_type") or "",
 			"form_title": inst.form_title,
 			"approval_form": inst.approval_form,
 			"status": inst.status,
@@ -441,6 +443,9 @@ def get_workspace_detail(instance_name: str | None = None, task_name: str | None
 			"form_data": parse_json(inst.form_data_json, {}),
 			"process": normalize_process(inst.process_snapshot_json or DEFAULT_PROCESS),
 			"creation": inst.creation,
+			"submitted_at": inst.get("submitted_at"),
+			"reference_doctype": inst.get("reference_doctype") or "",
+			"reference_name": inst.get("reference_name") or "",
 			"finished_on": inst.finished_on,
 			"hook_result": parse_json(inst.hook_result_json, {}),
 		},

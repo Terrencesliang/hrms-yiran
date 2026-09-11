@@ -105,3 +105,49 @@ final result: passed
 - [x] 参考原型与实现主卡片区域视觉对照
 
 final result: passed
+
+---
+
+# 人员角色分配 Design QA
+
+- Source visual truth: `/Users/fancy/Documents/YiRan/yiran-hrms/other/人员角色分配原型-v5-可扩展角色列表.png`
+- Browser implementation screenshot: `/Users/fancy/Documents/YiRan/yiran-hrms/other/人员角色分配页面-实现验证.jpg`
+- Combined comparison: `/Users/fancy/Documents/YiRan/yiran-hrms/other/人员角色分配-原型与实现对比.jpg`
+- Route: `http://localhost:8080/desk/role-assignment`
+- State: 已登录、亮色主题、深圳市依然电商科技有限公司、AI部 / ITBP组、杨志武
+- Source pixels: 1672 × 941 PNG
+- Implementation viewport: 1440 × 900 CSS pixels
+
+## Full-view comparison evidence
+
+- 页面按组织架构、组织成员、角色分配三级联动排版，与选定原型一致。
+- 使用现有 HR Pro 浅色顶栏、侧栏及 Arco Design 控件，中文标题、搜索、筛选、状态与提示完整。
+- 三列工作区填满剩余视口，各列内容独立滚动；窄窗口通过横向滚动保留完整功能，不再裁切角色区。
+
+## Interaction and accessibility
+
+- 实际点击 ITBP组后，成员列表自动定位到已绑定账号的杨志武，并正确回显“普通员工”。
+- 角色勾选后取消可恢复原值；成员复选和“批量分配”入口工作正常。
+- 单人保存和批量保存接口均使用杨志武当前角色完成等值写入，返回成功且刷新后状态不变。
+- 未绑定登录账号的员工显示“未绑定账号”并禁止选择；平台超级管理员不出现在企业可分配角色中。
+
+## Findings
+
+- P0: none.
+- P1: none.
+- P2: none.
+- P3: none.
+
+## Verification
+
+- [x] Vue 类型检查与生产构建
+- [x] 前端测试 4/4
+- [x] 权限测试 7/7
+- [x] 员工中心回归 4/4
+- [x] 员工生命周期回归 2/2
+- [x] 组织同级重名规则回归 2/2
+- [x] 浏览器视觉、单选、批量选择和角色回显验证
+- [x] 参考图与实现图同画面对照
+- [x] Git diff whitespace 检查
+
+final result: passed
