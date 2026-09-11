@@ -5,7 +5,7 @@
 
 	function nextPathFromLocation() {
 		const params = new URLSearchParams(window.location.search || "");
-		return params.get("redirect-to") || params.get("redirect_to") || "/app/hr-home";
+		return params.get("redirect-to") || params.get("redirect_to") || "/desk/hr-home";
 	}
 
 	function showMessage(el, text, isError) {

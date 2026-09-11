@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>{% if title %}{{ title | striptags }}{% else %}HR Pro{% endif %}</title>
+	<style>
+		:root {
+			--hr-green: #00b386;
+			--hr-ink: #1d2129;
+			--hr-muted: #86909c;
+			--hr-bg: #f2f3f5;
+			--hr-card: #ffffff;
+			--hr-line: #e5e6eb;
+		}
+		* { box-sizing: border-box; }
+		body {
+			margin: 0;
+			min-height: 100vh;
+			font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+			color: var(--hr-ink);
+			background:
+				radial-gradient(1200px 500px at 10% -10%, rgba(0, 179, 134, 0.18), transparent 60%),
+				radial-gradient(900px 400px at 100% 0%, rgba(22, 93, 255, 0.08), transparent 55%),
+				var(--hr-bg);
+		}
+		.shell {
+			max-width: 720px;
+			margin: 0 auto;
+			padding: 48px 20px 64px;
+		}
+		.brand {
+			font-size: 28px;
+			font-weight: 700;
+			letter-spacing: 0.02em;
+			color: var(--hr-green);
+			margin: 0 0 8px;
+		}
+		.hello {
+			font-size: 22px;
+			font-weight: 600;
+			margin: 0 0 8px;
+		}
+		.sub {
+			margin: 0 0 28px;
+			color: var(--hr-muted);
+			line-height: 1.6;
+		}
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+			gap: 12px;
+		}
+		.card {
+			display: block;
+			padding: 18px 16px;
+			border-radius: 10px;
+			background: var(--hr-card);
+			border: 1px solid var(--hr-line);
+			text-decoration: none;
+			color: inherit;
+			transition: border-color .15s, transform .15s, box-shadow .15s;
+		}
+		.card:hover {
+			border-color: rgba(0, 179, 134, 0.45);
+			transform: translateY(-1px);
+			box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+		}
+		.card strong { display: block; margin-bottom: 6px; font-size: 16px; }
+		.card span { color: var(--hr-muted); font-size: 13px; line-height: 1.5; }
+		.primary {
+			border-color: rgba(0, 179, 134, 0.35);
+			background: linear-gradient(180deg, #ffffff, #f3fffa);
+		}
+		.note {
+			margin-top: 24px;
+			padding: 12px 14px;
+			border-radius: 8px;
+			background: rgba(0, 179, 134, 0.08);
+			color: #0f6b52;
+			font-size: 13px;
+			line-height: 1.5;
+		}
+		.actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+		.btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			padding: 10px 16px;
+			border-radius: 8px;
+			border: 1px solid var(--hr-line);
+			background: #fff;
+			color: var(--hr-ink);
+			text-decoration: none;
+			font-size: 14px;
+		}
+		.btn-main {
+			background: var(--hr-green);
+			border-color: var(--hr-green);
+			color: #fff;
+		}
+	</style>
+</head>
+<body>
+	{{ content }}
+</body>
+</html>

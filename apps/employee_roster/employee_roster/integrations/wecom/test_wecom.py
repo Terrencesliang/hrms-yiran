@@ -49,13 +49,18 @@ class TestWeComAttendanceMapping(TestCase):
 
 class TestWeComOAuthState(TestCase):
 	def test_sanitize_rejects_open_redirect(self):
+		from employee_roster.integrations.wecom.oauth import to_post_login_path
+
 		self.assertEqual(sanitize_next_path("https://evil.example"), DEFAULT_NEXT_PATH)
 		self.assertEqual(sanitize_next_path("//evil.example"), DEFAULT_NEXT_PATH)
 		self.assertEqual(sanitize_next_path("/login"), DEFAULT_NEXT_PATH)
 		self.assertEqual(
 			sanitize_next_path("/app/approval-workspace?instance=A-1"),
-			"/app/approval-workspace?instance=A-1",
+			"/desk/approval-workspace?instance=A-1",
 		)
+		self.assertEqual(sanitize_next_path("/wecom_home"), "/wecom_home")
+		self.assertEqual(to_post_login_path("/desk/hr-home"), "/desk/hr-home")
+		self.assertEqual(to_post_login_path(None), DEFAULT_NEXT_PATH)
 
 	def test_state_roundtrip(self):
 		config = MagicMock(
@@ -65,7 +70,7 @@ class TestWeComOAuthState(TestCase):
 			oauth_base_url="https://hr.example.com",
 		)
 		state = encode_oauth_state("/app/hr-home", config=config)
-		self.assertEqual(decode_oauth_state(state, config=config), "/app/hr-home")
+		self.assertEqual(decode_oauth_state(state, config=config), "/desk/hr-home")
 		self.assertEqual(decode_oauth_state("tampered.state", config=config), DEFAULT_NEXT_PATH)
 
 	def test_web_login_url_and_panel(self):
@@ -83,7 +88,10 @@ class TestWeComOAuthState(TestCase):
 		self.assertEqual(panel["login_type"], "CorpApp")
 		self.assertEqual(panel["appid"], "wwtest")
 		self.assertEqual(panel["agentid"], "1000002")
-		self.assertEqual(panel["redirect_uri"], "https://hr.example.com/wecom_login")
+		self.assertIn(
+			"/api/method/employee_roster.integrations.wecom.api.wecom_sso_callback",
+			panel["redirect_uri"],
+		)
 		self.assertEqual(panel["redirect_type"], "callback")
 
 
@@ -91,11 +99,11 @@ class TestWeComNotifyCard(TestCase):
 	def test_approval_action_path(self):
 		self.assertEqual(
 			_approval_action_path("Approval Instance", "AI-1"),
-			"/app/approval-workspace?instance=AI-1",
+			"/desk/approval-workspace?instance=AI-1",
 		)
 		self.assertEqual(
 			_approval_action_path("Approval Task", "AT-1"),
-			"/app/approval-workspace?task=AT-1",
+			"/desk/approval-workspace?task=AT-1",
 		)
 
 	@patch("employee_roster.integrations.wecom.service.WeComClient")

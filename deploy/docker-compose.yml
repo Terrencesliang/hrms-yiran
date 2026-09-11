@@ -57,6 +57,8 @@ services:
       LANGUAGE: ${LANGUAGE:-zh}
       HTTP_PORT: ${HTTP_PORT:-8080}
       SYNC_LOCAL_DATA: ${SYNC_LOCAL_DATA:-false}
+      GUNICORN_WORKERS: ${GUNICORN_WORKERS:-3}
+      GUNICORN_THREADS: ${GUNICORN_THREADS:-2}
       USE_TENCENT_COS: ${USE_TENCENT_COS:-false}
       TENCENT_COS_SECRET_ID: ${TENCENT_COS_SECRET_ID:-}
       TENCENT_COS_SECRET_KEY: ${TENCENT_COS_SECRET_KEY:-}
@@ -71,13 +73,23 @@ services:
       TENCENT_COS_EXPENSE_CLAIM_LOCATION: ${TENCENT_COS_EXPENSE_CLAIM_LOCATION:-}
       TENCENT_COS_ACL: ${TENCENT_COS_ACL:-private}
       TENCENT_COS_SIGNED_URL_EXPIRES: ${TENCENT_COS_SIGNED_URL_EXPIRES:-600}
+      WECOM_CORP_ID: ${WECOM_CORP_ID:-}
+      WECOM_AGENT_ID: ${WECOM_AGENT_ID:-}
+      WECOM_APP_SECRET: ${WECOM_APP_SECRET:-}
+      WECOM_CONTACT_SECRET: ${WECOM_CONTACT_SECRET:-}
+      WECOM_CHECKIN_SECRET: ${WECOM_CHECKIN_SECRET:-}
+      WECOM_DEFAULT_COMPANY: ${WECOM_DEFAULT_COMPANY:-}
+      WECOM_ROBOT_WEBHOOK: ${WECOM_ROBOT_WEBHOOK:-}
+      WECOM_OAUTH_BASE_URL: ${WECOM_OAUTH_BASE_URL:-}
+      WECOM_CREATE_MISSING_EMPLOYEES: ${WECOM_CREATE_MISSING_EMPLOYEES:-false}
       SHELL: /bin/bash
     volumes:
       - ..:/workspace/source:ro
       - ./init.sh:/workspace/deploy/init.sh:ro
       - bench-data:/home/frappe/frappe-bench
+    expose:
+      - "8000"
     ports:
-      - "${HTTP_PORT:-8080}:8000"
       - "${SOCKETIO_PORT:-9000}:9000"
     depends_on:
       redis:
@@ -86,6 +98,16 @@ services:
       postgres:
         condition: service_healthy
         required: false
+
+  nginx:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
 
 volumes:
   postgres-data:

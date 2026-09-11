@@ -643,6 +643,211 @@ def send_robot_text(content: str) -> dict[str, Any]:
 	return body
 
 
+def _looks_like_email(value: str) -> bool:
+	return bool(re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", value or ""))
+
+
+def _sanitize_local_part(value: str) -> str:
+	cleaned = re.sub(r"[^A-Za-z0-9._+-]+", ".", str(value or "").strip()).strip("._")
+	return cleaned or "employee"
+
+
+def _unique_user_email(candidate: str) -> str:
+	email = candidate.lower()
+	if not frappe.db.exists("User", email):
+		return email
+	local, _, domain = email.partition("@")
+	for index in range(2, 100):
+		alt = f"{local}+{index}@{domain}"
+		if not frappe.db.exists("User", alt):
+			return alt
+	raise frappe.ValidationError(f"无法为 {candidate} 分配唯一用户名")
+
+
+def _preferred_login_email(employee: Any, remote: dict[str, Any] | None = None) -> str:
+	remote = remote or {}
+	for value in (
+		getattr(employee, "company_email", None),
+		getattr(employee, "personal_email", None),
+		remote.get("email"),
+		remote.get("biz_mail"),
+	):
+		email = str(value or "").strip().lower()
+		if _looks_like_email(email):
+			return email
+
+	for value in (
+		getattr(employee, "cell_number", None),
+		remote.get("mobile"),
+		remote.get("telephone"),
+	):
+		mobile = re.sub(r"\D+", "", str(value or ""))
+		if re.fullmatch(r"1\d{10}", mobile):
+			return f"{mobile}@wecom.local"
+
+	userid = str(
+		getattr(employee, "hr_wecom_id", None) or remote.get("userid") or employee.name
+	).strip()
+	return f"{_sanitize_local_part(userid)}@wecom.local"
+
+
+def provision_system_users_for_wecom_employees(
+	*,
+	limit: int = 0,
+	fetch_remote_profile: bool = True,
+	commit_every: int = 20,
+) -> dict[str, Any]:
+	"""为已绑定企微且未关联系统用户的在职员工创建 User，并回写 Employee.user_id。"""
+	previous_import = getattr(frappe.flags, "in_import", False)
+	frappe.flags.in_import = True
+	client = WeComClient() if fetch_remote_profile else None
+	try:
+		return _provision_system_users_for_wecom_employees(
+			client=client,
+			limit=limit,
+			commit_every=commit_every,
+		)
+	finally:
+		frappe.flags.in_import = previous_import
+
+
+def _provision_system_users_for_wecom_employees(
+	*,
+	client: WeComClient | None,
+	limit: int = 0,
+	commit_every: int = 20,
+) -> dict[str, Any]:
+	from frappe.utils import random_string
+	from frappe.utils.password import update_password
+	filters = {
+		"status": "Active",
+		"hr_wecom_id": ["is", "set"],
+		"user_id": ["is", "not set"],
+	}
+	rows = frappe.get_all(
+		"Employee",
+		filters=filters,
+		fields=[
+			"name",
+			"employee_name",
+			"first_name",
+			"company_email",
+			"personal_email",
+			"cell_number",
+			"hr_wecom_id",
+			"gender",
+			"date_of_birth",
+			"company",
+		],
+		order_by="name asc",
+		limit_page_length=int(limit) if limit else 0,
+	)
+	created = linked_existing = skipped = failed = 0
+	errors: list[dict[str, str]] = []
+
+	for index, row in enumerate(rows, start=1):
+		try:
+			if frappe.db.get_value("Employee", row.name, "user_id"):
+				skipped += 1
+				continue
+
+			remote: dict[str, Any] = {}
+			if client and row.hr_wecom_id:
+				try:
+					remote = client.get_user(str(row.hr_wecom_id))
+				except Exception:
+					remote = {}
+
+			emp_updates: dict[str, Any] = {}
+			if not row.cell_number and remote.get("mobile"):
+				emp_updates["cell_number"] = str(remote.get("mobile")).strip()
+			if not row.company_email and remote.get("email"):
+				emp_updates["company_email"] = str(remote.get("email")).strip().lower()
+			if emp_updates:
+				frappe.db.set_value("Employee", row.name, emp_updates, update_modified=False)
+				for key, value in emp_updates.items():
+					setattr(row, key, value)
+
+			email = _preferred_login_email(row, remote)
+			if frappe.db.exists("User", email):
+				existing_emp = frappe.db.get_value("Employee", {"user_id": email}, "name")
+				if existing_emp and existing_emp != row.name:
+					email = _unique_user_email(email)
+				else:
+					frappe.db.set_value(
+						"Employee", row.name, "user_id", email, update_modified=False
+					)
+					user_doc = frappe.get_doc("User", email)
+					if not user_doc.enabled:
+						user_doc.enabled = 1
+						user_doc.save(ignore_permissions=True)
+					roles = [d.role for d in user_doc.get("roles") or []]
+					if "Employee" not in roles:
+						user_doc.add_roles("Employee")
+					linked_existing += 1
+					if commit_every and index % commit_every == 0:
+						frappe.db.commit()
+						print(
+							f"企微员工开户进度: {index}/{len(rows)}，"
+							f"新建 {created}，关联已有 {linked_existing}，失败 {failed}",
+							flush=True,
+						)
+					continue
+
+			if frappe.db.exists("User", email):
+				email = _unique_user_email(email)
+
+			display = normalize_employee_name(row.employee_name) or row.employee_name or email
+			payload: dict[str, Any] = {
+				"doctype": "User",
+				"email": email,
+				"first_name": display,
+				"enabled": 1,
+				"send_welcome_email": 0,
+				"user_type": "System User",
+				"phone": row.cell_number or remote.get("mobile") or "",
+				"mobile_no": row.cell_number or remote.get("mobile") or "",
+			}
+			if row.gender and frappe.db.exists("Gender", row.gender):
+				payload["gender"] = row.gender
+			user = frappe.get_doc(payload)
+			user.append_roles("Employee")
+			user.insert(ignore_permissions=True)
+			update_password(user.name, random_string(24))
+			frappe.db.set_value(
+				"Employee", row.name, "user_id", user.name, update_modified=False
+			)
+			created += 1
+
+			if commit_every and index % commit_every == 0:
+				frappe.db.commit()
+				print(
+					f"企微员工开户进度: {index}/{len(rows)}，"
+					f"新建 {created}，关联已有 {linked_existing}，失败 {failed}",
+					flush=True,
+				)
+		except Exception as exc:
+			failed += 1
+			frappe.db.rollback()
+			errors.append(
+				{
+					"employee": row.name,
+					"userid": str(row.hr_wecom_id or ""),
+					"error": str(exc)[:300],
+				}
+			)
+
+	frappe.db.commit()
+	return {
+		"candidates": len(rows),
+		"created": created,
+		"linked_existing": linked_existing,
+		"skipped": skipped,
+		"failed": failed,
+		"errors": errors[:50],
+	}
+
+
 def _approval_action_path(
 	document_type: str | None = None,
 	document_name: str | None = None,
@@ -656,7 +861,7 @@ def _approval_action_path(
 		elif document_type == "Approval Task":
 			params["task"] = document_name
 	query = urlencode(params)
-	return f"/app/approval-workspace{('?' + query) if query else ''}"
+	return f"/desk/approval-workspace{('?' + query) if query else ''}"
 
 
 def notify_system_users(

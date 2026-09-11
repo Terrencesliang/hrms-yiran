@@ -16,21 +16,30 @@ def get_context(context):
 	code = frappe.form_dict.get("code")
 	state = frappe.form_dict.get("state")
 	next_path = frappe.form_dict.get("next") or frappe.form_dict.get("redirect_to")
+	error = frappe.form_dict.get("error")
+
+	if error:
+		from urllib.parse import unquote
+
+		context.title = _("企微登录失败")
+		raw = unquote(str(frappe.form_dict.get("message") or "")).strip()
+		context.error_message = escape_html(raw) if raw else _(
+			"登录失败，请返回登录页重试，或联系人事确认账号绑定。"
+		)
+		return context
 
 	if code:
-		try:
-			from employee_roster.integrations.wecom.oauth import complete_oauth_login
+		# 兼容旧回调地址：转到轻量 API，避免在 Website 上下文里做登录。
+		from urllib.parse import urlencode
 
-			result = complete_oauth_login(str(code), str(state or ""))
-			frappe.local.flags.redirect_location = result["redirect_to"]
-			raise frappe.Redirect
-		except frappe.Redirect:
-			raise
-		except Exception as exc:
-			frappe.log_error(frappe.get_traceback(), "企业微信免登失败")
-			context.title = _("企微登录失败")
-			context.error_message = escape_html(str(exc)[:300])
-			return context
+		from employee_roster.integrations.wecom.oauth import oauth_public_base_url
+
+		query = urlencode({"code": code, "state": state or ""})
+		frappe.local.flags.redirect_location = (
+			f"{oauth_public_base_url()}"
+			f"/api/method/employee_roster.integrations.wecom.api.wecom_sso_callback?{query}"
+		)
+		raise frappe.Redirect
 
 	try:
 		from employee_roster.integrations.wecom.oauth import build_authorize_url

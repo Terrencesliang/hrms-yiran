@@ -14,9 +14,9 @@ from frappe.utils import get_url
 
 from .client import WeComClient, WeComConfig, WeComConfigurationError
 
-DEFAULT_NEXT_PATH = "/app/hr-home"
+DEFAULT_NEXT_PATH = "/desk/hr-home"
 STATE_TTL_SECONDS = 600
-ALLOWED_NEXT_PREFIX = "/app/"
+ALLOWED_NEXT_PREFIXES = ("/desk/", "/app/", "/wecom_home")
 
 
 def oauth_public_base_url(config: WeComConfig | None = None) -> str:
@@ -27,7 +27,11 @@ def oauth_public_base_url(config: WeComConfig | None = None) -> str:
 
 
 def oauth_callback_url(config: WeComConfig | None = None) -> str:
-	return f"{oauth_public_base_url(config)}/wecom_login"
+	# 走 API 回调，避免 Website 整页渲染拖慢扫码登录。
+	return (
+		f"{oauth_public_base_url(config)}"
+		"/api/method/employee_roster.integrations.wecom.api.wecom_sso_callback"
+	)
 
 
 def _state_secret(config: WeComConfig) -> bytes:
@@ -41,9 +45,20 @@ def sanitize_next_path(next_path: str | None) -> str:
 		path = f"/{path}"
 	if path.startswith("//") or "://" in path:
 		return DEFAULT_NEXT_PATH
-	if not path.startswith(ALLOWED_NEXT_PREFIX):
+	path_only = path.split("?", 1)[0]
+	if path_only == "/wecom_home" or path_only.startswith("/wecom_home/"):
+		return path
+	if not path.startswith(("/desk/", "/app/")):
 		return DEFAULT_NEXT_PATH
+	# 当前 Frappe 的规范 Desk 前缀是 /desk；直接转换可省掉 /app -> /desk 的 301。
+	if path.startswith("/app/"):
+		path = f"/desk/{path[len('/app/'):]}"
 	return path
+
+
+def to_post_login_path(next_path: str | None) -> str:
+	"""扫码成功后直接进入目标页（默认人事主页）。"""
+	return sanitize_next_path(next_path)
 
 
 def encode_oauth_state(next_path: str | None = None, *, config: WeComConfig | None = None) -> str:
@@ -155,25 +170,35 @@ def resolve_userid_from_code(code: str, *, client: WeComClient | None = None) ->
 
 
 def find_system_user_by_wecom_userid(userid: str) -> str:
-	user = frappe.db.get_value(
-		"Employee",
-		{"hr_wecom_id": userid, "status": "Active"},
-		"user_id",
+	row = frappe.db.sql(
+		"""
+		select e.user_id
+		from "tabEmployee" e
+		inner join "tabUser" u on u.name = e.user_id
+		where e.hr_wecom_id = %s
+		  and e.status = 'Active'
+		  and coalesce(e.user_id, '') <> ''
+		  and u.enabled = 1
+		limit 1
+		""",
+		(userid,),
 	)
-	if not user:
+	if not row:
 		raise frappe.ValidationError(
 			"未找到已绑定该企微账号的在职员工，或员工未关联系统用户"
 		)
-	if not frappe.db.exists("User", user) or frappe.db.get_value("User", user, "enabled") != 1:
-		raise frappe.ValidationError("关联系统用户不存在或已禁用")
-	return str(user)
+	return str(row[0][0])
 
 
 def login_system_user(user: str) -> None:
 	from frappe.auth import LoginManager
 
-	frappe.local.login_manager = LoginManager()
-	frappe.local.login_manager.login_as(user)
+	login_manager = getattr(frappe.local, "login_manager", None)
+	if login_manager is None:
+		login_manager = LoginManager()
+		frappe.local.login_manager = login_manager
+	login_manager.login_as(user)
+	# 确保 sid 落库后再 302，避免会话未提交导致回跳失败页。
 	frappe.db.commit()
 
 
@@ -181,10 +206,68 @@ def complete_oauth_login(code: str, state: str | None = None) -> dict[str, Any]:
 	"""用授权 code 完成登录，返回跳转路径。"""
 	config = WeComConfig.load()
 	next_path = decode_oauth_state(state, config=config)
-	userid = resolve_userid_from_code(code)
+	client = WeComClient(config)
+	userid = resolve_userid_from_code(code, client=client)
 	user = find_system_user_by_wecom_userid(userid)
 	login_system_user(user)
-	return {"user": user, "userid": userid, "redirect_to": next_path}
+	redirect_to = to_post_login_path(next_path)
+	# 后台预热 Desk boot，用户稍后点「人事主页」时更容易命中缓存。
+	enqueue_boot_warmup(user)
+	return {
+		"user": user,
+		"userid": userid,
+		"redirect_to": redirect_to,
+		"desk_next": sanitize_next_path(next_path),
+	}
+
+
+def warm_bootinfo_for_user(user: str | None = None) -> None:
+	"""为指定用户构建并缓存 Desk bootinfo。"""
+	from types import SimpleNamespace
+
+	from frappe.sessions import get as get_session_boot
+
+	user = (user or frappe.session.user or "").strip()
+	if not user or user == "Guest":
+		return
+
+	frappe.set_user(user)
+	# sessions.get 在无 request 时会读 frappe.local.request；补一个轻量占位。
+	if not getattr(frappe.local, "request", None):
+		frappe.local.request = SimpleNamespace(method="GET", path="/desk/hr-home")
+	try:
+		frappe.cache.hdel("bootinfo", user)
+		get_session_boot()
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "企微登录 boot 预热失败")
+
+
+def enqueue_boot_warmup(user: str | None = None) -> None:
+	"""异步预热，不阻塞扫码回调 302。"""
+	user = (user or frappe.session.user or "").strip()
+	if not user or user == "Guest":
+		return
+	try:
+		frappe.enqueue(
+			"employee_roster.integrations.wecom.oauth.warm_bootinfo_for_user",
+			user=user,
+			queue="short",
+			timeout=120,
+			enqueue_after_commit=True,
+			job_id=f"wecom-boot-warmup:{user}",
+			deduplicate=True,
+		)
+	except Exception:
+		# 队列不可用时不阻塞登录。
+		pass
+
+
+def warm_access_token() -> None:
+	"""登录页预热 access_token，减少扫码回调时的 gettoken 耗时。"""
+	try:
+		WeComClient().get_access_token("app")
+	except Exception:
+		pass
 
 
 def oauth_entry_info(next_path: str | None = None) -> dict[str, Any]:
@@ -192,6 +275,7 @@ def oauth_entry_info(next_path: str | None = None) -> dict[str, Any]:
 		config = WeComConfig.load()
 	except WeComConfigurationError as exc:
 		return {"configured": False, "message": str(exc)}
+	warm_access_token()
 	state = encode_oauth_state(next_path, config=config)
 	return {
 		"configured": True,

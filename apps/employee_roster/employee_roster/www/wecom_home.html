@@ -1,0 +1,34 @@
+<main class="shell">
+	<p class="brand">HR Pro</p>
+	<h1 class="hello">你好，{{ display_name }}</h1>
+	<p class="sub">登录已完成。这里是轻量入口，不加载完整 Desk，所以会更快出现。</p>
+	<div class="grid">
+		<a class="card primary" href="/desk/hr-home">
+			<strong>人事主页</strong>
+			<span>进入完整 HR 工作台（首次可能稍慢）</span>
+		</a>
+		<a class="card" href="/desk/List/Employee/List">
+			<strong>员工花名册</strong>
+			<span>查看与管理员工信息</span>
+		</a>
+		<a class="card" href="/desk/approval-workspace">
+			<strong>审批待办</strong>
+			<span>处理审批与抄送</span>
+		</a>
+		<a class="card" href="/desk/contract-overview">
+			<strong>合同中心</strong>
+			<span>合同概览与签署</span>
+		</a>
+	</div>
+	{% if continue_path %}
+	<div class="note">目标页面需要加载完整办公台，可能需要几秒。可先使用上方常用入口，或点击继续打开。</div>
+	<div class="actions">
+		<a class="btn btn-main" href="{{ continue_path }}">继续打开目标页面</a>
+		<a class="btn" href="/desk/hr-home">进入人事主页</a>
+	</div>
+	{% else %}
+	<div class="actions">
+		<a class="btn btn-main" href="/desk/hr-home">进入人事主页</a>
+	</div>
+	{% endif %}
+</main>

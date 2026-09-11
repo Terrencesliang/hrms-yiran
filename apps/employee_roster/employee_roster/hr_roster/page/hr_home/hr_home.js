@@ -8,7 +8,8 @@ function ensureOrgUiCss() {
 	const link = document.createElement("link");
 	link.rel = "stylesheet";
 	link.setAttribute("data-org-ui-css", "1");
-	link.href = `/assets/employee_roster/org_ui/org_ui.css?v=${Date.now()}`;
+	link.href =
+		"/api/method/employee_roster.integrations.wecom.assets.org_ui_css?v=20260911a";
 	document.head.appendChild(link);
 }
 

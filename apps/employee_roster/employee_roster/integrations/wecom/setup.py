@@ -125,8 +125,19 @@ def _migrate_duplicate_employee_field() -> None:
 		)
 
 
+def ensure_wecom_indexes() -> None:
+	"""扫码登录按 hr_wecom_id 反查员工，补索引加速。"""
+	try:
+		frappe.db.sql(
+			'create index if not exists "idx_employee_hr_wecom_id" on "tabEmployee" (hr_wecom_id)'
+		)
+	except Exception:
+		frappe.log_error(frappe.get_traceback(), "创建 hr_wecom_id 索引失败")
+
+
 def execute() -> None:
 	ensure_wecom_custom_fields()
+	ensure_wecom_indexes()
 
 
 def schema_status() -> dict[str, bool]:

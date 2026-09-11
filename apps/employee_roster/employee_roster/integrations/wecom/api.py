@@ -11,6 +11,7 @@ from .client import configuration_status, connection_status
 from .oauth import complete_oauth_login, oauth_entry_info
 from .service import (
 	bind_employee_userids_by_mobile,
+	provision_system_users_for_wecom_employees,
 	send_robot_text,
 	send_text,
 	send_textcard,
@@ -48,6 +49,33 @@ def get_web_login_config(next_path: str | None = None) -> dict[str, Any]:
 	return oauth_entry_info(next_path)
 
 
+@frappe.whitelist(allow_guest=True)
+def wecom_sso_callback(code: str | None = None, state: str | None = None) -> None:
+	"""企微扫码/OAuth 轻量回调：登录后 302，避免 Website 模板渲染。"""
+	from urllib.parse import quote
+
+	code = code or frappe.form_dict.get("code")
+	state = state or frappe.form_dict.get("state")
+	try:
+		result = complete_oauth_login(str(code or "").strip(), state)
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = result["redirect_to"]
+	except Exception as exc:
+		# Postgres 异常后事务可能已中止，先 rollback 才能写 Error Log。
+		try:
+			frappe.db.rollback()
+		except Exception:
+			pass
+		try:
+			frappe.log_error(frappe.get_traceback(), "企业微信免登失败")
+			frappe.db.commit()
+		except Exception:
+			pass
+		message = quote(str(exc)[:180], safe="")
+		frappe.local.response["type"] = "redirect"
+		frappe.local.response["location"] = f"/wecom_login?error=1&message={message}"
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def complete_wecom_login(code: str, state: str | None = None) -> dict[str, Any]:
 	"""扫码/授权成功后的 code 换会话（Guest 可调用）。"""
@@ -74,6 +102,20 @@ def run_contact_sync(create_missing: int | str | None = None) -> dict[str, Any]:
 def bind_existing_employees(limit: int | str = 100) -> dict[str, Any]:
 	_require_hr_manager()
 	return bind_employee_userids_by_mobile(limit=cint(limit))
+
+
+@frappe.whitelist(methods=["POST"])
+def provision_wecom_employee_users(
+	limit: int | str = 0,
+	fetch_remote_profile: int | str = 1,
+) -> dict[str, Any]:
+	"""为已绑定企微的员工创建系统 User 并回写 user_id。"""
+	_require_hr_manager()
+	return provision_system_users_for_wecom_employees(
+		limit=cint(limit),
+		fetch_remote_profile=bool(cint(fetch_remote_profile)),
+		commit_every=20,
+	)
 
 
 @frappe.whitelist(methods=["POST"])

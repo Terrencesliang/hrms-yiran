@@ -200,6 +200,7 @@ ensure_bench_initialized() {
 }
 
 apply_site_config() {
+	local clear_cache="${1:-false}"
 	cd "${BENCH_DIR}"
 	if developer_mode_enabled; then
 		bench --site "${SITE_NAME}" set-config developer_mode 1
@@ -209,7 +210,12 @@ apply_site_config() {
 	bench --site "${SITE_NAME}" set-config language "${LANGUAGE}"
 	bench --site "${SITE_NAME}" set-config host_name "http://localhost:${HTTP_PORT}"
 	bench --site "${SITE_NAME}" enable-scheduler
-	bench --site "${SITE_NAME}" clear-cache
+	# Boot info is expensive to build for a user's first Desk request and is
+	# cached in Redis. Clearing it on every container restart made every restart
+	# look like a slow first login for all WeCom users.
+	if [ "${clear_cache}" = "true" ]; then
+		bench --site "${SITE_NAME}" clear-cache
+	fi
 	bench use "${SITE_NAME}"
 }
 
@@ -330,7 +336,7 @@ create_and_setup_site() {
 	bench --site "${SITE_NAME}" install-app employee_roster
 
 	log "配置站点..."
-	apply_site_config
+	apply_site_config true
 }
 
 build_assets() {
@@ -373,16 +379,12 @@ start_bench() {
 		python /workspace/source/deploy/dev_sync.py --once
 	fi
 	repair_apps_txt
-	apply_site_config
+	apply_site_config false
 	trim_procfile
 	ensure_development_dependencies
-	# Docker publishes the container port to the host, so the development
-	# server must listen on every container interface instead of 127.0.0.1.
-	if developer_mode_enabled; then
-		sed -i 's|^web: .*|web: env PYTHONPATH=/workspace/source/deploy/dev_python bench serve --host 0.0.0.0 --port 8000|' ./Procfile
-	else
-		sed -i 's|^web: .*|web: bench serve --host 0.0.0.0 --port 8000|' ./Procfile
-	fi
+	# Prefer gunicorn behind the compose nginx service. Nginx handles gzip and
+	# buffering; multiple workers avoid single-request stalls during Desk boot.
+	sed -i 's|^web: .*|web: /home/frappe/frappe-bench/env/bin/python /workspace/source/deploy/serve_gunicorn.py|' ./Procfile
 	log "启动 HRMS 服务..."
 	exec bench start
 }

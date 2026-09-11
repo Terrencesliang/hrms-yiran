@@ -34,8 +34,16 @@
 
 - 移动端免登入口：`/wecom_login`（可带 `?next=/app/hr-home`）
 - PC 扫码：登录页内嵌 WwLogin 二维码；失败时回退「企业微信扫码登录」跳转按钮
-- 回调：`/wecom_login?code=...&state=...` → `auth/getuserinfo` → `Employee.hr_wecom_id` → 关联 User 登录
+- 回调（轻量 API，避免 Website 整页渲染）：
+  `/api/method/employee_roster.integrations.wecom.api.wecom_sso_callback`
+- 扫码成功默认直接进入 `/desk/hr-home`（与账密登录一致）；`/wecom_home` 仍可用作可选轻量入口，但不再作为默认跳转
+- 登录后会异步预热该用户的 Desk boot 缓存，便于同会话内再次打开 Desk 页面
+- Desk 首屏等待主要来自 `bootinfo` + 静态资源；生产请走 nginx + gunicorn（见 `deploy/`），开发/穿透环境也已对 JS/CSS/JSON/HTML 做 gzip
+- 流程：`code` → `auth/getuserinfo` → `Employee.hr_wecom_id` → 关联 User 登录 → Desk 目标页
 - 前提：员工已绑定 `hr_wecom_id`，且 Employee 已关联启用的系统 User；不会自动建号
+- 企微「授权回调域名」仍配置主机（可含端口），例如 `xx.stillgroup.net:8088`；与回调路径无关
+
+说明：扫码比账密「感觉更慢」，通常不是因为多了一层落地页，而是扫码每次都是新会话，第一次进 Desk 必须现算 `bootinfo`；账密登录若浏览器里已有静态资源缓存，体感会好一些。
 
 管理接口（写操作仅接受 POST；标 * 的允许 Guest）：
 
