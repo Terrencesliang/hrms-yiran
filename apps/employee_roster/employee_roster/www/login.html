@@ -5,7 +5,7 @@
 
 {% block head_include %}
 {{ include_style('login.bundle.css') }}
-<link rel="stylesheet" href="/assets/employee_roster/css/arco_login.css?v=20260904b">
+<link rel="stylesheet" href="/assets/employee_roster/css/arco_login.css?v=20260911a">
 {% endblock %}
 
 {% macro email_login_body() -%}
@@ -84,6 +84,11 @@
 		</div>
 	</div>
 	{% endif %}
+	<div class="wecom-qr-wrap" hidden>
+		<div class="wecom-qr-divider"><span>{{ _("或使用企业微信扫码登录") }}</span></div>
+		<div id="wecom-qr-login" class="wecom-qr-login" aria-live="polite"></div>
+		<p id="wecom-qr-status" class="wecom-qr-status" hidden></p>
+	</div>
 </div>
 {% endmacro %}
 
@@ -286,4 +291,5 @@
 {% block script %}
 <script>{% include "templates/includes/login/login.js" %}</script>
 <script src="/assets/employee_roster/js/arco_login.js?v=20260904a"></script>
+<script src="/assets/employee_roster/js/wecom_qr_login.js?v=20260911a"></script>
 {% endblock %}

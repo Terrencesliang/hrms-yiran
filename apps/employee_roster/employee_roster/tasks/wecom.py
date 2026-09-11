@@ -64,3 +64,16 @@ def prepare_previous_month_deductions() -> None:
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error(frappe.get_traceback(), "企业微信月度考勤扣款草稿生成失败")
+
+
+def recent_attendance_error() -> dict | None:
+	rows = frappe.get_all(
+		"Error Log",
+		filters={"method": "企业微信近期考勤同步失败"},
+		fields=["creation", "error"],
+		order_by="creation desc",
+		limit=1,
+	)
+	if not rows:
+		return None
+	return {"creation": rows[0].creation, "error": str(rows[0].error or "")[-1000:]}

@@ -52,6 +52,8 @@ def notify_users(
 			list(seen),
 			subject=subject,
 			message=message,
+			document_type=document_type,
+			document_name=document_name,
 		)
 	except Exception:
 		# 企业微信未配置或暂时不可用时，不阻断审批流。

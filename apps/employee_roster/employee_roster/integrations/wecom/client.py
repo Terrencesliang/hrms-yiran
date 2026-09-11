@@ -42,6 +42,7 @@ class WeComConfig:
 	default_company: str = ""
 	robot_webhook: str = ""
 	create_missing_employees: bool = False
+	oauth_base_url: str = ""
 
 	@classmethod
 	def load(cls) -> WeComConfig:
@@ -67,6 +68,7 @@ class WeComConfig:
 			default_company=str(value("DEFAULT_COMPANY")).strip(),
 			robot_webhook=str(value("ROBOT_WEBHOOK")).strip(),
 			create_missing_employees=flag("CREATE_MISSING_EMPLOYEES"),
+			oauth_base_url=str(value("OAUTH_BASE_URL")).strip().rstrip("/"),
 		)
 		missing = [
 			label
@@ -104,6 +106,99 @@ def configuration_status() -> dict[str, Any]:
 		"default_company": config.default_company,
 		"robot_webhook_configured": bool(config.robot_webhook),
 		"create_missing_employees": config.create_missing_employees,
+		"oauth_base_url": config.oauth_base_url,
+	}
+
+
+def connection_status() -> dict[str, Any]:
+	"""无副作用探测应用、通讯录和打卡接口；机器人仅报告配置状态。"""
+	client = WeComClient()
+	result: dict[str, Any] = {
+		"app": {"ok": False},
+		"contacts": {"ok": False},
+		"checkin": {"ok": False, "verified": False},
+		"robot": {
+			"ok": bool(client.config.robot_webhook),
+			"verified": False,
+			"message": "已配置但未发送测试消息",
+		},
+	}
+
+	def error(exc: Exception) -> dict[str, Any]:
+		return {
+			"ok": False,
+			"error": str(exc)[:500],
+			"code": getattr(exc, "code", None),
+		}
+
+	try:
+		client.request(
+			"GET",
+			"/cgi-bin/agent/get",
+			params={"agentid": client.config.agent_id},
+		)
+		result["app"] = {"ok": True}
+	except Exception as exc:
+		result["app"] = error(exc)
+
+	try:
+		client.get_access_token("contacts", force_refresh=True)
+		departments = client.list_departments()
+		result["contacts"] = {"ok": True, "department_count": len(departments)}
+	except Exception as exc:
+		result["contacts"] = error(exc)
+
+	sample_userid = frappe.db.get_value(
+		"Employee",
+		{"status": "Active", "hr_wecom_id": ["is", "set"]},
+		"hr_wecom_id",
+	)
+	sample_source = "employee"
+	if not sample_userid:
+		try:
+			remote_users = client.list_user_ids()
+			sample_userid = next(
+				(
+					str(row.get("userid"))
+					for row in remote_users
+					if row.get("userid")
+				),
+				"",
+			)
+			sample_source = "remote_contact"
+		except Exception:
+			sample_userid = ""
+	if sample_userid:
+		try:
+			end = int(time.time())
+			client.get_checkin_data([str(sample_userid)], end - 3600, end)
+			result["checkin"] = {
+				"ok": True,
+				"verified": True,
+				"sample_source": sample_source,
+			}
+		except Exception as exc:
+			result["checkin"] = {**error(exc), "verified": True}
+	else:
+		result["checkin"]["message"] = "尚无已绑定企微 UserID 的员工，无法验证打卡权限"
+	return result
+
+
+def remote_user_shape() -> dict[str, Any]:
+	"""只返回响应结构，不输出成员隐私。"""
+	client = WeComClient()
+	rows = client.list_user_ids()
+	userid = next((str(row.get("userid")) for row in rows if row.get("userid")), "")
+	if not userid:
+		return {"member_count": len(rows), "has_sample": False}
+	user = client.get_user(userid)
+	return {
+		"member_count": len(rows),
+		"has_sample": True,
+		"keys": sorted(user),
+		"userid_returned": bool(user.get("userid")),
+		"name_returned": bool(user.get("name")),
+		"mobile_returned": bool(user.get("mobile")),
 	}
 
 
@@ -214,7 +309,18 @@ class WeComClient:
 		raise WeComAPIError(-1, "请求重试次数已耗尽", path)
 
 	def list_departments(self) -> list[dict[str, Any]]:
-		return self.request("GET", "/cgi-bin/department/list", scope="contacts").get("department") or []
+		# 2022-08 起，新增可信 IP 的通讯录同步助手只能读取部门 ID，
+		# 部门名称等详情必须改用自建应用（且受应用可见范围限制）。
+		id_rows = self.request(
+			"GET", "/cgi-bin/department/simplelist", scope="contacts"
+		).get("department_id") or []
+		allowed_ids = {str(row.get("id")) for row in id_rows}
+		detail_rows = self.request("GET", "/cgi-bin/department/list").get("department") or []
+		return [
+			row
+			for row in detail_rows
+			if str(row.get("id")) in allowed_ids or str(row.get("id")) == "1"
+		]
 
 	def list_user_ids(self) -> list[dict[str, Any]]:
 		rows: list[dict[str, Any]] = []
@@ -231,6 +337,14 @@ class WeComClient:
 			if not cursor:
 				return rows
 
+	def list_visible_users(self) -> list[dict[str, Any]]:
+		body = self.request(
+			"GET",
+			"/cgi-bin/user/simplelist",
+			params={"department_id": 1, "fetch_child": 1},
+		)
+		return body.get("userlist") or []
+
 	def get_user(self, userid: str) -> dict[str, Any]:
 		return self.request("GET", "/cgi-bin/user/get", params={"userid": userid})
 
@@ -240,6 +354,14 @@ class WeComClient:
 
 	def send_message(self, payload: dict[str, Any]) -> dict[str, Any]:
 		return self.request("POST", "/cgi-bin/message/send", payload=payload)
+
+	def get_user_info_by_code(self, code: str) -> dict[str, Any]:
+		"""网页授权 code 换取访问用户身份（userid）。"""
+		return self.request(
+			"GET",
+			"/cgi-bin/auth/getuserinfo",
+			params={"code": str(code or "").strip()},
+		)
 
 	def get_checkin_data(
 		self, userids: list[str], start_timestamp: int, end_timestamp: int

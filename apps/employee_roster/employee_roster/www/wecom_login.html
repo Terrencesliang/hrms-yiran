@@ -1,0 +1,17 @@
+{% extends "templates/web.html" %}
+
+{% block title %}{{ title or _("企微登录") }}{% endblock %}
+
+{% block page_content %}
+<div class="page-card" style="max-width: 480px; margin: 64px auto;">
+	<div class="page-card-head">
+		<span class="indicator red">{{ title or _("企微登录") }}</span>
+	</div>
+	<p class="text-muted">
+		{{ error_message or _("请从企业微信打开授权链接，或联系人事确认账号绑定。") }}
+	</p>
+	<p>
+		<a class="btn btn-primary btn-sm" href="/login">{{ _("返回登录页") }}</a>
+	</p>
+</div>
+{% endblock %}

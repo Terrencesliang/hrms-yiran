@@ -97,24 +97,29 @@ def sync_checkins(
 				if frappe.db.exists("Employee Checkin", {"wecom_record_id": record_id}):
 					duplicate += 1
 					continue
-				frappe.get_doc(
-					{
-						"doctype": "Employee Checkin",
-						"employee": employee,
-						"time": _local_datetime(checkin_time),
-						"log_type": log_type,
-						"device_id": str(row.get("deviceid") or "")[:140],
-						"checkin_type": (
-							"外勤打卡"
-							if str(row.get("checkin_type") or "") == "外出打卡"
-							else "办公地点"
-						),
-						"wecom_record_id": record_id,
-						"wecom_exception_type": str(row.get("exception_type") or "")[:140],
-						"wecom_group_id": str(row.get("groupid") or ""),
-						"wecom_raw_data": frappe.as_json(row),
-					}
-				).insert(ignore_permissions=True)
+				previous = getattr(frappe.flags, "in_import", False)
+				frappe.flags.in_import = True
+				try:
+					frappe.get_doc(
+						{
+							"doctype": "Employee Checkin",
+							"employee": employee,
+							"time": _local_datetime(checkin_time),
+							"log_type": log_type,
+							"device_id": str(row.get("deviceid") or "")[:140],
+							"checkin_type": (
+								"外勤打卡"
+								if str(row.get("checkin_type") or "") == "外出打卡"
+								else "办公地点"
+							),
+							"wecom_record_id": record_id,
+							"wecom_exception_type": str(row.get("exception_type") or "")[:140],
+							"wecom_group_id": str(row.get("groupid") or ""),
+							"wecom_raw_data": frappe.as_json(row),
+						}
+					).insert(ignore_permissions=True)
+				finally:
+					frappe.flags.in_import = previous
 				created += 1
 	return {"created": created, "duplicate": duplicate, "skipped": skipped}
 
@@ -134,6 +139,9 @@ def _apply_daily_row(row: dict[str, Any], employee_map: dict[str, str]) -> str:
 	if not employee or not report_timestamp:
 		return "skipped"
 	attendance_date = _local_datetime(report_timestamp).date()
+	joining_date = frappe.db.get_value("Employee", employee, "date_of_joining")
+	if joining_date and attendance_date < getdate(joining_date):
+		return "skipped"
 	daily_key = f"{userid}:{attendance_date.isoformat()}"
 	exceptions = {
 		int(item.get("exception") or 0): item
@@ -332,3 +340,15 @@ def sync_attendance_period(
 	if build_deductions:
 		result["deduction_drafts"] = build_deduction_drafts(start_date, end_date)
 	return result
+
+
+def sync_status() -> dict[str, int]:
+	return {
+		"wecom_checkins": frappe.db.count(
+			"Employee Checkin", {"wecom_record_id": ["is", "set"]}
+		),
+		"wecom_daily_attendance": frappe.db.count(
+			"Attendance", {"wecom_daily_key": ["is", "set"]}
+		),
+		"wecom_monthly_reports": frappe.db.count("WeCom Attendance Monthly"),
+	}

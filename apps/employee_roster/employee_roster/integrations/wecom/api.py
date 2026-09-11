@@ -7,11 +7,13 @@ import frappe
 from frappe.utils import cint
 
 from .attendance import sync_attendance_period
-from .client import configuration_status
+from .client import configuration_status, connection_status
+from .oauth import complete_oauth_login, oauth_entry_info
 from .service import (
 	bind_employee_userids_by_mobile,
 	send_robot_text,
 	send_text,
+	send_textcard,
 	sync_contacts,
 )
 
@@ -25,6 +27,39 @@ def _require_hr_manager() -> None:
 def get_configuration_status() -> dict[str, Any]:
 	_require_hr_manager()
 	return configuration_status()
+
+
+@frappe.whitelist()
+def get_connection_status() -> dict[str, Any]:
+	_require_hr_manager()
+	return connection_status()
+
+
+@frappe.whitelist()
+def get_oauth_entry_url(next_path: str | None = None) -> dict[str, Any]:
+	"""返回企微免登/扫码登录链接，供配置可信域名后测试。"""
+	_require_hr_manager()
+	return oauth_entry_info(next_path)
+
+
+@frappe.whitelist(allow_guest=True)
+def get_web_login_config(next_path: str | None = None) -> dict[str, Any]:
+	"""登录页扫码组件公开配置（不含 Secret）。"""
+	return oauth_entry_info(next_path)
+
+
+@frappe.whitelist(allow_guest=True, methods=["POST"])
+def complete_wecom_login(code: str, state: str | None = None) -> dict[str, Any]:
+	"""扫码/授权成功后的 code 换会话（Guest 可调用）。"""
+	if frappe.session.user and frappe.session.user != "Guest":
+		from .oauth import decode_oauth_state
+
+		return {
+			"user": frappe.session.user,
+			"redirect_to": decode_oauth_state(state),
+			"already_logged_in": True,
+		}
+	return complete_oauth_login(str(code or "").strip(), state)
 
 
 @frappe.whitelist(methods=["POST"])
@@ -57,6 +92,25 @@ def run_attendance_sync(
 def send_test_message(userid: str, content: str = "人事系统企业微信连接测试成功") -> dict[str, Any]:
 	_require_hr_manager()
 	return send_text(userid, content)
+
+
+@frappe.whitelist(methods=["POST"])
+def send_test_textcard(
+	userid: str,
+	title: str = "人事系统测试卡片",
+	description: str = "点击打开 HR 首页（需已配置免登可信域名）",
+	next_path: str = "/app/hr-home",
+) -> dict[str, Any]:
+	_require_hr_manager()
+	from .oauth import build_authorize_url
+
+	return send_textcard(
+		userid,
+		title=title,
+		description=description,
+		url=build_authorize_url(next_path=next_path),
+		btntxt="打开",
+	)
 
 
 @frappe.whitelist(methods=["POST"])
