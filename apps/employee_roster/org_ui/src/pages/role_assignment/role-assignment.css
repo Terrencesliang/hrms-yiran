@@ -1,0 +1,53 @@
+.role-assignment-page .hr-page-body-stack { min-height: calc(100vh - 94px); }
+.ra-company-select { width: 310px; }
+.ra-loading, .ra-loading > .arco-spin-children { display: block; width: 100%; min-height: 0; }
+.ra-workspace { display: grid; grid-template-columns: minmax(280px, 30%) minmax(360px, 38%) minmax(320px, 32%); height: calc(100dvh - 185px); min-height: 560px; overflow: hidden; background: var(--color-bg-2); border: 1px solid var(--color-border-2); border-radius: 10px; }
+.ra-org-panel, .ra-member-panel, .ra-role-panel { display: flex; min-width: 0; min-height: 0; flex-direction: column; overflow: hidden; }
+.ra-org-panel, .ra-member-panel { border-right: 1px solid var(--color-border-2); }
+.ra-panel-head, .ra-member-head { flex: 0 0 auto; padding: 16px; border-bottom: 1px solid var(--color-border-2); }
+.ra-panel-head > div, .ra-member-head > div { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px; }
+.ra-panel-head strong, .ra-member-head strong, .ra-role-title strong { color: var(--color-text-1); font-size: 16px; }
+.ra-panel-head span, .ra-member-head span, .ra-role-title span { color: var(--color-text-3); font-size: 13px; }
+.ra-org-scroll { min-height: 0; flex: 1; overflow-y: auto; padding: 10px 12px 18px; scrollbar-gutter: stable; }
+.ra-org-tree { margin: 0; padding: 0; list-style: none; }
+.ra-member-head { display: flex; min-height: 72px; align-items: center; justify-content: space-between; gap: 12px; }
+.ra-member-head > div { margin: 0; }
+.ra-member-search { width: 150px; }
+.ra-member-tools { display: flex; min-height: 48px; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid var(--color-border-2); }
+.ra-member-list { min-height: 0; flex: 1; overflow-y: auto; padding: 6px 8px; }
+.ra-member-row { display: grid; grid-template-columns: 24px 36px minmax(105px, 1fr) minmax(82px, .8fr) auto; align-items: center; width: 100%; min-height: 58px; gap: 9px; padding: 6px 9px; color: var(--color-text-1); text-align: left; background: transparent; border: 1px solid transparent; border-radius: 7px; cursor: pointer; }
+.ra-member-row:hover { background: var(--color-fill-1); }
+.ra-member-row.active { background: rgb(var(--arcoblue-1)); border-color: rgb(var(--arcoblue-5)); }
+.ra-member-row.disabled { cursor: default; opacity: .7; }
+.ra-member-main { min-width: 0; }
+.ra-member-main strong, .ra-member-main small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ra-member-main strong { font-size: 14px; line-height: 21px; }
+.ra-member-main small, .ra-member-job, .ra-member-roles small { color: var(--color-text-3); font-size: 12px; }
+.ra-member-job { overflow: hidden; color: var(--color-text-2); text-overflow: ellipsis; white-space: nowrap; }
+.ra-member-roles { display: flex; align-items: center; gap: 3px; }
+.ra-member-foot { min-height: 38px; padding: 10px 16px; color: var(--color-text-3); font-size: 12px; border-top: 1px solid var(--color-border-2); }
+.ra-profile { display: flex; flex: 0 0 auto; align-items: center; gap: 12px; min-height: 98px; padding: 16px 20px; border-bottom: 1px solid var(--color-border-2); }
+.ra-profile > div { min-width: 0; }
+.ra-profile strong, .ra-profile span, .ra-profile small { display: block; }
+.ra-profile strong { color: var(--color-text-1); font-size: 16px; }
+.ra-profile span { margin-top: 3px; color: var(--color-text-3); font-size: 12px; }
+.ra-profile span i { display: inline-block; width: 6px; height: 6px; margin: 0 4px 1px 8px; background: rgb(var(--green-6)); border-radius: 50%; }
+.ra-profile small { margin-top: 4px; overflow: hidden; color: var(--color-text-2); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.ra-role-content { display: flex; min-height: 0; flex: 1; flex-direction: column; gap: 10px; padding: 16px 18px 0; }
+.ra-role-title { display: flex; align-items: center; justify-content: space-between; }
+.ra-selected-tags { display: flex; max-height: 64px; flex-wrap: wrap; gap: 6px; overflow-y: auto; }
+.ra-role-filter { align-self: flex-start; }
+.ra-role-list { min-height: 170px; flex: 1; overflow-y: auto; border: 1px solid var(--color-border-2); border-radius: 8px; scrollbar-gutter: stable; }
+.ra-role-row { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; min-height: 52px; align-items: center; gap: 8px; padding: 6px 10px; border-bottom: 1px solid var(--color-border-2); cursor: pointer; }
+.ra-role-row:last-child { border-bottom: 0; }
+.ra-role-row:hover { background: var(--color-fill-1); }
+.ra-role-row.active { background: rgb(var(--arcoblue-1)); }
+.ra-role-row > span strong, .ra-role-row > span small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ra-role-row > span strong { color: var(--color-text-1); font-size: 13px; }
+.ra-role-row > span small { margin-top: 2px; color: var(--color-text-3); font-size: 11px; }
+.ra-role-note { display: flex; align-items: center; gap: 6px; margin: 0 0 12px; color: var(--color-text-3); font-size: 12px; }
+.ra-actions { display: flex; flex: 0 0 auto; min-height: 62px; align-items: center; justify-content: space-between; padding: 10px 16px; border-top: 1px solid var(--color-border-2); }
+.ra-actions > span { color: var(--color-text-3); font-size: 12px; }
+.ra-actions > div { display: flex; gap: 10px; }
+.ra-empty { margin: auto; }
+@media (max-width: 1180px) { .ra-workspace { grid-template-columns: 270px 330px 330px; overflow-x: auto; } .ra-member-row { grid-template-columns: 24px 32px minmax(95px, 1fr) auto; } .ra-member-job { display: none; } }

@@ -8,7 +8,17 @@
  "name": "recruiting-active",
  "owner": "Administrator",
  "page_name": "recruiting-active",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "standard": "Yes",
  "system_page": 0,
  "title": "招聘中"

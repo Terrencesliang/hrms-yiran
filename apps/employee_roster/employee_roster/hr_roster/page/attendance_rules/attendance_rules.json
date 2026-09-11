@@ -5,7 +5,17 @@
  "module": "hr_roster",
  "name": "attendance-rules",
  "page_name": "attendance-rules",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "standard": "Yes",
  "system_page": 0,
  "title": "考勤规则"

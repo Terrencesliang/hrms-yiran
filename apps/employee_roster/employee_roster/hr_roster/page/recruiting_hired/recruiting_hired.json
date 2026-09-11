@@ -8,7 +8,17 @@
  "name": "recruiting-hired",
  "owner": "Administrator",
  "page_name": "recruiting-hired",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "standard": "Yes",
  "system_page": 0,
  "title": "已入职"

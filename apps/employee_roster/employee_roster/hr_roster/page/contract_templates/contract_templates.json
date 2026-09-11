@@ -10,10 +10,20 @@
  "name": "contract-templates",
  "owner": "Administrator",
  "page_name": "contract-templates",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u5408\u540c\u6a21\u677f"
+ "title": "合同模板"
 }

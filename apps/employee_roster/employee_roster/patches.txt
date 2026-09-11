@@ -16,6 +16,9 @@ employee_roster.patches.v1_0.seed_admin_login
 employee_roster.patches.v1_0.mark_legacy_contract_signing_provider
 employee_roster.patches.v1_0.backfill_contract_signing_state
 employee_roster.patches.v1_0.backfill_contract_company_actor
+employee_roster.patches.v1_0.seed_employee_center
+employee_roster.patches.v1_0.ensure_employee_center_user_role
+employee_roster.patches.v1_0.seed_business_roles
 
 [post_fixture_sync]
 # Patches added in this section will be executed after fixtures and customizations

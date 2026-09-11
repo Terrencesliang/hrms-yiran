@@ -1,0 +1,34 @@
+.permission-management-page .hr-page-body-stack { min-height: calc(100vh - 94px); }
+.pm-company-select { width: 300px; }
+.pm-shell { display: grid; grid-template-columns: 300px minmax(0, 1fr); min-height: calc(100vh - 185px); background: var(--color-bg-2); border: 1px solid var(--color-border-2); border-radius: 10px; overflow: hidden; }
+.pm-roles { display: flex; flex-direction: column; padding: 18px 14px; border-right: 1px solid var(--color-border-2); }
+.pm-admin-note { margin-bottom: 18px; }
+.pm-admin-note .arco-alert-content { font-size: 13px; line-height: 20px; }
+.pm-role-group-title { margin: 10px 10px 8px; color: var(--color-text-1); font-size: 14px; font-weight: 600; }
+.pm-role-item { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; color: var(--color-text-1); text-align: left; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+.pm-role-item:hover { background: var(--color-fill-2); }
+.pm-role-item.active { color: rgb(var(--primary-6)); background: rgb(var(--primary-1)); }
+.pm-role-icon { display: grid; place-items: center; width: 32px; height: 32px; font-size: 18px; }
+.pm-role-item strong, .pm-role-item small { display: block; }
+.pm-role-item strong { font-size: 15px; line-height: 22px; }
+.pm-role-item small { margin-top: 2px; color: var(--color-text-3); font-size: 13px; line-height: 18px; }
+.pm-role-empty { padding: 12px 14px; color: var(--color-text-4); font-size: 13px; }
+.pm-add-role { margin-top: auto; }
+.pm-menu-panel { display: flex; min-width: 0; flex-direction: column; }
+.pm-menu-head { display: flex; align-items: center; justify-content: space-between; min-height: 78px; padding: 14px 24px; border-bottom: 1px solid var(--color-border-2); }
+.pm-menu-head h2 { margin: 0; color: var(--color-text-1); font-size: 20px; line-height: 28px; }
+.pm-menu-head p { margin: 4px 0 0; color: var(--color-text-3); font-size: 13px; }
+.pm-menu-head > span { color: var(--color-text-3); font-size: 13px; }
+.pm-menu-list { flex: 1; padding: 0 24px 82px; }
+.pm-menu-group { border-bottom: 1px solid var(--color-border-2); }
+.pm-menu-parent { display: grid; grid-template-columns: 30px 32px auto 1fr auto; align-items: center; min-height: 58px; gap: 6px; }
+.pm-expand { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; color: var(--color-text-3); background: transparent; border: 0; cursor: pointer; }
+.pm-expand:disabled { opacity: .25; cursor: default; }
+.pm-menu-icon { display: grid; place-items: center; color: var(--color-text-2); font-size: 18px; }
+.pm-menu-parent strong { color: var(--color-text-1); font-size: 15px; }
+.pm-menu-parent small { margin-left: 8px; color: var(--color-text-3); font-size: 13px; }
+.pm-menu-children { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; padding: 2px 48px 16px 70px; }
+.pm-child-item { display: flex; align-items: center; min-height: 42px; gap: 10px; color: var(--color-text-2); font-size: 14px; cursor: pointer; }
+.pm-actions { position: sticky; bottom: 0; display: flex; justify-content: flex-end; gap: 12px; padding: 14px 18px; background: color-mix(in srgb, var(--color-bg-2) 94%, transparent); border-top: 1px solid var(--color-border-2); backdrop-filter: blur(8px); }
+@media (max-width: 1100px) { .pm-shell { grid-template-columns: 240px minmax(0, 1fr); } .pm-menu-children { grid-template-columns: 1fr; } }
+

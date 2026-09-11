@@ -12,3 +12,4 @@ class ApprovalInstance(Document):
 def on_doctype_update():
 	"""Composite index for batch delete / runtime lookups by form + status."""
 	frappe.db.add_index("Approval Instance", ["approval_form", "status"])
+	frappe.db.add_index("Approval Instance", ["applicant_user", "status", "application_type"])

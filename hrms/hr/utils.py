@@ -1036,6 +1036,10 @@ def check_app_permission():
 	if user_type == "Website User":
 		return False
 
+	# Ordinary employees with Desk access to 员工中心
+	if "Employee Center User" in frappe.get_roles():
+		return True
+
 	if frappe.has_permission("Employee", ptype="read"):
 		return True
 

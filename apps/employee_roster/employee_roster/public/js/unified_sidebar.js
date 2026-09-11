@@ -64,14 +64,18 @@ frappe.provide("employee_roster.unified_sidebar");
 		Performance: __("绩效"),
 		Payroll: __("薪资"),
 		"Tax & Benefits": __("个税"),
+		"Employee Center": __("员工中心"),
 		hr_roster: __("审批"),
 		Contract: __("合同"),
+		"System Management": __("系统管理"),
 	};
 
 	/** Preferred module order; unlisted modules keep their relative default order after these. */
 	const MODULE_ORDER = [
 		"HR Setup",
 		"Shift & Attendance",
+		"Employee Center",
+		"System Management",
 		"hr_roster",
 		"Contract",
 		"Recruitment",
@@ -80,6 +84,18 @@ frappe.provide("employee_roster.unified_sidebar");
 
 	/** Modules injected into the Arco menu when no Dock/Sidebar entry exists yet. */
 	const SYNTHETIC_MODULES = {
+		"Employee Center": {
+			title: __("员工中心"),
+			items: [
+				{ label: __("员工中心"), icon: "home", link_type: "URL", url: "/app/employee-center/home", type: "Link" },
+				{ label: __("入职员工资料填写"), icon: "edit", link_type: "URL", url: "/app/employee-center/onboarding", type: "Link" },
+				{ label: __("申请补贴"), icon: "expense", link_type: "URL", url: "/app/employee-center/subsidy", type: "Link" },
+				{ label: __("调岗调薪"), icon: "change", link_type: "URL", url: "/app/employee-center/job-change", type: "Link" },
+				{ label: __("离职申请表"), icon: "logout", link_type: "URL", url: "/app/employee-center/resignation", type: "Link" },
+				{ label: __("离职交接表"), icon: "list", link_type: "URL", url: "/app/employee-center/handover", type: "Link" },
+				{ label: __("我的申请"), icon: "file", link_type: "URL", url: "/app/employee-center/applications", type: "Link" },
+			],
+		},
 		Contract: {
 			items: [
 				{
@@ -114,6 +130,27 @@ frappe.provide("employee_roster.unified_sidebar");
 				},
 			],
 		},
+		"System Management": {
+			title: __("系统管理"),
+			items: [
+				{
+					label: __("权限管理"),
+					icon: "settings",
+					path: "/app/permission-management",
+					link_type: "Page",
+					link_to: "permission-management",
+					type: "Link",
+				},
+				{
+					label: __("人员角色分配"),
+					icon: "users",
+					path: "/app/role-assignment",
+					link_type: "Page",
+					link_to: "role-assignment",
+					type: "Link",
+				},
+			],
+		},
 	};
 
 	const FALLBACK_TAB_MODULES = Object.entries(MODULE_TAB_LABELS).map(([key, label]) => ({
@@ -127,12 +164,14 @@ frappe.provide("employee_roster.unified_sidebar");
 		"Shift & Attendance",
 		"Payroll",
 		"Tax & Benefits",
+		"Employee Center",
 		"Tenure",
 		"Leaves",
 		"Expenses",
 		"Performance",
 		"hr_roster",
 		"Contract",
+		"System Management",
 	]);
 
 	const HR_SETUP_PAGES = new Set(["hr-home", "hr-dashboard"]);
@@ -384,6 +423,7 @@ frappe.provide("employee_roster.unified_sidebar");
 		"Tax & Benefits": "业务主功能",
 		hr_roster: "业务主功能",
 		Contract: "业务主功能",
+		"System Management": "系统设置",
 	};
 
 	function translateSidebarLabel(label) {
@@ -402,6 +442,67 @@ frappe.provide("employee_roster.unified_sidebar");
 		vueApp: null,
 		navbarApp: null,
 		compact: false,
+		accessContext: null,
+		accessLoading: false,
+
+		loadMenuAccess() {
+			if (this.accessLoading || frappe.session.user === "Guest") return;
+			this.accessLoading = true;
+			frappe.call({
+				method: "employee_roster.hr_roster.menu_permissions.get_my_menu_access",
+				callback: (response) => {
+					this.accessContext = response?.message || null;
+					this.accessLoading = false;
+					if (this.enforceMenuRoute()) return;
+					this.refresh();
+				},
+				error: () => {
+					this.accessLoading = false;
+				},
+			});
+		},
+
+		hasMenuKey(key) {
+			if (!this.accessContext) return true;
+			return (this.accessContext.allowed_menu_keys || []).includes(key);
+		},
+
+		canAccessModule(moduleKey) {
+			return this.hasMenuKey(`module::${moduleKey}`);
+		},
+
+		permissionItemKey(moduleKey, item) {
+			let type = String(item?.link_type || "Page");
+			let target = String(item?.link_to || item?.path || item?.url || "");
+			if (type === "URL") {
+				try {
+					const parsed = new URL(target, window.location.origin);
+					target = parsed.pathname.replace(/^\/(app|desk)\/?/, "").replace(/^\/+|\/+$/g, "");
+				} catch (error) {
+					target = target.replace(/^\/(app|desk)\/?/, "").replace(/^\/+|\/+$/g, "");
+				}
+				if (moduleKey === "Employee Center") type = "Page";
+			}
+			return `item::${moduleKey}::${type}::${target}`;
+		},
+
+		canAccessItem(moduleKey, item) {
+			return this.hasMenuKey(this.permissionItemKey(moduleKey, item));
+		},
+
+		enforceMenuRoute() {
+			if (!this.accessContext) return false;
+			const route = this.getRouteStrSafe();
+			const known = this.accessContext.known_routes || {};
+			const matched = Object.keys(known)
+				.sort((a, b) => b.length - a.length)
+				.find((candidate) => route === candidate || route.startsWith(candidate + "/"));
+			if (!matched || (this.accessContext.allowed_routes || []).includes(matched)) return false;
+			const fallback = String(this.accessContext.default_route || "employee-center/home").split("/").filter(Boolean);
+			frappe.show_alert({ message: __("你没有权限访问该菜单"), indicator: "orange" });
+			frappe.set_route(...fallback);
+			return true;
+		},
 
 		redirectLegacyHrSetup() {
 			try {
@@ -415,6 +516,22 @@ frappe.provide("employee_roster.unified_sidebar");
 			}
 		},
 
+		isEmployeeCenterOnly() {
+			return (
+				frappe.user?.has_role?.("Employee Center User") &&
+				!["System Manager", "HR Manager", "HR User"].some((role) => frappe.user.has_role(role))
+			);
+		},
+
+		enforceEmployeeCenterRoute() {
+			if (this.accessContext) return this.enforceMenuRoute();
+			if (!this.isEmployeeCenterOnly()) return false;
+			const route = this.getRouteStrSafe();
+			if (route === "employee-center" || route.startsWith("employee-center/")) return false;
+			frappe.set_route("employee-center", "home");
+			return true;
+		},
+
 		init() {
 			if (this.initialized || !frappe.boot.setup_complete) return;
 			this.initialized = true;
@@ -425,15 +542,22 @@ frappe.provide("employee_roster.unified_sidebar");
 			});
 
 			frappe.router.on("change", () => {
+				if (this.enforceEmployeeCenterRoute()) return;
 				this.redirectLegacyHrSetup();
 				window.requestAnimationFrame(() => this.refresh());
+			});
+
+			window.addEventListener("hr-menu-permissions-changed", () => {
+				this.accessContext = null;
+				this.loadMenuAccess();
 			});
 
 			$(document).on("sidebar-expand.hr-unified", () => {
 				this.syncCollapseControls();
 			});
 
-			this.redirectLegacyHrSetup();
+			if (!this.enforceEmployeeCenterRoute()) this.redirectLegacyHrSetup();
+			this.loadMenuAccess();
 			this.waitForSidebar(() => this.refresh());
 		},
 
@@ -534,6 +658,7 @@ frappe.provide("employee_roster.unified_sidebar");
 					"approval-templates",
 					"approval-workspace",
 					"approval-form-designer",
+					"employee-center",
 					"hr-home",
 					"hr-dashboard",
 					"Company",
@@ -1029,6 +1154,7 @@ frappe.provide("employee_roster.unified_sidebar");
 				if (!source?.items?.length) return [];
 				const built = [];
 				source.items.forEach((item) => {
+					if (!this.canAccessItem(modKey, item)) return;
 					const path = item.path || "#";
 					const key = `${modKey}::${path || item.label}::${item.label}`;
 					if (item.children?.length) {
@@ -1110,7 +1236,8 @@ frappe.provide("employee_roster.unified_sidebar");
 			// Always show full module accordion (人事 / 考勤 / 审批 / 合同 / …).
 			// Contract pages keep 合同 expanded + correct leaf highlight — never swap to a Contract-only menu.
 			modules.forEach((mod) => {
-				const sidebarData = frappe.boot.module_sidebars?.[mod.key];
+				if (!this.canAccessModule(mod.key)) return;
+				const sidebarData = frappe.boot.module_sidebars?.[mod.key] || SYNTHETIC_MODULES[mod.key];
 				const items = [];
 
 				if (sidebarData?.items?.length) {
@@ -1118,6 +1245,7 @@ frappe.provide("employee_roster.unified_sidebar");
 					built.forEach((group) => {
 						(group.items || []).forEach((item) => {
 							const remapped = remapHrSidebarItem(item, mod.key);
+							if (!this.canAccessItem(mod.key, remapped)) return;
 							const path = frappe.ui.sidebar_item.get_route(remapped) || "#";
 							const key = `${mod.key}::${path}::${item.label}`;
 							items.push({
@@ -1251,6 +1379,9 @@ frappe.provide("employee_roster.unified_sidebar");
 		},
 
 		getTabModules() {
+			if (!this.accessContext && this.isEmployeeCenterOnly()) {
+				return [{ key: "Employee Center", label: MODULE_TAB_LABELS["Employee Center"], synthetic: true }];
+			}
 			const entries = this.getDockEntries();
 			const modules = [];
 			const seen = new Set();
@@ -1278,7 +1409,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			}
 
 			if (!modules.length) {
-				return FALLBACK_TAB_MODULES;
+				return FALLBACK_TAB_MODULES.filter((item) => this.canAccessModule(item.key));
 			}
 
 			const ordered = [];
@@ -1292,7 +1423,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			for (const mod of modules) {
 				if (!used.has(mod.key)) ordered.push(mod);
 			}
-			return ordered;
+			return ordered.filter((item) => this.canAccessModule(item.key));
 		},
 
 		getTabModuleKeys() {
@@ -1415,6 +1546,10 @@ frappe.provide("employee_roster.unified_sidebar");
 			const pageName = String(route || "").split("/")[0];
 			const pathPage = this.getPathPageName();
 
+			if (pageName === "employee-center" || pathPage === "employee-center") {
+				return "Employee Center";
+			}
+
 			// 人事主页 / 数据面板 must stay under HR Setup (never Payroll / hr_roster).
 			if (
 				HR_SETUP_PAGES.has(pageName) ||
@@ -1441,7 +1576,7 @@ frappe.provide("employee_roster.unified_sidebar");
 			}
 
 			for (const tab of this.getTabModules()) {
-				const items = frappe.boot.module_sidebars?.[tab.key]?.items || [];
+				const items = (frappe.boot.module_sidebars?.[tab.key] || SYNTHETIC_MODULES[tab.key])?.items || [];
 				for (const item of items) {
 					if (item.type !== "Link") continue;
 					const path = frappe.ui.sidebar_item.get_route(item);
@@ -1505,7 +1640,7 @@ frappe.provide("employee_roster.unified_sidebar");
 					"HR Setup";
 			}
 
-			const sidebarData = frappe.boot.module_sidebars?.[moduleKey];
+			const sidebarData = frappe.boot.module_sidebars?.[moduleKey] || SYNTHETIC_MODULES[moduleKey];
 			let menu = this.$root.find(".hr-unified-menu");
 			if (!menu.length) {
 				menu = $('<nav class="hr-unified-menu" aria-label="HR navigation"></nav>');

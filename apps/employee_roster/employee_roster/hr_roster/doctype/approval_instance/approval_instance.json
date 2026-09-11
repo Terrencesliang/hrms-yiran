@@ -7,6 +7,8 @@
  "document_type": "Document",
  "engine": "InnoDB",
  "field_order": [
+  "application_no",
+  "application_type",
   "approval_form",
   "form_title",
   "status",
@@ -17,6 +19,9 @@
   "current_node_id",
   "current_node_label",
   "finished_on",
+  "submitted_at",
+  "reference_doctype",
+  "reference_name",
   "section_payload",
   "form_schema_json",
   "form_data_json",
@@ -26,6 +31,21 @@
   "hook_result_json"
  ],
  "fields": [
+  {
+   "fieldname": "application_no",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "申请单号",
+   "unique": 1
+  },
+  {
+   "fieldname": "application_type",
+   "fieldtype": "Select",
+   "in_standard_filter": 1,
+   "label": "申请类型",
+   "options": "onboarding\nsubsidy\njob-change\nresignation\nhandover"
+  },
   {
    "fieldname": "approval_form",
    "fieldtype": "Link",
@@ -49,7 +69,7 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "label": "状态",
-   "options": "进行中\n已通过\n已驳回\n已撤销",
+   "options": "草稿\n进行中\n已通过\n已驳回\n已撤销",
    "reqd": 1
   },
   {
@@ -91,6 +111,23 @@
    "fieldname": "finished_on",
    "fieldtype": "Datetime",
    "label": "结束时间"
+  },
+  {
+   "fieldname": "submitted_at",
+   "fieldtype": "Datetime",
+   "label": "提交时间"
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "业务单据类型",
+   "options": "DocType"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "业务单据",
+   "options": "reference_doctype"
   },
   {
    "fieldname": "section_payload",
@@ -165,16 +202,16 @@
    "write": 1
   },
   {
-   "create": 1,
-   "read": 1,
-   "role": "HR User",
-   "write": 1
+	"read": 1,
+	"role": "HR User"
   },
   {
-   "create": 1,
-   "read": 1,
-   "role": "Employee",
-   "write": 1
+	"read": 1,
+	"role": "Employee"
+  },
+  {
+	"read": 1,
+	"role": "Employee Center User"
   }
  ],
  "sort_field": "modified",

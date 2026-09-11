@@ -10,10 +10,20 @@
  "name": "contract-signing-pending",
  "owner": "Administrator",
  "page_name": "contract-signing-pending",
- "roles": [],
+ "roles": [
+  {
+   "role": "HR User"
+  },
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "script": null,
  "standard": "Yes",
  "style": null,
  "system_page": 0,
- "title": "\u7b7e\u7f72\u4e2d"
+ "title": "签署中"
 }
